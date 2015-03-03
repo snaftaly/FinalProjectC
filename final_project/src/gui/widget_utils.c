@@ -1,13 +1,21 @@
 #include "widget_utils.h"
 
-Widget * create_window(int width, int height){ //do we need to make it black?????
+Widget * create_window(int width, int height, int red, int green, int blue){
 	Widget * new_window = (Widget *)malloc(sizeof(Widget));
 	if(new_window == NULL){
-		fprintf(stderr, "Error: malloc failed while creating a window widget.");
+		perrorPrint("malloc");
 		return NULL;
 	}
 	new_window->type = WINDOW;
 	new_window->surface  = SDL_SetVideoMode(width, height, 0, SDL_HWSURFACE | SDL_DOUBLEBUF);
+	if (new_window->surface == NULL){
+		sdlErrorPrint("failed to set video mode");
+		return NULL;
+	}
+	if (SDL_FillRect(new_window->surface,0,SDL_MapRGB(new_window->surface->format, red, green, blue)) != 0) {
+		sdlErrorPrint("failed to fill rect with color");
+		return NULL;
+	}
 	SDL_Rect location_rect = {0, 0, width ,height};
 	new_window->location_rect = location_rect;
 	return new_window;
@@ -16,13 +24,16 @@ Widget * create_window(int width, int height){ //do we need to make it black????
 Widget * create_panel(int x, int y, int width, int height, int red, int green, int blue){
 	Widget * new_panel = (Widget *)malloc(sizeof(Widget));
 	if(new_panel == NULL){
-		fprintf(stderr, "Error: malloc failed while creating a panel widget.");
+		perrorPrint("malloc");
 		return NULL;
 	}
 	new_panel->type = PANEL;
 	new_panel->surface  = SDL_CreateRGBSurface(0, width, height, 32,0, 0, 0, 0);
+	if (new_panel->surface == NULL){
+		sdlErrorPrint("failed to create RGB surface");
+	}
 	if (SDL_FillRect(new_panel->surface,0,SDL_MapRGB(new_panel->surface->format, red, green, blue)) != 0) {
-		fprintf(stderr,"ERROR: failed to fill rect with color: %s\n", SDL_GetError());
+		sdlErrorPrint("failed to fill rect with color");
 		return NULL;
 	}
 	SDL_Rect location_rect = {x, y, width ,height};
@@ -34,7 +45,7 @@ Widget * create_image(int x, int y, int width, int height, SDL_Surface * img,
 		int imgx, int imgy){
 	Widget * new_image = (Widget *)malloc(sizeof(Widget));
 	if(new_image == NULL){
-		fprintf(stderr, "Error: malloc failed while creating an image widget.");
+		perrorPrint("malloc");
 		return NULL;
 	}
 	new_image->type = IMAGE;
@@ -50,7 +61,7 @@ Widget * create_button(int x, int y, int width, int height, SDL_Surface * img,
 		int imgSx, int imgSy, int imgNSx, int imgNSy, int isSelected){
 	Widget * new_button = (Widget *)malloc(sizeof(Widget));
 	if(new_button == NULL){
-		fprintf(stderr, "Error: malloc failed while creating a button widget.");
+		perrorPrint("malloc");
 		return NULL;
 	}
 	new_button->type = BUTTON;

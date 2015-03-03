@@ -9,12 +9,20 @@
 #define POLLING_DELAY 10
 
 /* an enumeration of all the different states of the program.
-/ each state should correspond to a specific GUI.
-/ Should be moved to some header file. */
+/ each state should correspond to a specific GUI.*/
 typedef enum {
 	MAIN_MENU,
+	NEW_GAME,
+	CHOOSE_CAT,
+	CHOOSE_MOUSE,
+	CAT_SKILL,
+	MOUSE_SKILL,
 	LOAD_GAME,
-	/*...*/
+	EDIT_GAME,
+	WORLD_BUILDER,
+	SAVE_WORLD,
+	PLAY_GAME,
+	ERR_MSG,
 	QUIT
 } StateId;
 
@@ -41,10 +49,12 @@ typedef struct GUI {
 	/ Returns the next state to transition to. */
 	StateId (*presenterHandleEvent) (void* model, void* viewState, void* logicalEvent);
 
-	// The function pointer for deactivating this GUI - freeing the model and viewState and any other resources used.
-	// Returns the initialization data for the next state (can be NULL if not required).
+	/* The function pointer for deactivating this GUI - freeing the model and viewState and any other
+	 * resources used. Returns the initialization data for the next state (can be NULL if not required).*/
 	void* (*stop) (struct GUI* gui);
 } GUI;
+
+typedef struct GUI* GUIref;
 
 /* functions declarations */
 int addWidgetToParent(ListRef);

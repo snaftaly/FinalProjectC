@@ -4,6 +4,7 @@
 /* includes: */
 #include <SDL.h>
 #include <SDL_video.h>
+#include "../main/ErrorHandling.h"
 
 /* define constants: */
 #define WIN_W 800
@@ -34,10 +35,5 @@ Widget * create_image(int, int, int, int, SDL_Surface *,
 		int, int);
 Widget * create_button(int, int, int, int, SDL_Surface *,
 		int, int, int, int, int);
-
-
-
-
-
 
 #endif /* WIDGET_UTILS_H_ */

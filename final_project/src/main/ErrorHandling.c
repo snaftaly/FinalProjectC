@@ -20,3 +20,7 @@ void perrorPrint(char * command){
 	/* use perror to print the error */
 	perror(part1);
 }
+
+void sdlErrorPrint(char * sdlProblem){
+	fprintf(stderr, "ERROR: %s: %s\n", sdlProblem, SDL_GetError());
+}
