@@ -7,6 +7,8 @@
  * and uses perror to print that it failed.
  */
 void perrorPrint(char * command){
+	/* set isError to 1: */
+	isError = 1;
 	/* create an array of string to hold the message:
 	 * the entire message including any of the commands
 	 * we use in this program is less than 60 chars */
@@ -22,5 +24,7 @@ void perrorPrint(char * command){
 }
 
 void sdlErrorPrint(char * sdlProblem){
+	/* set isError to 1: */
+	isError = 1;
 	fprintf(stderr, "ERROR: %s: %s\n", sdlProblem, SDL_GetError());
 }

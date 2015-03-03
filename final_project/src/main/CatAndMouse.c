@@ -2,6 +2,10 @@
 #include <SDL.h>
 #include <SDL_video.h>
 #include "../gui/gui_utils.h"
+#include "ErrorHandling.h"
+
+/* global variables: */
+int isError = 0;
 
 int main(int argc, char * argv[]){
 	Widget * win = create_window(WIN_W, WIN_H);

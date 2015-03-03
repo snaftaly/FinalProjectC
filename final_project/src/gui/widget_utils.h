@@ -25,9 +25,11 @@ typedef struct Widget{
 	SDL_Rect button_non_selected_rect; //the part of the image for the non selected button */
 	SDL_Rect button_selected_rect; //the part of the image for the non selected button */
 	int isButtonSelected; //is the Button widget selected
+	Widget * parentWidget;
 } Widget;
 
 /* function declarations: */
+Widget * createGeneralWidget(int, int, int, int, widget_type);
 Widget * create_window(int, int);
 Widget * create_panel(int, int, int, int, int, int,
 		int);

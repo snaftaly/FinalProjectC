@@ -7,12 +7,12 @@
 
 #define STATES_COUNT 2
 #define POLLING_DELAY 10
+#define MAIN_MENU_NUM_WIDGETS
 
 /* an enumeration of all the different states of the program.
 / each state should correspond to a specific GUI.*/
 typedef enum {
 	MAIN_MENU,
-	NEW_GAME,
 	CHOOSE_CAT,
 	CHOOSE_MOUSE,
 	CAT_SKILL,
@@ -55,6 +55,33 @@ typedef struct GUI {
 } GUI;
 
 typedef struct GUI* GUIref;
+
+typedef struct ViewState{
+	SDL_Surface * image;
+	Widget ** widgets;
+	ListRef UITree;
+} ViewState;
+
+typedef struct ViewState* ViewStateref;
+
+typedef struct GameData{
+	int catSkill;
+	int mouseSkill;
+	int isCatHuman;
+	int isMouseHuman;
+
+	int mainMenuButton;
+	int chooseCatButton;
+	int chooseMouseButton;
+	int catSkillButton;
+	int mouseSkillButton;
+	int loadGameButton;
+	int loadGameWorld;
+	int editedWorld;
+
+	int ** currWorld;
+
+} GameData;
 
 /* functions declarations */
 int addWidgetToParent(ListRef);
