@@ -74,3 +74,11 @@ Widget * create_button(int x, int y, int width, int height, SDL_Surface * img,
 		new_button->img_rect = button_non_selected_rect;
 	return new_button;
 }
+
+void freeWidget(Widget * widget){
+	if (widget != NULL){
+		if (widget->surface != NULL)
+			SDL_FreeSurface(widget->surface);
+		free(widget);
+	}
+}

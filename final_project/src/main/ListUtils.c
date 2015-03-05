@@ -18,6 +18,7 @@ ListRef newList(void* headData){
 	newList->data = NULL;
 	newList->next = NULL;
 	newList->child = NULL;
+	newList->parent = NULL;
 
 	/* if headData is not NULL, put it in the list data field */
 	if (headData != NULL){
@@ -136,22 +137,27 @@ ListRef addChildNode(ListRef parent, void * data){
 		}
 		currChild->next = childNode; /* append the node at the end of the list */
 	}
+	childNode->parent = parent;
 	return childNode; /* return the node added */
 }
 
-int treeDFS(ListRef root, int (* treeNodeFunction) (ListRef node)){ /* return value ??? */
+int treeDFS(ListRef root, int (* treeNodePreFunction) (ListRef node), int (* treeNodePostFunction) (ListRef node)){
 	if (root == NULL)
 		return 0;
+	int preState = treeNodePreFunction(root);
+	if (preState == -1){
+		return -1;
+	}
 	if (root->child != NULL ){
 		ListRef curr = root->child;
 		while (curr != NULL){
-			if (treeDFS(curr, treeNodeFunction) == -1)
+			if (treeDFS(curr, treeNodePreFunction, treeNodePostFunction) == -1)
 				return -1;
 			curr = curr->next;
 		}
 	}
-	int state = treeNodeFunction(root);
-	if (state == -1)
+	int postState = treeNodePostFunction(root);
+	if (postState == -1)
 		return -1;
 	return 0;
 }

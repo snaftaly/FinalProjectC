@@ -2,8 +2,7 @@
 #include "gui_utils.h"
 
 
-
-int addWidgetToParent(ListRef parent){
+int addChildWidgetsToParent(ListRef parent){
 	ListRef currChild = parent->child;
 	if (currChild==NULL){
 		return 0;
@@ -12,32 +11,49 @@ int addWidgetToParent(ListRef parent){
 	while(currChild != NULL){
 		Widget * childWidget = currChild->data;
 		childWidget->parentWidget = parentWidget;
-		switch (childWidget->type){
-			case(PANEL):
-				if (SDL_BlitSurface(childWidget->surface, NULL,
-						parentWidget->surface, &childWidget->location_rect) != 0){
-					fprintf(stderr, "ERROR: failed to blit panel: %s\n", SDL_GetError());
-					return -1;
-				}
-				break;
-			case(BUTTON):
-				if (SDL_BlitSurface(childWidget->surface, &childWidget->img_rect,
-						parentWidget->surface, &childWidget->location_rect) != 0){
-					fprintf(stderr, "ERROR: failed to blit button: %s\n", SDL_GetError());
-					return -1;
-				}
-				break;
-			case(IMAGE):
-				if (SDL_BlitSurface(childWidget->surface, &childWidget->img_rect,
-						parentWidget->surface, &childWidget->location_rect) != 0){
-					fprintf(stderr, "ERROR: failed to blit image/label: %s\n", SDL_GetError());
-					return -1;
-				}
-				break;
-			default:
-				break;
-		}
+		if (blitChildToParentWidget(childWidget, parentWidget) == -1)
+			return -1;
 		currChild = currChild->next;
+	}
+	return 0;
+}
+
+int blitChildToParentWidget(Widget * childWidget, Widget * parentWidget){
+	switch (childWidget->type){
+		case(PANEL):
+			if (SDL_BlitSurface(childWidget->surface, NULL,
+					parentWidget->surface, &childWidget->location_rect) != 0){
+				fprintf(stderr, "ERROR: failed to blit panel: %s\n", SDL_GetError());
+				return -1;
+			}
+			break;
+		case(BUTTON):
+			if (SDL_BlitSurface(childWidget->surface, &childWidget->img_rect,
+					parentWidget->surface, &childWidget->location_rect) != 0){
+				fprintf(stderr, "ERROR: failed to blit button: %s\n", SDL_GetError());
+				return -1;
+			}
+			break;
+		case(IMAGE):
+			if (SDL_BlitSurface(childWidget->surface, &childWidget->img_rect,
+					parentWidget->surface, &childWidget->location_rect) != 0){
+				fprintf(stderr, "ERROR: failed to blit image/label: %s\n", SDL_GetError());
+				return -1;
+			}
+			break;
+	}
+	return 0;
+}
+
+int calcAbsWidgetXY(ListRef node){
+	Widget * nodeWidget = node->data;
+	if (nodeWidget->type == WINDOW){
+		nodeWidget->absX = nodeWidget->absY = 0;
+	}
+	else { /* node has to have a parent node! */
+		Widget * parentWidget = node->parent->data;
+		nodeWidget->absX = parentWidget->absX + nodeWidget->location_rect.x;
+		nodeWidget->absY = parentWidget->absY + nodeWidget->location_rect.y;
 	}
 	return 0;
 }
@@ -105,96 +121,45 @@ GUI createGUIForState(StateId stateId){
 	return returnGUI;
 }
 
-void startMainMenu(GUIref gui, void* initData){
-	/* create widgets array and UItree and image*/
-	Widget ** widgets = (Widget **)malloc(MAIN_MENU_NUM_WIDGETS*sizeof(Widget *));
-	if (widgets == NULL){
-		perrorPrint("malloc");
-	}
-	SDL_Surface *mainMenuImages = SDL_LoadBMP("../../images/mainMenuButtons.bmp");
-	if (mainMenuImages == NULL){
-		sdlErrorPrint("failed to load image");
-		return;
-	}
-	int curr = 0;
-	Widget *win = create_window(WIN_W,WIN_H);
-	if (win == NULL){
-		free(widgets);
-		return;
-	}
-	widgets[curr++] = win;
-	ListRef win_node = newList(win);
-	if (win_node == NULL){
-		freeWidget(widgets[curr-1]);
-		free(widgets);
-		return;
-	}
-	Widget *panel = create_panel(30,50,300,600,0,0,0);
-	if (panel == NULL){
-		freeTree(win_node, freeWidget);
-		free(widgets);
-		return;
-	}
-	widgets[curr++] = panel;
-	ListRef panel_node = addChildNode(win, panel);
-	if (panel_node == NULL){
-		freeWidget(widgets[curr-1]);
-		freeTree(win_node, freeWidget);
-		free(widgets);
-	}
+int isClickEventOnButton(SDL_Event* event, Widget * button){
+	if ((event->button.x > button->absX) && (event->button.x < button->absX + button->location_rect.w)
+			&& (event->button.y > button->absY) && (event->button.y < button->absY + button->location_rect.h))
+		return 1;
+	return 0;
+}
 
-	Widget *label = create_image(30,50,300,600,mainMenuImages,0,0);
-	if (label == NULL){
-		freeTree(win_node, freeWidget);
-		free(widgets);
-		return;
+/* we assume the buttons are in the same surface */
+/* return value ??????????????????????????????????????????? */
+int changeSelectedButton(Widget * oldButton, Widget * newButton){
+	oldButton->isButtonSelected = 0;
+	newButton->isButtonSelected = 1;
+	oldButton->img_rect = oldButton->button_non_selected_rect;
+	newButton->img_rect = newButton->button_selected_rect;
+	if (blitChildToParentWidget(oldButton, oldButton->parentWidget) == -1)
+		return -1;
+	if (blitChildToParentWidget(newButton, newButton->parentWidget) == -1)
+		return -1;
+	Widget * currChild = newButton->parentWidget;
+	while(currChild->parentWidget != NULL){
+		if (blitChildToParentWidget(currChild, currChild->parentWidget) == -1)
+			return -1;
+		currChild = currChild->parentWidget;
 	}
-	widgets[curr++] = label;
-	ListRef label_node = addChildNode(panel, label);
-	if (label_node == NULL){
-		freeWidget(widgets[curr-1]);
-		freeTree(win_node, freeWidget);
-		free(widgets);
-	}
-
-	int button_x = 20, button_y = 40, isSelected_x = 90, isSelected_y = 100, isNselected_x = 90, isNselected_y=120;
-	while (curr != MAIN_MENU_NUM_WIDGETS+1){
-		widgets[curr++] = create_button(button_x,button_y, 100, 100,
-				mainMenuImages, isSelected_x, isSelected_y, isNselected_x, isNselected_y, 0);
-		if (widgets[curr-1] == NULL){
-			freeTree(win_node, freeWidget);
-			free(widgets);
-			return;
-		}
-		ListRef newButtonNode = addChildNode(panel, widgets[curr-1]);
-		if (newButtonNode == NULL){
-			freeWidget(widgets[curr-1]);
-			freeTree(win_node, freeWidget);
-			free(widgets);
-		}
-		button_y +=40;
-		isSelected_y +=30;
-		isNselected_y +=30;
-	}
-	if (initData == NULL){
-		widgets[3]->isButtonSelected = 1;
-		widgets[3]->img_rect = widgets[3]->button_selected_rect;
-	}
-	else{
-		/*take care of other init data options */
-	}
-	/* draw GUI according to UItree */
-	treeDFS(win_node, addWidgetToParent);
-	if (SDL_Flip(win) != 0) {
+	if (SDL_Flip(currChild) != 0) { /* we are in the top level widget - the window */
 		sdlErrorPrint("failed to flip buffer");
-		return;
 	}
-	/* build main menu viewState */
-	ViewStateref mainMenuView = (ViewStateref)malloc(sizeof(ViewState));
-	mainMenuView->UITree = win_node;
-	mainMenuView->image = mainMenuImages;
-	mainMenuView->widgets = widgets;
-	/* build main menu model */
+	return 0;
+}
 
+GameDataRef initGameDataToDefault(){
+	GameDataRef gameData = (GameDataRef)calloc(1, sizeof(gameData));
+	if (gameData == NULL){
+		perrorPrint("malloc");
+		return NULL;
+	}
+	gameData->catSkill = DEFAULT_SKILL;
+	gameData->mouseSkill = DEFAULT_SKILL;
+
+	/* what else ???? */
 
 }

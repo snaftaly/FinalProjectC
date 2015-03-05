@@ -14,6 +14,7 @@ struct List{
     void *data;
     ListRef next;
     ListRef child;
+    ListRef parent;
 };
 
 /* function declarations */

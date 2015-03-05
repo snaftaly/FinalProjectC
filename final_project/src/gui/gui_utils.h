@@ -2,12 +2,14 @@
 #define GUI_UTILS_H_
 
 /* includes */
+#include "../main/CatAndMouse.h"
 #include "../main/ListUtilsExt.h"
 #include "widget_utils.h"
 
+
 #define STATES_COUNT 2
 #define POLLING_DELAY 10
-#define MAIN_MENU_NUM_WIDGETS
+#define MAIN_MENU_NUM_BUTTONS 5
 
 /* an enumeration of all the different states of the program.
 / each state should correspond to a specific GUI.*/
@@ -25,6 +27,13 @@ typedef enum {
 	ERR_MSG,
 	QUIT
 } StateId;
+
+typedef enum{
+	SELECT_CURR_BUTTON,
+	MARK_NEXT_BUTTON,
+	MARK_AND_SELECT_BUTTON,
+	NO_EVENT  /* is necessary ???? */
+} logicalEventType;
 
 /* The GUI structure. */
 typedef struct GUI {
@@ -58,11 +67,18 @@ typedef struct GUI* GUIref;
 
 typedef struct ViewState{
 	SDL_Surface * image;
-	Widget ** widgets;
+	Widget ** menuButtons;
 	ListRef UITree;
 } ViewState;
 
 typedef struct ViewState* ViewStateref;
+
+typedef struct logicalEvent{
+	logicalEventType type;
+	int buttonNum;
+}logicalEvent;
+
+typedef struct logicalEvent logicalEventRef;
 
 typedef struct GameData{
 	int catSkill;
@@ -76,6 +92,7 @@ typedef struct GameData{
 	int catSkillButton;
 	int mouseSkillButton;
 	int loadGameButton;
+
 	int loadGameWorld;
 	int editedWorld;
 
@@ -83,9 +100,13 @@ typedef struct GameData{
 
 } GameData;
 
+typedef struct GameData * GameDataRef;
+
 /* functions declarations */
 int addWidgetToParent(ListRef);
+int calcAbsWidgetXY(ListRef node);
 GUI createGUIForState(StateId);
+int isClickEventOnButton(SDL_Event* event, Widget * button);
 
 
 #endif /* GUI_UTILS_H_ */
