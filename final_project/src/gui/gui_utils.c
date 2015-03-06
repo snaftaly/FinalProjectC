@@ -131,10 +131,8 @@ int isClickEventOnButton(SDL_Event* event, Widget * button){
 /* we assume the buttons are in the same surface */
 /* return value ??????????????????????????????????????????? */
 int changeSelectedButton(Widget * oldButton, Widget * newButton){
-	oldButton->isButtonSelected = 0;
-	newButton->isButtonSelected = 1;
-	oldButton->img_rect = oldButton->button_non_selected_rect;
-	newButton->img_rect = newButton->button_selected_rect;
+	setButtonNotSelected(oldButton);
+	setButtonSelected(newButton);
 	if (blitChildToParentWidget(oldButton, oldButton->parentWidget) == -1)
 		return -1;
 	if (blitChildToParentWidget(newButton, newButton->parentWidget) == -1)
@@ -154,12 +152,28 @@ int changeSelectedButton(Widget * oldButton, Widget * newButton){
 GameDataRef initGameDataToDefault(){
 	GameDataRef gameData = (GameDataRef)calloc(1, sizeof(gameData));
 	if (gameData == NULL){
-		perrorPrint("malloc");
+		perrorPrint("calloc");
 		return NULL;
 	}
 	gameData->catSkill = DEFAULT_SKILL;
 	gameData->mouseSkill = DEFAULT_SKILL;
+	gameData->currWorld = NULL;
 
 	/* what else ???? */
 
+	return gameData;
+}
+
+ViewStateref initializeGUIViewState(){
+	/* allocate memory for create viewState */
+	ViewStateref viewState = (ViewStateref)malloc(sizeof(ViewState));
+	if (viewState == NULL){
+		perrorPrint("malloc");
+		return NULL;
+	}
+	/* initialize viewState fields */
+	viewState->image = NULL;
+	viewState->menuButtons = NULL;
+	viewState->UITree = NULL;
+	return viewState;
 }

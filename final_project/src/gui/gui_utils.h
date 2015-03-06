@@ -10,6 +10,7 @@
 #define STATES_COUNT 2
 #define POLLING_DELAY 10
 #define MAIN_MENU_NUM_BUTTONS 5
+#define COMMON_MENU_NUM_BUTTONS 3
 
 /* an enumeration of all the different states of the program.
 / each state should correspond to a specific GUI.*/
@@ -88,6 +89,8 @@ typedef struct GameData{
 
 	int mainMenuButton;
 	int chooseCatButton;
+	StateId preChooseCat;
+	StateId preChooseMouse;
 	int chooseMouseButton;
 	int catSkillButton;
 	int mouseSkillButton;

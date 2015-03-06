@@ -82,3 +82,13 @@ void freeWidget(Widget * widget){
 		free(widget);
 	}
 }
+
+void setButtonSelected(Widget * button){
+	button->isButtonSelected = 1;
+	button->img_rect = button->button_selected_rect;
+}
+
+void setButtonNotSelected(Widget * button){
+	button->isButtonSelected = 0;
+	button->img_rect = button->button_non_selected_rect;
+}

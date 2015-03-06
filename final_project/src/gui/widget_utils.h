@@ -20,12 +20,12 @@ typedef enum {
 typedef struct Widget{
 	widget_type type; /* maybe not an enum?? */
 	SDL_Surface * surface;
-	SDL_Rect location_rect; /* location and size, relative to containing panel/window */
 	SDL_Rect img_rect; /* the part of the image we cut */
+	SDL_Rect location_rect; /* location and size, relative to containing panel/window */
 	SDL_Rect button_non_selected_rect; /* the part of the image for the non selected button */
 	SDL_Rect button_selected_rect; /* the part of the image for the non selected button */
 	int absX, absY; /* the absolute x and y locations. */
-	int isButtonSelected; /* is the Button widget selected */
+		int isButtonSelected; /* is the Button widget selected */
 	Widget * parentWidget; /*the window/panel containing the widget (NULL for window) */
 } Widget;
 

@@ -6,6 +6,7 @@
 
 /* global variables: */
 int isError = 0;
+int isQuit = 0;
 
 int main(int argc, char * argv[]){
 	Widget * win = create_window(WIN_W, WIN_H);
