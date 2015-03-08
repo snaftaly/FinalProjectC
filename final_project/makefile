@@ -26,4 +26,4 @@ widget_utils.o: src/gui/widget_utils.c src/gui/widget_utils.h
 	gcc -c src/gui/widget_utils.c $(CFLAGS) $(SDL_C)
 
 ErrorHandling.o: src/main/ErrorHandling.c src/main/ErrorHandling.h
-	gcc -c $(CFLAGS) src/main/ErrorHandling.c
+	gcc -c src/main/ErrorHandling.c $(CFLAGS) $(SDL_C)

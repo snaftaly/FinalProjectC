@@ -1,5 +1,8 @@
 #include <stdio.h>
 #include <string.h>
+#include <SDL.h>
+#include <SDL_video.h>
+#include "ErrorHandling.h"
 
 /**
  * perrorPrint function:

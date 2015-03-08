@@ -31,7 +31,7 @@ typedef struct Widget{
 
 /* function declarations: */
 Widget * createGeneralWidget(int, int, int, int, widget_type);
-Widget * create_window(int, int);
+Widget * create_window(int, int, int, int, int);
 Widget * create_panel(int, int, int, int, int, int,
 		int);
 Widget * create_image(int, int, int, int, SDL_Surface *,

@@ -1,6 +1,4 @@
 #include <stdio.h>
-#include <SDL.h>
-#include <SDL_video.h>
 #include "../gui/MVP_utils.h"
 #include "ErrorHandling.h"
 
@@ -54,8 +52,23 @@ int main(int argc, char * argv[]){
 	}
 	return 0;
 	*/
+
+
 	GUI mainMenu = createGUIForState(MAIN_MENU);
 	startMainMenu(&mainMenu, NULL);
-	SDL_Delay(70);
+	SDL_Event e;
+	int quit = 0;
+	while (quit == 0){
+		while (SDL_PollEvent(&e)!= 0) {
+			switch (e.type) {
+				case (SDL_QUIT):
+					quit = 1;
+					break;
+				}
+		}
+		SDL_Delay(10);
+	}
+	menuStop(&mainMenu);
+
 }
 

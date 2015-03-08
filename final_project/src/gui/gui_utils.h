@@ -5,7 +5,6 @@
 #include "../main/CatAndMouse.h"
 #include "../main/ListUtilsExt.h"
 #include "widget_utils.h"
-#include "MVP_utils.h"
 
 #define STATES_COUNT 2
 #define POLLING_DELAY 10
@@ -111,7 +110,7 @@ typedef struct GameData{
 typedef struct GameData * GameDataRef;
 
 /* functions declarations */
-int addWidgetToParent(ListRef);
+int addChildWidgetsToParent(ListRef);
 int blitChildToParentWidget(Widget * childWidget, Widget * parentWidget);
 int calcAbsWidgetXY(ListRef node);
 int isClickEventOnButton(SDL_Event* event, Widget * button);

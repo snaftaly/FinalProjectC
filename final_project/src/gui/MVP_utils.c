@@ -175,7 +175,7 @@ void startMainMenu(GUIref gui, void* initData){
 	gui->viewState = mainMenuView;
 
 	/* create image surface */
-	SDL_Surface *mainMenuImages = SDL_LoadBMP("../../images/MainMenu_temp.bmp");
+	SDL_Surface *mainMenuImages = SDL_LoadBMP("images/MainMenu_temp.bmp");
 	mainMenuView->image = mainMenuImages;
 	if (mainMenuImages == NULL){
 		sdlErrorPrint("failed to load image");
@@ -189,7 +189,7 @@ void startMainMenu(GUIref gui, void* initData){
 		return;
 	}
 	/* create the UItree */
-	Widget *win = create_window(WIN_W,WIN_H);
+	Widget *win = create_window(WIN_W,WIN_H, 0, 0, 0);
 	if (win == NULL){
 		return;
 	}
@@ -218,10 +218,11 @@ void startMainMenu(GUIref gui, void* initData){
 		return;
 	}
 	/* Add buttons to buttons array and to UI tree */
-	int button_x = 50, button_y = 100, isSelected_x = 0, isSelected_y = 0, isNselected_x = BUTTON_W, isNselected_y=0;
+	int button_x = 50, button_y = 100, isSelected_x = BUTTON_W, isSelected_y = 0, isNselected_x = 0, isNselected_y=0;
 	for (int i = 0; i < MAIN_MENU_NUM_BUTTONS; i++){
 		buttons[i] = create_button(button_x,button_y, BUTTON_W, BUTTON_H,
-				mainMenuImages, isSelected_x, isSelected_y, isNselected_x, isNselected_y, 0);
+						mainMenuImages, isSelected_x, isSelected_y, isNselected_x, isNselected_y, 0);
+
 		if (buttons[i] == NULL){
 			return;
 		}
@@ -234,6 +235,8 @@ void startMainMenu(GUIref gui, void* initData){
 		isSelected_y += BUTTON_H;
 		isNselected_y += BUTTON_H;
 	}
+	setButtonSelected(buttons[0]);
+
 	if (initData == NULL){
 		gui->model = initGameDataToDefault(); /* write this function */
 	}
@@ -241,10 +244,10 @@ void startMainMenu(GUIref gui, void* initData){
 		gui->model = initData;
 	}
 	GameDataRef data = gui->model;
-	setButtonSelected(buttons[data->mainMenuButton]);
+	/* setButtonSelected(buttons[data->mainMenuButton]);*/
 
 	/* draw GUI according to UItree */
-	treeDFS(win_node, calcAbsWidgetXY, addWidgetToParent);
+	treeDFS(win_node, calcAbsWidgetXY, addChildWidgetsToParent);
 	if (SDL_Flip(win->surface) != 0) {
 		sdlErrorPrint("failed to flip buffer");
 		return;
@@ -294,7 +297,7 @@ void startChooseAnimal(GUIref gui, void* initData, int animal){
 		return;
 	}
 	/* create the UItree */
-	Widget *win = create_window(WIN_W,WIN_H);
+	Widget *win = create_window(WIN_W,WIN_H, 0, 0, 0);
 	if (win == NULL){
 		return;
 	}
@@ -363,7 +366,7 @@ void startChooseAnimal(GUIref gui, void* initData, int animal){
 		setButtonSelected(buttons[data->chooseMouseButton]);
 	}
 	/* draw GUI according to UItree */
-	treeDFS(win_node, calcAbsWidgetXY, addWidgetToParent);
+	treeDFS(win_node, calcAbsWidgetXY, addChildWidgetsToParent);
 	if (SDL_Flip(win->surface) != 0) {
 		sdlErrorPrint("failed to flip buffer");
 		return;
