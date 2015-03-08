@@ -58,68 +58,6 @@ int calcAbsWidgetXY(ListRef node){
 	return 0;
 }
 
-GUI createGUIForState(StateId stateId){
-	GUI returnGUI;
-	returnGUI.stateId = stateId;
-	returnGUI.model = NULL;
-	returnGUI.viewState = NULL;
-	switch(stateId){
-		case(MAIN_MENU):
-			returnGUI.start = startMainMenu;
-			returnGUI.stop = stopMainMenu;
-			/*...*/
-			break;
-		/*
-		case(LOAD_GAME):
-			returnGUI.start = startLoadGame;
-			returnGUI.stop = stopLoadGame;
-			break;
-		case(NEW_GAME):
-			returnGUI.start = startLoadGame;
-			returnGUI.stop = stopLoadGame;
-			break;
-		case(CHOOSE_CAT):
-			returnGUI.start = startLoadGame;
-			returnGUI.stop = stopLoadGame;
-			break;
-		case(CHOOSE_MOUSE):
-			returnGUI.start = startLoadGame;
-			returnGUI.stop = stopLoadGame;
-			break;
-		case(CAT_SKILL):
-			returnGUI.start = startLoadGame;
-			returnGUI.stop = stopLoadGame;
-			break;
-		case(MOUSE_SKILL):
-			returnGUI.start = startLoadGame;
-			returnGUI.stop = stopLoadGame;
-			break;
-		case(EDIT_GAME):
-			returnGUI.start = startLoadGame;
-			returnGUI.stop = stopLoadGame;
-			break;
-		case(WORLD_BUILDER):
-			returnGUI.start = startLoadGame;
-			returnGUI.stop = stopLoadGame;
-			break;
-		case(SAVE_WORLD):
-			returnGUI.start = startLoadGame;
-			returnGUI.stop = stopLoadGame;
-			break;
-		case(PLAY_GAME):
-			returnGUI.start = startLoadGame;
-			returnGUI.stop = stopLoadGame;
-			break;
-		case(ERR_MSG):
-			returnGUI.start = startLoadGame;
-			returnGUI.stop = stopLoadGame;
-			break;
-			*/
-		default:
-			break;
-	}
-	return returnGUI;
-}
 
 int isClickEventOnButton(SDL_Event* event, Widget * button){
 	if ((event->button.x > button->absX) && (event->button.x < button->absX + button->location_rect.w)
@@ -143,7 +81,7 @@ int changeSelectedButton(Widget * oldButton, Widget * newButton){
 			return -1;
 		currChild = currChild->parentWidget;
 	}
-	if (SDL_Flip(currChild) != 0) { /* we are in the top level widget - the window */
+	if (SDL_Flip(currChild->surface) != 0) { /* we are in the top level widget - the window */
 		sdlErrorPrint("failed to flip buffer");
 	}
 	return 0;
@@ -162,18 +100,4 @@ GameDataRef initGameDataToDefault(){
 	/* what else ???? */
 
 	return gameData;
-}
-
-ViewStateref initializeGUIViewState(){
-	/* allocate memory for create viewState */
-	ViewStateref viewState = (ViewStateref)malloc(sizeof(ViewState));
-	if (viewState == NULL){
-		perrorPrint("malloc");
-		return NULL;
-	}
-	/* initialize viewState fields */
-	viewState->image = NULL;
-	viewState->menuButtons = NULL;
-	viewState->UITree = NULL;
-	return viewState;
 }

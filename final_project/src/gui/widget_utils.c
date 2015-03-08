@@ -75,14 +75,6 @@ Widget * create_button(int x, int y, int width, int height, SDL_Surface * img,
 	return new_button;
 }
 
-void freeWidget(Widget * widget){
-	if (widget != NULL){
-		if (widget->surface != NULL)
-			SDL_FreeSurface(widget->surface);
-		free(widget);
-	}
-}
-
 void setButtonSelected(Widget * button){
 	button->isButtonSelected = 1;
 	button->img_rect = button->button_selected_rect;
@@ -91,4 +83,13 @@ void setButtonSelected(Widget * button){
 void setButtonNotSelected(Widget * button){
 	button->isButtonSelected = 0;
 	button->img_rect = button->button_non_selected_rect;
+}
+
+void freeWidget(void * widget_ptr){
+	Widget * widget = widget_ptr;
+	if (widget != NULL){
+		if (widget->surface != NULL)
+			SDL_FreeSurface(widget->surface);
+		free(widget);
+	}
 }

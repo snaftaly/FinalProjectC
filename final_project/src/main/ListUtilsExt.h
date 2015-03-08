@@ -20,6 +20,7 @@ struct List{
 /* function declarations */
 ListRef addChildNode(ListRef parent, void * data);
 void freeTree(ListRef root, FreeFunc freeData);
-int treeDFS(ListRef root, int (* treeNodeFunction) (ListRef node));
+int treeDFS(ListRef root, int (* treeNodePreFunction) (ListRef node),
+		int (* treeNodePostFunction) (ListRef node));
 
 #endif /* TREEUTILS_H_ */

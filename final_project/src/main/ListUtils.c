@@ -116,7 +116,7 @@ int isEmpty(ListRef list){
 	return 0;
 }
 
-/* ****** extension to tree ****** */
+/* ****** extensiosn for tree structure ****** */
 
 /*
  * adds a new child to a listNode, at the end of the child list, and return it

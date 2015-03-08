@@ -5,12 +5,17 @@
 #include "../main/CatAndMouse.h"
 #include "../main/ListUtilsExt.h"
 #include "widget_utils.h"
-
+#include "MVP_utils.h"
 
 #define STATES_COUNT 2
 #define POLLING_DELAY 10
 #define MAIN_MENU_NUM_BUTTONS 5
 #define COMMON_MENU_NUM_BUTTONS 3
+
+#define BUTTON_W 150
+#define BUTTON_H 35
+#define TITLE_H 40
+
 
 /* an enumeration of all the different states of the program.
 / each state should correspond to a specific GUI.*/
@@ -72,14 +77,14 @@ typedef struct ViewState{
 	ListRef UITree;
 } ViewState;
 
-typedef struct ViewState* ViewStateref;
+typedef struct ViewState * ViewStateref;
 
 typedef struct logicalEvent{
 	logicalEventType type;
 	int buttonNum;
 }logicalEvent;
 
-typedef struct logicalEvent logicalEventRef;
+typedef struct logicalEvent * logicalEventRef;
 
 typedef struct GameData{
 	int catSkill;
@@ -107,9 +112,11 @@ typedef struct GameData * GameDataRef;
 
 /* functions declarations */
 int addWidgetToParent(ListRef);
+int blitChildToParentWidget(Widget * childWidget, Widget * parentWidget);
 int calcAbsWidgetXY(ListRef node);
-GUI createGUIForState(StateId);
 int isClickEventOnButton(SDL_Event* event, Widget * button);
+int changeSelectedButton(Widget * oldButton, Widget * newButton);
+GameDataRef initGameDataToDefault();
 
 
 #endif /* GUI_UTILS_H_ */

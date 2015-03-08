@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <SDL.h>
 #include <SDL_video.h>
-#include "../gui/gui_utils.h"
+#include "../gui/MVP_utils.h"
 #include "ErrorHandling.h"
 
 /* global variables: */
@@ -9,6 +9,7 @@ int isError = 0;
 int isQuit = 0;
 
 int main(int argc, char * argv[]){
+	/*
 	Widget * win = create_window(WIN_W, WIN_H);
 	Widget * panel1 = create_panel(20, 20, 300,300, 90,80,70);
 	Widget * panel2 = create_panel(20, 500, 200, 200, 120,40,230);
@@ -29,8 +30,8 @@ int main(int argc, char * argv[]){
 	ListRef child5 = addChildNode(child2, image2);
 	treeDFS(root, addWidgetToParent);
 
-	/*SDL_BlitSurface(panel1->surface, 0, win->surface, &panel1->location_rect);
-	SDL_BlitSurface(panel2_1->surface, 0, panel1->surface, &panel2_1->location_rect);*/
+	SDL_BlitSurface(panel1->surface, 0, win->surface, &panel1->location_rect);
+	SDL_BlitSurface(panel2_1->surface, 0, panel1->surface, &panel2_1->location_rect);
 	if (SDL_Flip(win->surface) != 0) {
 		printf("ERROR: failed to flip buffer: %s\n", SDL_GetError());
 	}
@@ -49,8 +50,12 @@ int main(int argc, char * argv[]){
 					break;
 			}
 		}
-		SDL_Delay(70);
+
 	}
 	return 0;
+	*/
+	GUI mainMenu = createGUIForState(MAIN_MENU);
+	startMainMenu(&mainMenu, NULL);
+	SDL_Delay(70);
 }
 

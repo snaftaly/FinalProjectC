@@ -26,7 +26,7 @@ typedef struct Widget{
 	SDL_Rect button_selected_rect; /* the part of the image for the non selected button */
 	int absX, absY; /* the absolute x and y locations. */
 		int isButtonSelected; /* is the Button widget selected */
-	Widget * parentWidget; /*the window/panel containing the widget (NULL for window) */
+	struct Widget * parentWidget; /*the window/panel containing the widget (NULL for window) */
 } Widget;
 
 /* function declarations: */
@@ -38,5 +38,8 @@ Widget * create_image(int, int, int, int, SDL_Surface *,
 		int, int);
 Widget * create_button(int, int, int, int, SDL_Surface *,
 		int, int, int, int, int);
+void setButtonSelected(Widget *);
+void setButtonNotSelected(Widget *);
+void freeWidget(void *);
 
 #endif /* WIDGET_UTILS_H_ */
