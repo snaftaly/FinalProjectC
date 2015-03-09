@@ -30,14 +30,14 @@ typedef struct Widget{
 } Widget;
 
 /* function declarations: */
-Widget * createGeneralWidget(int, int, int, int, widget_type);
+Widget * createGeneralWidget(Sint16 x, Sint16 y, Uint16 width, Uint16 height, widget_type type);
 Widget * create_window(int, int, int, int, int);
 Widget * create_panel(int, int, int, int, int, int,
 		int);
 Widget * create_image(int, int, int, int, SDL_Surface *,
 		int, int);
-Widget * create_button(int, int, int, int, SDL_Surface *,
-		int, int, int, int, int);
+Widget * create_button(Sint16 x, Sint16 y, Uint16 width, Uint16 height, SDL_Surface * img,
+		Sint16 imgSx, Sint16 imgSy, Sint16 imgNSx, Sint16 imgNSy, int isSelected);
 void setButtonSelected(Widget *);
 void setButtonNotSelected(Widget *);
 void freeWidget(void *);

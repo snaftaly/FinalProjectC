@@ -218,7 +218,7 @@ void startMainMenu(GUIref gui, void* initData){
 		return;
 	}
 	/* Add buttons to buttons array and to UI tree */
-	int button_x = 50, button_y = 100, isSelected_x = BUTTON_W, isSelected_y = 0, isNselected_x = 0, isNselected_y=0;
+	Sint16 button_x = 50, button_y = 100, isSelected_x = BUTTON_W, isSelected_y = 0, isNselected_x = 0, isNselected_y=0;
 	for (int i = 0; i < MAIN_MENU_NUM_BUTTONS; i++){
 		buttons[i] = create_button(button_x,button_y, BUTTON_W, BUTTON_H,
 						mainMenuImages, isSelected_x, isSelected_y, isNselected_x, isNselected_y, 0);
@@ -235,16 +235,14 @@ void startMainMenu(GUIref gui, void* initData){
 		isSelected_y += BUTTON_H;
 		isNselected_y += BUTTON_H;
 	}
-	setButtonSelected(buttons[0]);
-
-	if (initData == NULL){
+	if (initData == NULL){ /* memmory leak!!! */
 		gui->model = initGameDataToDefault(); /* write this function */
 	}
 	else{
 		gui->model = initData;
 	}
 	GameDataRef data = gui->model;
-	/* setButtonSelected(buttons[data->mainMenuButton]);*/
+	setButtonSelected(buttons[data->mainMenuButton]);
 
 	/* draw GUI according to UItree */
 	treeDFS(win_node, calcAbsWidgetXY, addChildWidgetsToParent);

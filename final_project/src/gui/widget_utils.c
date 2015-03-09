@@ -1,7 +1,7 @@
 #include "widget_utils.h"
 
-Widget * createGeneralWidget(int x, int y, int width, int height, widget_type type){
-	Widget * new_widget = (Widget *)malloc(sizeof(Widget));
+Widget * createGeneralWidget(Sint16 x, Sint16 y, Uint16 width, Uint16 height, widget_type type){
+	Widget * new_widget = malloc(sizeof(Widget));
 	if(new_widget == NULL){
 		perrorPrint("malloc");
 		return NULL;
@@ -58,8 +58,8 @@ Widget * create_image(int x, int y, int width, int height, SDL_Surface * img,
 	return new_image;
 }
 
-Widget * create_button(int x, int y, int width, int height, SDL_Surface * img,
-		int imgSx, int imgSy, int imgNSx, int imgNSy, int isSelected){
+Widget * create_button(Sint16 x, Sint16 y, Uint16 width, Uint16 height, SDL_Surface * img,
+		Sint16 imgSx, Sint16 imgSy, Sint16 imgNSx, Sint16 imgNSy, int isSelected){
 	Widget * new_button = createGeneralWidget(x, y, width, height, BUTTON);
 	if(new_button == NULL){
 		return NULL;
@@ -67,6 +67,8 @@ Widget * create_button(int x, int y, int width, int height, SDL_Surface * img,
 	new_button->surface = img;
 	SDL_Rect button_selected_rect = {imgSx, imgSy, width ,height};
 	SDL_Rect button_non_selected_rect = {imgNSx, imgNSy, width ,height};
+	new_button->button_selected_rect = button_selected_rect;
+	new_button->button_non_selected_rect = button_non_selected_rect;
 	new_button->isButtonSelected = isSelected;
 	if (isSelected)
 		new_button->img_rect = button_selected_rect;
