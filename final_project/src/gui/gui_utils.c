@@ -59,9 +59,37 @@ int calcAbsWidgetXY(ListRef node){
 }
 
 
-int isClickEventOnButton(SDL_Event* event, Widget * button){
+/*int isClickEventOnButton(SDL_Event* event, Widget * button){
 	if ((event->button.x > button->absX) && (event->button.x < button->absX + button->location_rect.w)
 			&& (event->button.y > button->absY) && (event->button.y < button->absY + button->location_rect.h))
+		return 1;
+	return 0;
+}*/
+
+int isClickEventOnButton(SDL_Event* event, Widget * button, int buttonType){
+	int isClicked;
+	switch (buttonType){
+		case (UP_ARROW_BUTTON):
+			isClicked = isClickEventOnSpecificButton(event, button, ARROW_BUTTON_X, ARROW_BUTTON_Y, 0);
+			break;
+		case (DOWN_ARROW_BUTTON):
+			isClicked = isClickEventOnSpecificButton(event, button, ARROW_BUTTON_X, 0, ARROW_BUTTON_Y);
+			break;
+		case (REGULAR_BUTTON):
+			isClicked = isClickEventOnSpecificButton(event, button, 0, 0, 0);
+			break;
+		default:
+			isClicked = 0;
+	}
+	return isClicked;
+}
+
+
+int isClickEventOnSpecificButton(SDL_Event* event, Widget * button, int Xdelta, int YdeltaUp, int YdeltaDown){
+	if ((event->button.x > button->absX + Xdelta) &&
+			(event->button.x < button->absX + button->location_rect.w) &&
+			(event->button.y > button->absY + YdeltaDown) &&
+			(event->button.y < button->absY + button->location_rect.h - YdeltaUp))
 		return 1;
 	return 0;
 }
@@ -85,6 +113,22 @@ int changeSelectedButton(Widget * oldButton, Widget * newButton){
 		sdlErrorPrint("failed to flip buffer");
 	}
 	return 0;
+}
+
+void increaseValuesButton(int* currValue, int maxValue, Widget* valuesButton){
+	if (*currValue < maxValue){
+		valuesButton->button_selected_rect.y += BUTTON_H;
+		valuesButton->button_non_selected_rect.y += BUTTON_H;
+		*currValue += 1;
+	}
+}
+
+void decreaseValuesButton(int* currValue, int maxValue, Widget* valuesButton){
+	if (*currValue > MIN_VALUE){
+		valuesButton->button_selected_rect.y -= BUTTON_H;
+		valuesButton->button_non_selected_rect.y -= BUTTON_H;
+		*currValue -= 1;
+	}
 }
 
 GameDataRef initGameDataToDefault(){

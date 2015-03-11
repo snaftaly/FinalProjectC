@@ -10,9 +10,19 @@
 #define POLLING_DELAY 10
 #define MAIN_MENU_NUM_BUTTONS 5
 #define COMMON_MENU_NUM_BUTTONS 3
+#define FIRST_BUTTON 0
+#define REGULAR_BUTTON 0
+#define UP_ARROW_BUTTON 1
+#define DOWN_ARROW_BUTTON 2
+
+#define MIN_VALUE 0
+#define MAX_SKILL_VALUE 9
+#define MAX_WORLD 5
 
 #define BUTTON_W 150
-#define BUTTON_H 35
+#define BUTTON_H 34
+#define ARROW_BUTTON_X 120
+#define ARROW_BUTTON_Y 17
 #define TITLE_H 40
 
 
@@ -37,6 +47,9 @@ typedef enum{
 	SELECT_CURR_BUTTON,
 	MARK_NEXT_BUTTON,
 	MARK_AND_SELECT_BUTTON,
+	MARK_VALUES_BUTTON,
+	INCREASE_VALUE,
+	DECREASE_VALUE,
 	NO_EVENT  /* is necessary ???? */
 } logicalEventType;
 
@@ -74,6 +87,7 @@ typedef struct ViewState{
 	SDL_Surface * image;
 	Widget ** menuButtons;
 	ListRef UITree;
+	int currButton;
 } ViewState;
 
 typedef struct ViewState * ViewStateref;
@@ -99,21 +113,24 @@ typedef struct GameData{
 	int catSkillButton;
 	int mouseSkillButton;
 	int loadGameButton;
+	int editGameButton;
+	int saveWorldButton;
 
 	int loadGameWorld;
 	int editedWorld;
+	int saveOnWorld;
 
 	int ** currWorld;
 
 } GameData;
-
 typedef struct GameData * GameDataRef;
 
 /* functions declarations */
 int addChildWidgetsToParent(ListRef);
 int blitChildToParentWidget(Widget * childWidget, Widget * parentWidget);
 int calcAbsWidgetXY(ListRef node);
-int isClickEventOnButton(SDL_Event* event, Widget * button);
+int isClickEventOnButton(SDL_Event* event, Widget * button, int buttonType);
+int isClickEventOnSpecificButton(SDL_Event* event, Widget * button, int Xdelta, int YdeltaUp, int YdeltaDown);
 int changeSelectedButton(Widget * oldButton, Widget * newButton);
 GameDataRef initGameDataToDefault();
 

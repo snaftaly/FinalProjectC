@@ -20,6 +20,13 @@ GUI createGUIForState(StateId stateId){
 			returnGUI.presenterHandleEvent = chooseCatPHE;
 			returnGUI.stop = menuStop;
 			break;
+		case(CHOOSE_MOUSE):
+			returnGUI.start = startChooseMouse;
+			returnGUI.viewTranslateEvent = chooseAnimalVTE;
+			returnGUI.presenterHandleEvent = chooseMousePHE;
+			returnGUI.stop = menuStop;
+			break;
+
 		/*
 		case(NEW_GAME):
 			returnGUI.start = startLoadGame;
@@ -103,7 +110,7 @@ void* simpleMenuVTE(void* viewState, SDL_Event* event, int numOfButtons){
 		case (SDL_MOUSEBUTTONUP):
 			for (int i = 0; i< numOfButtons; i++){
 				Widget * currButton = menuViewState->menuButtons[i];
-				if (isClickEventOnButton(event, currButton)){
+				if (isClickEventOnButton(event, currButton, REGULAR_BUTTON)){
 					returnEvent->type = MARK_AND_SELECT_BUTTON;
 					returnEvent->buttonNum = i;
 				}
@@ -115,26 +122,106 @@ void* simpleMenuVTE(void* viewState, SDL_Event* event, int numOfButtons){
 	return returnEvent;
 }
 
+void* complexMenuVTE(void* viewState, SDL_Event* event){
+	logicalEventRef returnEvent = malloc(sizeof(logicalEvent));
+	int numOfButtons = COMMON_MENU_NUM_BUTTONS;
+	if (returnEvent == NULL){
+		perrorPrint("malloc");
+		return NULL;
+	}
+	ViewStateref menuViewState = viewState;
+	returnEvent->type = NO_EVENT;
+	switch (event->type) {
+		case (SDL_KEYUP):
+			if (event->key.keysym.sym == SDLK_TAB){
+				returnEvent->type = MARK_NEXT_BUTTON;
+			}
+			else if (event->key.keysym.sym == SDLK_RETURN || event->key.keysym.sym == SDLK_KP_ENTER){
+				if (menuViewState->currButton != FIRST_BUTTON)
+					returnEvent->type = SELECT_CURR_BUTTON;
+			}
+			else if (event->key.keysym.sym == SDLK_UP){
+				if (menuViewState->currButton == FIRST_BUTTON)
+					returnEvent->type = INCREASE_VALUE;
+			}
+			else if (event->key.keysym.sym == SDLK_DOWN){
+				if (menuViewState->currButton == FIRST_BUTTON)
+					returnEvent->type = DECREASE_VALUE;
+			}
+			break;
+		case (SDL_MOUSEBUTTONUP):
+			for (int i = 0; i< numOfButtons; i++){
+				Widget * currButton = menuViewState->menuButtons[i];
+				if (i == FIRST_BUTTON){
+					if(isClickEventOnButton(event, currButton, UP_ARROW_BUTTON)){
+						returnEvent->type = INCREASE_VALUE;
+						break;
+					}
+					if(isClickEventOnButton(event, currButton, DOWN_ARROW_BUTTON)){
+						returnEvent->type = DECREASE_VALUE;
+						break;
+					}
+					if (isClickEventOnButton(event, currButton, REGULAR_BUTTON)){
+						returnEvent->type = MARK_VALUES_BUTTON;
+						returnEvent->buttonNum = i;
+						break;
+					}
+				}
+				if (isClickEventOnButton(event, currButton, REGULAR_BUTTON)){
+					returnEvent->type = MARK_AND_SELECT_BUTTON;
+					returnEvent->buttonNum = i;
+					break;
+				}
+			}
+			break;
+	}
+	return returnEvent;
+}
+
+
 StateId generalMenuPHE(void* model, void* viewState, void* logicalEvent, StateId states[], int numOfButtons,
-		StateId stateId, int* currButton){
+		StateId stateId, int* currButton, int* currValue, int maxValue){
 	StateId returnStateId = stateId;
 	if (logicalEvent == NULL || viewState == NULL)
 		return returnStateId;
 	logicalEventRef menuEvent = logicalEvent;
-	/*GameDataRef menuModel = model;*/
+	GameDataRef menuModel = model;
 	ViewStateref menuView = viewState;
 	switch(menuEvent->type){
 		case(SELECT_CURR_BUTTON):
 			returnStateId = states[*currButton];
+			menuView->currButton = *currButton;
 			break;
 		case(MARK_NEXT_BUTTON):
 			changeSelectedButton(menuView->menuButtons[*currButton],
 					menuView->menuButtons[(*currButton+1)%numOfButtons]);
 			*currButton = (*currButton + 1)%numOfButtons;
+			menuView->currButton = *currButton;
 			break;
 		case(MARK_AND_SELECT_BUTTON):
 			*currButton = menuEvent->buttonNum;
 			returnStateId = states[menuEvent->buttonNum];
+			menuView->currButton = *currButton;
+			break;
+		case(MARK_VALUES_BUTTON):
+			changeSelectedButton(menuView->menuButtons[*currButton],
+					menuView->menuButtons[FIRST_BUTTON]);
+			*currButton = FIRST_BUTTON;
+			menuView->currButton = *currButton;
+			break;
+		case(INCREASE_VALUE):
+			increaseValuesButton(currValue, maxValue, menuView->menuButtons[FIRST_BUTTON]);
+			changeSelectedButton(menuView->menuButtons[*currButton],
+				menuView->menuButtons[FIRST_BUTTON]);
+			*currButton = FIRST_BUTTON;
+			menuView->currButton = *currButton;
+			break;
+		case(DECREASE_VALUE):
+			decreaseValuesButton(currValue, MIN_VALUE, menuView->menuButtons[FIRST_BUTTON]);
+			changeSelectedButton(menuView->menuButtons[*currButton],
+				menuView->menuButtons[FIRST_BUTTON]);
+			*currButton = FIRST_BUTTON;
+			menuView->currButton = *currButton;
 			break;
 		case(NO_EVENT):
 			break;
@@ -242,6 +329,7 @@ void startMainMenu(GUIref gui, void* initData){
 		gui->model = initData;
 	}
 	GameDataRef data = gui->model;
+	mainMenuView->currButton = data->mainMenuButton;
 	setButtonSelected(buttons[data->mainMenuButton]);
 
 	/* draw GUI according to UItree */
@@ -264,10 +352,75 @@ StateId mainMenuPHE(void* model, void* viewState, void* logicalEvent){
 		return returnStateId;
 	GameDataRef mainMenuModel = model;
 	StateId mainMenuStates[MAIN_MENU_NUM_BUTTONS] = {CHOOSE_CAT, LOAD_GAME, WORLD_BUILDER, EDIT_GAME, QUIT};
-	generalMenuPHE(model, viewState, logicalEvent, mainMenuStates, MAIN_MENU_NUM_BUTTONS, returnStateId,
+	returnStateId = generalMenuPHE(model, viewState, logicalEvent, mainMenuStates, MAIN_MENU_NUM_BUTTONS, returnStateId,
 			&mainMenuModel->mainMenuButton);
 	if (returnStateId == CHOOSE_CAT)
 		mainMenuModel->preChooseCat = MAIN_MENU;
+	return returnStateId;
+}
+
+StateId catSkillPHE(void* model, void* viewState, void* logicalEvent){
+	StateId returnStateId = CAT_SKILL;
+	if (model == NULL)
+		return returnStateId;
+	GameDataRef catSkillModel = model;
+	StateId catSkillStates[COMMON_MENU_NUM_BUTTONS] = {CAT_SKILL, CHOOSE_MOUSE, CHOOSE_CAT};
+	if (catSkillModel->preChooseCat == PLAY_GAME){
+		catSkillStates[1]=PLAY_GAME;
+	}
+	returnStateId = generalMenuPHE(model, ViewState, logicalEvent, catSkillStates, COMMON_MENU_NUM_BUTTONS,
+		returnStateId, &catSkillModel->catSkillButton, &catSkillModel->catSkill, MAX_SKILL_VALUE);
+	if (returnStateId == CHOOSE_MOUSE)
+		catSkillModel->preChooseMouse = CAT_SKILL;
+	return returnStateId;
+}
+
+StateId mouseSkillPHE(void* model, void* viewState, void* logicalEvent){
+	StateId returnStateId = MOUSE_SKILL;
+	if (model == NULL)
+		return returnStateId;
+	GameDataRef mouseSkillModel = model;
+	StateId mouseSkillStates[COMMON_MENU_NUM_BUTTONS] = {MOUSE_SKILL, PLAY_GAME, CHOOSE_MOUSE};
+	returnStateId = generalMenuPHE(model, ViewState, logicalEvent, mouseSkillStates, COMMON_MENU_NUM_BUTTONS,
+		returnStateId, &mouseSkillModel->mouseSkillButton, &mouseSkillModel->mouseSkill, MAX_SKILL_VALUE);
+	return returnStateId;
+}
+
+StateId loadGamePHE(void* model, void* viewState, void* logicalEvent){
+	StateId returnStateId = LOAD_GAME;
+	if (model == NULL)
+		return returnStateId;
+	GameDataRef loadGameModel = model;
+	StateId loadGameStates[COMMON_MENU_NUM_BUTTONS] = {LOAD_GAME, CHOOSE_CAT, MAIN_MENU};
+	returnStateId = generalMenuPHE(model, ViewState, logicalEvent, loadGameStates, COMMON_MENU_NUM_BUTTONS,
+		returnStateId, &loadGameModel->loadGameButton, &loadGameModel->loadGameWorld, MAX_WORLD);
+	if (returnStateId == CHOOSE_CAT)
+		loadGameModel->preChooseCat = LOAD_GAME;
+	return returnStateId;
+}
+
+StateId editGamePHE(void* model, void* viewState, void* logicalEvent){
+	StateId returnStateId = EDIT_GAME;
+	if (model == NULL)
+		return returnStateId;
+	GameDataRef editGameModel = model;
+	StateId editGameStates[COMMON_MENU_NUM_BUTTONS] = {EDIT_GAME, WORLD_BUILDER, MAIN_MENU};
+	returnStateId = generalMenuPHE(model, ViewState, logicalEvent, editGameStates, COMMON_MENU_NUM_BUTTONS,
+		returnStateId, &editGameModel->editGameButton, &editGameModel->editedWorld, MAX_WORLD);
+	return returnStateId;
+}
+
+StateId saveWorldPHE(void* model, void* viewState, void* logicalEvent){
+	StateId returnStateId = SAVE_WORLD;
+	if (model == NULL)
+		return returnStateId;
+	GameDataRef saveWorldModel = model;
+	StateId saveWorldStates[COMMON_MENU_NUM_BUTTONS] = {SAVE_WORLD, WORLD_BUILDER, WORLD_BUILDER};
+	returnStateId = generalMenuPHE(model, ViewState, logicalEvent, saveWorldStates, COMMON_MENU_NUM_BUTTONS,
+		returnStateId, &saveWorldModel->saveWorldButton, &saveWorldModel->saveOnWorld, MAX_WORLD);
+	if (saveWorldModel->saveWorldButton == 1){
+		/*update world file*/
+	}
 	return returnStateId;
 }
 
@@ -403,6 +556,16 @@ StateId chooseCatPHE(void* model, void* viewState, void* logicalEvent){
 	return returnStateId;
 }
 
+StateId chooseMousePHE(void* model, void* viewState, void* logicalEvent){
+	StateId returnStateId = CHOOSE_MOUSE;
+	if (model == NULL)
+		return returnStateId;
+	GameDataRef chooseMouseModel = model;
+	StateId chooseMouseStates[COMMON_MENU_NUM_BUTTONS] = {PLAY_GAME, MOUSE_SKILL, chooseMouseModel->preChooseMouse};
+	returnStateId = generalMenuPHE(model, viewState, logicalEvent, chooseMouseStates, COMMON_MENU_NUM_BUTTONS,
+			returnStateId, &chooseMouseModel->chooseMouseButton);
+	return returnStateId;
+}
 
 /*StateId catSelectionPHE(void* model, void* viewState, void* logicalEvent){
 	StateId returnStateId = CHOOSE_CAT;

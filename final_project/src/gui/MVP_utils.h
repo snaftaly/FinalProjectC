@@ -21,6 +21,7 @@ void startChooseCat(GUIref gui, void* initData);
 void startChooseMouse(GUIref gui, void* initData);
 void* chooseAnimalVTE(void* viewState, SDL_Event* event);
 StateId chooseCatPHE(void* model, void* viewState, void* logicalEvent);
+StateId chooseMousePHE(void* model, void* viewState, void* logicalEvent);
 
 
 
