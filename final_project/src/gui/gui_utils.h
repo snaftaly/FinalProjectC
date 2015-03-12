@@ -19,11 +19,26 @@
 #define MAX_SKILL_VALUE 9
 #define MAX_WORLD 5
 
+#define WINDOW_RED 100
+#define WINDOW_GREEN 100
+#define WINDOW_BLUE 100
+
+#define PANEL_RED 100
+#define PANEL_GREEN 100
+#define PANEL_BLUE 100
+
+
 #define BUTTON_W 150
 #define BUTTON_H 34
 #define ARROW_BUTTON_X 120
 #define ARROW_BUTTON_Y 17
-#define TITLE_H 40
+#define MENU_TITLE_H 40
+#define MENU_TITLE_X_GAP 20
+#define MENU_TITLE_Y_GAP 20
+#define MENU_BUTTON_Y 80
+#define MENU_BUTTON_GAP 10
+
+
 
 
 /* an enumeration of all the different states of the program.

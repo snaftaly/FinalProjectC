@@ -87,6 +87,7 @@ ViewStateref initializeGUIViewState(){
 	viewState->image = NULL;
 	viewState->menuButtons = NULL;
 	viewState->UITree = NULL;
+	viewState->currButton = 0;
 	return viewState;
 }
 
@@ -237,7 +238,6 @@ void* menuStop(GUIref gui){ /* maybe this will be a general stop function */
 	ViewStateref guiViewState = gui->viewState;
 	if (guiViewState != NULL){
 		/* we need to write a function for that */
-		freeTree(guiViewState->UITree, freeWidget);
 		if (guiViewState->menuButtons != NULL)
 			free(guiViewState->menuButtons);
 		if (guiViewState->image != NULL)
@@ -250,43 +250,51 @@ void* menuStop(GUIref gui){ /* maybe this will be a general stop function */
 	return returnData;
 }
 
+void drawMenuGui(GUIref gui){
+	ViewStateref menuViewState = gui->viewState;
+	treeDFS(menuViewState->UITree, calcAbsWidgetXY, addChildWidgetsToParent);
+	Widget * window = menuViewState->UITree->data;
+	if (SDL_Flip(window->surface) != 0) {
+		sdlErrorPrint("failed to flip buffer");
+		return;
+}
 
-
-/* Main Menu specific MVP functions */
-void startMainMenu(GUIref gui, void* initData){
-	/* allocate memory for create viewState */
-	ViewStateref mainMenuView = initializeGUIViewState();
-	if (mainMenuView == NULL){
+/* maybe we don't need to pass initdata !!!!!!!!!!!!! */
+void startGeneralMenu(GUIref gui, void * initData, , char * imgPath, int titleImgX, int titleImgY, int titleWidth,
+		int numButtons, int selectedButton, int firstButtonNumOpts, int value){
+	/* initialize viewState */
+	ViewStateref menuViewState = initializeGUIViewState();
+	if (menuViewState == NULL){
 		return;
 	}
-	gui->viewState = mainMenuView;
-
+	gui->viewState = menuViewState;
 	/* create image surface */
-	SDL_Surface *mainMenuImages = SDL_LoadBMP("images/MainMenu_temp.bmp");
-	mainMenuView->image = mainMenuImages;
-	if (mainMenuImages == NULL){
+	SDL_Surface * menuImage = SDL_LoadBMP(imgPath);
+	if (menuImage == NULL){
 		sdlErrorPrint("failed to load image");
-		return;
+	return;
 	}
-	/* create buttons array */
-	Widget ** buttons = (Widget **)malloc(MAIN_MENU_NUM_BUTTONS*sizeof(Widget *));
-	mainMenuView->menuButtons = buttons;
+	menuViewState->image = menuImage;
+	Widget ** buttons = (Widget **)malloc(numButtons*sizeof(Widget *));
 	if (buttons == NULL){
 		perrorPrint("malloc");
 		return;
 	}
+	menuViewState->menuButtons = buttons;
+
 	/* create the UItree */
 	Widget *win = create_window(WIN_W,WIN_H, 0, 0, 0);
 	if (win == NULL){
 		return;
 	}
 	ListRef win_node = newList(win);
-	mainMenuView->UITree = win_node;
+	menuViewState->UITree = win_node;
 	if (win_node == NULL){
 		freeWidget(win);
 		return;
 	}
-	Widget *panel = create_panel(275,225,250,350,220,230,240);
+	Widget *panel = create_panel(calcPanelX(titleWidth), calcPanelY(numButtons),
+			calcPanelWidth(titleWidth),calcPanelHeight(numButtons),PANEL_RED,PANEL_GREEN,PANEL_BLUE);
 	if (panel == NULL){
 		return;
 	}
@@ -295,7 +303,8 @@ void startMainMenu(GUIref gui, void* initData){
 		freeWidget(panel);
 		return;
 	}
-	Widget *label = create_image(15,30,220, 40,mainMenuImages,0,175);
+	Widget *label = create_image(MENU_TITLE_X, MENU_TITLE_Y, titleWidth, MENU_TITLE_H,
+			menuImage, titleImgX, titleImgY);
 	if (label == NULL){
 		return;
 	}
@@ -305,11 +314,10 @@ void startMainMenu(GUIref gui, void* initData){
 		return;
 	}
 	/* Add buttons to buttons array and to UI tree */
-	Sint16 button_x = 50, button_y = 100, isSelected_x = BUTTON_W, isSelected_y = 0, isNselected_x = 0, isNselected_y=0;
-	for (int i = 0; i < MAIN_MENU_NUM_BUTTONS; i++){
+	int button_x = calcMenuButtonX(titleWidth), button_y = calcMenuButtonY(), isSelected_x = BUTTON_W, isSelected_y = 0, isNselected_x = 0, isNselected_y=0;
+	for (int i = 0; i < numButtons; i++){
 		buttons[i] = create_button(button_x,button_y, BUTTON_W, BUTTON_H,
-						mainMenuImages, isSelected_x, isSelected_y, isNselected_x, isNselected_y, 0);
-
+				menuImage, isSelected_x, isSelected_y, isNselected_x, isNselected_y, 0);
 		if (buttons[i] == NULL){
 			return;
 		}
@@ -318,27 +326,145 @@ void startMainMenu(GUIref gui, void* initData){
 			freeWidget(buttons[i]);
 			return;
 		}
-		button_y += BUTTON_H+15;
-		isSelected_y += BUTTON_H;
-		isNselected_y += BUTTON_H;
+		if (i == FIRST_BUTTON){
+			isSelected_y += firstButtonNumOpts*BUTTON_H;
+			isNselected_y += firstButtonNumOpts*BUTTON_H;
+		}
+		else{
+			isSelected_y += BUTTON_H;
+			isNselected_y += BUTTON_H;
+		}
+		button_y += BUTTON_H+MENU_BUTTON_GAP;
 	}
-	if (initData == NULL){ /* memmory leak!!! */
+
+	/* update the view buttons */
+	if(firstButtonNumOpts > 1) /* update the values button */
+		setValuesButtonFromInit(value, buttons[0]);
+	menuViewState->currButton = selectedButton;
+	setButtonSelected(menuViewState->menuButtons[selectedButton]);
+	/* draw GUI according to UItree */
+	drawMenuGui(gui);
+}
+
+void initializeMenuModel(GUIref gui, void* initData){
+	if (initData == NULL){ /* memory leak!!! */
 		gui->model = initGameDataToDefault(); /* write this function */
 	}
 	else{
 		gui->model = initData;
 	}
-	GameDataRef data = gui->model;
-	mainMenuView->currButton = data->mainMenuButton;
-	setButtonSelected(buttons[data->mainMenuButton]);
+}
 
-	/* draw GUI according to UItree */
-	treeDFS(win_node, calcAbsWidgetXY, addChildWidgetsToParent);
-	if (SDL_Flip(win->surface) != 0) {
-		sdlErrorPrint("failed to flip buffer");
+/* Main Menu specific MVP functions */
+void startMainMenu(GUIref gui, void* initData){
+	initializeMenuModel(gui, initData);
+	if(isError)
 		return;
-	}
+	char imgPath[] = "images/MainMenu_temp.bmp";
+	GameDataRef data = gui->model;
+	int currentButton = data->mainMenuButton;
+	/* start the main menu gui */
+	startGeneralMenu(gui, initData, imgPath,
+			BUTTON_W*2, 0, 200, MAIN_MENU_NUM_BUTTONS, currentButton, 1, 0);
+}
 
+
+void startChooseAnimal(GUIref gui, void* initData, StateId state){
+	initializeMenuModel(gui, initData);
+	if(isError)
+		return;
+	char imgPath[] = "images/animalSelectionButtons.bmp";
+	GameDataRef data = gui->model;
+	int currentButton;
+	switch(state){
+		case(CHOOSE_CAT):
+			currentButton = data->chooseCatButton;
+			break;
+		case(CHOOSE_MOUSE):
+			currentButton = data->chooseMouseButton;
+			break;
+	}
+	startGeneralMenu(gui, initData, imgPath,
+				BUTTON_W*2, 0, 200, COMMON_MENU_NUM_BUTTONS, currentButton, 1, 0);
+}
+
+void startChooseCat(GUIref gui, void* initData){
+	startChooseAnimal(gui, initData, IS_CAT);
+}
+
+void startChooseMouse(GUIref gui, void* initData){
+	startChooseAnimal(gui, initData, IS_MOUSE);
+}
+
+void startAnimalSkill(GUIref gui, void* initData, StateId state){
+	initializeMenuModel(gui, initData);
+	if(isError)
+		return;
+	char imgPath[] = "images/animalSkillButtons.bmp";
+	GameDataRef data = gui->model;
+	int currentButton, currentValue, titleImgY;
+	switch(state){
+		case(CAT_SKILL):
+			currentButton = data->catSkillButton;
+			currentValue = data->catSkill;
+			titleImgY = 0;
+			break;
+		case(MOUSE_SKILL):
+			currentButton = data->mouseSkillButton;
+			currentValue = data->mouseSkill;
+			titleImgY = MENU_TITLE_H;
+			break;
+	}
+	startGeneralMenu(gui, initData, imgPath,
+				BUTTON_W*2, titleImgY, 200, COMMON_MENU_NUM_BUTTONS,currentButton, 1, MAX_SKILL_VALUE);
+}
+
+void startCatSkill(GUIref gui, void* initData){
+	startChooseAnimal(gui, initData, gui->stateId);
+}
+
+void startMouseSkill(GUIref gui, void* initData){
+	startChooseAnimal(gui, initData, gui->stateId);
+}
+
+void startWorldMenu(GUIref gui, void* initData, StateId state){
+	initializeMenuModel(gui, initData);
+	if(isError)
+		return;
+	char imgPath[] = "images/worldMenuButtons.bmp";
+	GameDataRef data = gui->model;
+	int currentButton, currentValue, titleImgY;
+	switch(state){
+		case(EDIT_GAME):
+			currentButton = data->catSkillButton;
+			currentValue = data->catSkill;
+			titleImgY = 0;
+			break;
+		case(LOAD_GAME):
+			currentButton = data->catSkillButton;
+			currentValue = data->catSkill;
+			titleImgY = MENU_TITLE_H;
+			break;
+		case(SAVE_WORLD):
+			currentButton = data->catSkillButton;
+			currentValue = data->catSkill;
+			titleImgY = 2*MENU_TITLE_H;
+			break;
+	}
+	startGeneralMenu(gui, initData, imgPath,
+				BUTTON_W*2, titleImgY, 200, COMMON_MENU_NUM_BUTTONS,currentButton, 1, MAX_WORLD);
+}
+
+void startEditGame(GUIref gui, void* initData){
+	startWorldMenu(gui, initData, gui->stateId);
+}
+
+void startLoadGame(GUIref gui, void* initData){
+	startWorldMenu(gui, initData, gui->stateId);
+}
+
+void startSaveWorld(GUIref gui, void* initData){
+	startWorldMenu(gui, initData, gui->stateId);
 }
 
 void* mainMenuVTE(void* viewState, SDL_Event* event){
@@ -426,112 +552,6 @@ StateId saveWorldPHE(void* model, void* viewState, void* logicalEvent){
 
 
 /* Choose Cat/ Choose Mouse specific MVP functions */
-void startChooseAnimal(GUIref gui, void* initData, int animal){
-	/* allocate memory for create viewState */
-	ViewStateref animalSelectView = initializeGUIViewState();
-	if (animalSelectView == NULL){
-		return;
-	}
-	gui->viewState = animalSelectView;
-	/* create image surface */
-	SDL_Surface *animalSelectImage = SDL_LoadBMP("../../images/animalSelectionButtons.bmp");
-	animalSelectView->image = animalSelectImage;
-	if (animalSelectImage == NULL){
-		sdlErrorPrint("failed to load image");
-		return;
-	}
-	/* create buttons array */
-	Widget ** buttons = (Widget **)malloc(COMMON_MENU_NUM_BUTTONS*sizeof(Widget *));
-	animalSelectView->menuButtons = buttons;
-	if (buttons == NULL){
-		perrorPrint("malloc");
-		return;
-	}
-	/* create the UItree */
-	Widget *win = create_window(WIN_W,WIN_H, 0, 0, 0);
-	if (win == NULL){
-		return;
-	}
-	ListRef win_node = newList(win);
-	animalSelectView->UITree = win_node;
-	if (win_node == NULL){
-		freeWidget(win);
-		return;
-	}
-	Widget *panel = create_panel(30,50,300,600,0,0,0);
-	if (panel == NULL){
-		return;
-	}
-	ListRef panel_node = addChildNode(win_node, panel);
-	if (panel_node == NULL){
-		freeWidget(panel);
-		return;
-	}
-	int labelX;
-	int labelY;
-	if (animal == IS_CAT){
-		labelX = 90;
-		labelY = 90;
-	}
-	else {
-		labelX = 90;
-		labelY = 100;
-	}
-	Widget *label = create_image(30,50,300,600, animalSelectImage, labelX, labelY);
-	if (label == NULL){
-		return;
-	}
-	ListRef label_node = addChildNode(panel_node, label);
-	if (label_node == NULL){
-		freeWidget(label);
-		return;
-	}
-	/* Add buttons to buttons array and to UI tree */
-	int button_x = 20, button_y = 40, isSelected_x = 90, isSelected_y = 100, isNselected_x = 90, isNselected_y=120;
-	for (int i = 0; i < COMMON_MENU_NUM_BUTTONS; i++){
-		buttons[i] = create_button(button_x,button_y, 100, 100,
-				animalSelectImage, isSelected_x, isSelected_y, isNselected_x, isNselected_y, 0);
-		if (buttons[i] == NULL){
-			return;
-		}
-		ListRef newButtonNode = addChildNode(panel_node, buttons[i]);
-		if (newButtonNode == NULL){
-			freeWidget(buttons[i]);
-			return;
-		}
-		button_y +=40;
-		isSelected_y +=30;
-		isNselected_y +=30;
-	}
-	if (initData == NULL){
-		gui->model = initGameDataToDefault(); /* write this function */
-	}
-	else{
-		gui->model = initData;
-	}
-	GameDataRef data = gui->model;
-	if (animal == IS_CAT){
-		setButtonSelected(buttons[data->chooseCatButton]);
-	}
-	else{ /* animal == IS_MOUSE */
-		setButtonSelected(buttons[data->chooseMouseButton]);
-	}
-	/* draw GUI according to UItree */
-	treeDFS(win_node, calcAbsWidgetXY, addChildWidgetsToParent);
-	if (SDL_Flip(win->surface) != 0) {
-		sdlErrorPrint("failed to flip buffer");
-		return;
-	}
-}
-
-
-void startChooseCat(GUIref gui, void* initData){
-	startChooseAnimal(gui, initData, IS_CAT);
-}
-
-void startChooseMouse(GUIref gui, void* initData){
-	startChooseAnimal(gui, initData, IS_MOUSE);
-}
 
 
 void* chooseAnimalVTE(void* viewState, SDL_Event* event){
@@ -567,64 +587,148 @@ StateId chooseMousePHE(void* model, void* viewState, void* logicalEvent){
 	return returnStateId;
 }
 
-/*StateId catSelectionPHE(void* model, void* viewState, void* logicalEvent){
-	StateId returnStateId = CHOOSE_CAT;
-	if (logicalEvent == NULL || viewState == NULL || model == NULL)
-		return returnStateId;
-	logicalEventRef catSelectEvent = logicalEvent;
-	GameDataRef catSelectModel = model;
-	ViewStateref catSelectView = viewState;
-	StateId catSelectStates[COMMON_MENU_NUM_BUTTONS] = {CHOOSE_MOUSE, CAT_SKILL, catSelectModel->preChooseCat};
-	int currButton = catSelectModel->chooseCatButton;
-	switch(catSelectEvent->type){
-		case(SELECT_CURR_BUTTON):
-			returnStateId = catSelectStates[currButton];
-			if (returnStateId == CHOOSE_MOUSE)
-				catSelectModel->preChooseMouse = CHOOSE_CAT;
-			break;
-		case(MARK_NEXT_BUTTON):
-			changeSelectedButton(catSelectView->menuButtons[currButton],
-					catSelectView->menuButtons[(currButton+1)%COMMON_MENU_NUM_BUTTONS]);
-			catSelectModel->chooseCatButton = (currButton + 1)%COMMON_MENU_NUM_BUTTONS;
-			break;
-		case(MARK_AND_SELECT_BUTTON):
-			catSelectModel->chooseCatButton = catSelectEvent->buttonNum;
-			returnStateId = catSelectStates[catSelectEvent->buttonNum];
-			break;
-		case(NO_EVENT):
-			break;
-	}
-	free(catSelectEvent);
-	return returnStateId;
+
+/* from start main Menu
+ViewStateref mainMenuView = initializeGUIViewState();
+if (mainMenuView == NULL){
+	return;
 }
- */
- /*StateId mainMenuPHE(void* model, void* viewState, void* logicalEvent){
-	StateId returnStateId = MAIN_MENU;
-	if (logicalEvent == NULL || viewState == NULL || model == NULL)
-		return returnStateId;
-	logicalEventRef mainMenuEvent = logicalEvent;
-	GameDataRef mainMenuModel = model;
-	ViewStateref mainMenuView = viewState;
-	StateId mainMenuStates[MAIN_MENU_NUM_BUTTONS] = {CHOOSE_CAT, LOAD_GAME, WORLD_BUILDER, EDIT_GAME, QUIT};
-	int currButton = mainMenuModel->mainMenuButton;
-	switch(mainMenuEvent->type){
-		case(SELECT_CURR_BUTTON):
-			returnStateId = mainMenuStates[currButton];
-			if (returnStateId == CHOOSE_CAT)
-				mainMenuModel->preChooseCat = MAIN_MENU;
-			break;
-		case(MARK_NEXT_BUTTON):
-			changeSelectedButton(mainMenuView->menuButtons[currButton],
-					mainMenuView->menuButtons[(currButton+1)%MAIN_MENU_NUM_BUTTONS]);
-			mainMenuModel->mainMenuButton = (currButton + 1)%MAIN_MENU_NUM_BUTTONS;
-			break;
-		case(MARK_AND_SELECT_BUTTON):
-			mainMenuModel->mainMenuButton = mainMenuEvent->buttonNum;
-			returnStateId = mainMenuStates[mainMenuEvent->buttonNum];
-			break;
-		case(NO_EVENT):
-			break;
+gui->viewState = mainMenuView;
+
+SDL_Surface *mainMenuImages = SDL_LoadBMP("images/MainMenu_temp.bmp");
+mainMenuView->image = mainMenuImages;
+if (mainMenuImages == NULL){
+	sdlErrorPrint("failed to load image");
+	return;
+}
+Widget ** buttons = (Widget **)malloc(MAIN_MENU_NUM_BUTTONS*sizeof(Widget *));
+mainMenuView->menuButtons = buttons;
+if (buttons == NULL){
+	perrorPrint("malloc");
+	return;
+}
+Widget *win = create_window(WIN_W,WIN_H, 0, 0, 0);
+if (win == NULL){
+	return;
+}
+ListRef win_node = newList(win);
+mainMenuView->UITree = win_node;
+if (win_node == NULL){
+	freeWidget(win);
+	return;
+}
+Widget *panel = create_panel(275,225,250,350,220,230,240);
+if (panel == NULL){
+	return;
+}
+ListRef panel_node = addChildNode(win_node, panel);
+if (panel_node == NULL){
+	freeWidget(panel);
+	return;
+}
+Widget *label = create_image(15,30,220, 40,mainMenuImages,0,175);
+if (label == NULL){
+	return;
+}
+ListRef label_node = addChildNode(panel_node, label);
+if (label_node == NULL){
+	freeWidget(label);
+	return;
+}
+ Add buttons to buttons array and to UI tree
+Sint16 button_x = 50, button_y = 100, isSelected_x = BUTTON_W, isSelected_y = 0, isNselected_x = 0, isNselected_y=0;
+for (int i = 0; i < MAIN_MENU_NUM_BUTTONS; i++){
+	buttons[i] = create_button(button_x,button_y, BUTTON_W, BUTTON_H,
+					mainMenuImages, isSelected_x, isSelected_y, isNselected_x, isNselected_y, 0);
+
+	if (buttons[i] == NULL){
+		return;
 	}
-	free(mainMenuEvent);
-	return returnStateId;
-}*/
+	ListRef newButtonNode = addChildNode(panel_node, buttons[i]);
+	if (newButtonNode == NULL){
+		freeWidget(buttons[i]);
+		return;
+	}
+	button_y += BUTTON_H+15;
+	isSelected_y += BUTTON_H;
+	isNselected_y += BUTTON_H;
+}
+*/
+
+/*
+ * from start animal menu
+ create image surface
+animalSelectView->image = animalSelectImage;
+if (animalSelectImage == NULL){
+	sdlErrorPrint("failed to load image");
+	return;
+}
+/* create buttons array
+Widget ** buttons = (Widget **)malloc(COMMON_MENU_NUM_BUTTONS*sizeof(Widget *));
+animalSelectView->menuButtons = buttons;
+if (buttons == NULL){
+	perrorPrint("malloc");
+	return;
+}
+/* create the UItree
+Widget *win = create_window(WIN_W,WIN_H, 0, 0, 0);
+if (win == NULL){
+	return;
+}
+ListRef win_node = newList(win);
+animalSelectView->UITree = win_node;
+if (win_node == NULL){
+	freeWidget(win);
+	return;
+}
+Widget *panel = create_panel(30,50,300,600,0,0,0);
+if (panel == NULL){
+	return;
+}
+ListRef panel_node = addChildNode(win_node, panel);
+if (panel_node == NULL){
+	freeWidget(panel);
+	return;
+}
+int labelX;
+int labelY;
+if (animal == IS_CAT){
+	labelX = 90;
+	labelY = 90;
+}
+else {
+	labelX = 90;
+	labelY = 100;
+}
+Widget *label = create_image(30,50,300,600, animalSelectImage, labelX, labelY);
+if (label == NULL){
+	return;
+}
+ListRef label_node = addChildNode(panel_node, label);
+if (label_node == NULL){
+	freeWidget(label);
+	return;
+}
+/* Add buttons to buttons array and to UI tree
+int button_x = 20, button_y = 40, isSelected_x = 90, isSelected_y = 100, isNselected_x = 90, isNselected_y=120;
+for (int i = 0; i < COMMON_MENU_NUM_BUTTONS; i++){
+	buttons[i] = create_button(button_x,button_y, 100, 100,
+			animalSelectImage, isSelected_x, isSelected_y, isNselected_x, isNselected_y, 0);
+	if (buttons[i] == NULL){
+		return;
+	}
+	ListRef newButtonNode = addChildNode(panel_node, buttons[i]);
+	if (newButtonNode == NULL){
+		freeWidget(buttons[i]);
+		return;
+	}
+	button_y +=40;
+	isSelected_y +=30;
+	isNselected_y +=30;
+}
+if (initData == NULL){
+	gui->model = initGameDataToDefault(); /* write this function
+}
+else{
+	gui->model = initData;
+} */

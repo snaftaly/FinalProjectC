@@ -114,6 +114,10 @@ int changeSelectedButton(Widget * oldButton, Widget * newButton){
 	}
 	return 0;
 }
+void setValuesButtonFromInit(int value, Widget* valuesButton){
+	valuesButton->button_selected_rect.y += (value-1)*BUTTON_H;
+	valuesButton->button_non_selected_rect.y += (value-1)*BUTTON_H;
+}
 
 void increaseValuesButton(int* currValue, int maxValue, Widget* valuesButton){
 	if (*currValue < maxValue){
@@ -144,4 +148,28 @@ GameDataRef initGameDataToDefault(){
 	/* what else ???? */
 
 	return gameData;
+}
+
+int calcPanelX(titleWidth){
+	return 0;
+}
+
+int calcPanelY(numButtons){
+	return 0;
+}
+
+int calcPanelWidth(titleWidth){
+	return 0;
+}
+
+int calcPanelHeight(numButtons){
+	return 0;
+}
+
+int calcMenuButtonX(titleWidth){
+	return 0;
+}
+
+int calcMenuButtonY(){ /* maybe change to a constant */
+	return 0;
 }
