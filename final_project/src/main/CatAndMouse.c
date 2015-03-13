@@ -8,8 +8,7 @@ int isQuit = 0;
 
 int main(int argc, char * argv[]){
 	/*
-	Widget * win = create_window(WIN_W, WIN_H);
-	Widget * panel1 = create_panel(20, 20, 300,300, 90,80,70);
+	Widget * win = create_window(WIN_W, WIN_H);	Widget * panel1 = create_panel(20, 20, 300,300, 90,80,70);
 	Widget * panel2 = create_panel(20, 500, 200, 200, 120,40,230);
 	Widget * panel2_1 = create_panel(20, 20, 100, 100, 140,200,60);
 	SDL_Surface *img = SDL_LoadBMP("images/window_BG.bmp");
@@ -52,12 +51,15 @@ int main(int argc, char * argv[]){
 	}
 	return 0;
 	*/
+	printf("aa");
+
+	GUI catSkill =  createGUIForState(CAT_SKILL);
 
 
-	GUI mainMenu = createGUIForState(MAIN_MENU);
-	startMainMenu(&mainMenu, NULL);
+	startCatSkill(&catSkill, NULL);
 	SDL_Event e;
 	int quit = 0;
+/*
 	while (quit == 0){
 		while (SDL_PollEvent(&e)!= 0) {
 			switch (e.type) {
@@ -68,7 +70,63 @@ int main(int argc, char * argv[]){
 		}
 		SDL_Delay(10);
 	}
-	menuStop(&mainMenu);
+	*/
+	menuStop(&catSkill);
+
+	/*
+	// Initialize SDL and make sure it quits
+
+	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+		printf("ERROR: unable to init SDL: %s\n", SDL_GetError());
+		return 1;
+	}
+	atexit(SDL_Quit);
+
+// initialize GUI structs mapping by state ids:
+	GUI guis[10];
+	guis[MAIN_MENU] = createGUIForState(MAIN_MENU);
+	guis[CHOOSE_CAT] = createGUIForState(CHOOSE_CAT);
+	guis[CHOOSE_MOUSE] = createGUIForState(CHOOSE_MOUSE);
+	guis[CAT_SKILL] = createGUIForState(CAT_SKILL);
+	guis[MOUSE_SKILL] = createGUIForState(MOUSE_SKILL);
+
+	// Starting the default/initial GUI:
+	StateId nextStateId = MAIN_MENU;
+
+	GUI activeGUI = guis[nextStateId];
+	activeGUI.start(&activeGUI, NULL);
+
+	while (!isError && nextStateId != QUIT) {
+		SDL_Event event;
+		while (SDL_PollEvent(&event) != 0) {
+
+			// translating the SDL event to a logical event using the view:
+			void* logicalEvent = activeGUI.viewTranslateEvent(activeGUI.viewState, &event);
+
+			// Handling the logical event using the presenter:
+			nextStateId = activeGUI.presenterHandleEvent(activeGUI.model, activeGUI.viewState, logicalEvent);
+
+			// if state has changed, stop the active GUI and move to the next one:
+			if (activeGUI.stateId != nextStateId) {
+				if (nextStateId == QUIT) {
+					break;
+				}
+				else {
+					void* nextGuiInitData = activeGUI.stop(&activeGUI);
+
+					activeGUI = guis[nextStateId];
+					activeGUI.start(&activeGUI, nextGuiInitData);
+				}
+			}
+		}
+		SDL_Delay(POLLING_DELAY);
+	}
+
+	// API may be extended with a "provideInitData" flag or something similar:
+	activeGUI.stop(&activeGUI);
+
+	return isError;
+	*/
 
 }
 

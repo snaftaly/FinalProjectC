@@ -3,6 +3,7 @@
 #include "../main/ErrorHandling.h"
 
 GUI createGUIForState(StateId stateId){
+
 	GUI returnGUI;
 	returnGUI.stateId = stateId;
 	returnGUI.model = NULL;
@@ -24,6 +25,18 @@ GUI createGUIForState(StateId stateId){
 			returnGUI.start = startChooseMouse;
 			returnGUI.viewTranslateEvent = chooseAnimalVTE;
 			returnGUI.presenterHandleEvent = chooseMousePHE;
+			returnGUI.stop = menuStop;
+			break;
+		case(CAT_SKILL):
+			returnGUI.start = startCatSkill;
+			returnGUI.viewTranslateEvent = complexMenuVTE;
+			returnGUI.presenterHandleEvent = catSkillPHE;
+			returnGUI.stop = menuStop;
+			break;
+		case(MOUSE_SKILL):
+			returnGUI.start = startMouseSkill;
+			returnGUI.viewTranslateEvent = complexMenuVTE;
+			returnGUI.presenterHandleEvent = mouseSkillPHE;
 			returnGUI.stop = menuStop;
 			break;
 
@@ -186,7 +199,7 @@ StateId generalMenuPHE(void* model, void* viewState, void* logicalEvent, StateId
 	if (logicalEvent == NULL || viewState == NULL)
 		return returnStateId;
 	logicalEventRef menuEvent = logicalEvent;
-	GameDataRef menuModel = model;
+	/*GameDataRef menuModel = model;*/
 	ViewStateref menuView = viewState;
 	switch(menuEvent->type){
 		case(SELECT_CURR_BUTTON):
@@ -236,6 +249,8 @@ StateId generalMenuPHE(void* model, void* viewState, void* logicalEvent, StateId
 void* menuStop(GUIref gui){ /* maybe this will be a general stop function */
 	GameDataRef returnData = gui->model;
 	ViewStateref guiViewState = gui->viewState;
+	gui->model = NULL;
+	gui->viewState = NULL;
 	if (guiViewState != NULL){
 		/* we need to write a function for that */
 		if (guiViewState->menuButtons != NULL)
@@ -257,10 +272,11 @@ void drawMenuGui(GUIref gui){
 	if (SDL_Flip(window->surface) != 0) {
 		sdlErrorPrint("failed to flip buffer");
 		return;
+	}
 }
 
 /* maybe we don't need to pass initdata !!!!!!!!!!!!! */
-void startGeneralMenu(GUIref gui, void * initData, , char * imgPath, int titleImgX, int titleImgY, int titleWidth,
+void startGeneralMenu(GUIref gui, void * initData, char * imgPath, int titleImgX, int titleImgY, int titleWidth,
 		int numButtons, int selectedButton, int firstButtonNumOpts, int value){
 	/* initialize viewState */
 	ViewStateref menuViewState = initializeGUIViewState();
@@ -268,13 +284,16 @@ void startGeneralMenu(GUIref gui, void * initData, , char * imgPath, int titleIm
 		return;
 	}
 	gui->viewState = menuViewState;
+
 	/* create image surface */
 	SDL_Surface * menuImage = SDL_LoadBMP(imgPath);
 	if (menuImage == NULL){
 		sdlErrorPrint("failed to load image");
-	return;
+		return;
 	}
 	menuViewState->image = menuImage;
+
+	/* create buttons array */
 	Widget ** buttons = (Widget **)malloc(numButtons*sizeof(Widget *));
 	if (buttons == NULL){
 		perrorPrint("malloc");
@@ -303,7 +322,7 @@ void startGeneralMenu(GUIref gui, void * initData, , char * imgPath, int titleIm
 		freeWidget(panel);
 		return;
 	}
-	Widget *label = create_image(MENU_TITLE_X, MENU_TITLE_Y, titleWidth, MENU_TITLE_H,
+	Widget *label = create_image(MENU_TITLE_X_GAP, MENU_TITLE_Y_GAP, titleWidth, MENU_TITLE_H,
 			menuImage, titleImgX, titleImgY);
 	if (label == NULL){
 		return;
@@ -314,9 +333,9 @@ void startGeneralMenu(GUIref gui, void * initData, , char * imgPath, int titleIm
 		return;
 	}
 	/* Add buttons to buttons array and to UI tree */
-	int button_x = calcMenuButtonX(titleWidth), button_y = calcMenuButtonY(), isSelected_x = BUTTON_W, isSelected_y = 0, isNselected_x = 0, isNselected_y=0;
+	int button_x = calcMenuButtonX(titleWidth), button_y = calcMenuButtonY(), isSelected_x = MENU_BUTTON_W, isSelected_y = 0, isNselected_x = 0, isNselected_y=0;
 	for (int i = 0; i < numButtons; i++){
-		buttons[i] = create_button(button_x,button_y, BUTTON_W, BUTTON_H,
+		buttons[i] = create_button(button_x,button_y, MENU_BUTTON_W, MENU_BUTTON_H,
 				menuImage, isSelected_x, isSelected_y, isNselected_x, isNselected_y, 0);
 		if (buttons[i] == NULL){
 			return;
@@ -327,14 +346,14 @@ void startGeneralMenu(GUIref gui, void * initData, , char * imgPath, int titleIm
 			return;
 		}
 		if (i == FIRST_BUTTON){
-			isSelected_y += firstButtonNumOpts*BUTTON_H;
-			isNselected_y += firstButtonNumOpts*BUTTON_H;
+			isSelected_y += firstButtonNumOpts*MENU_BUTTON_H;
+			isNselected_y += firstButtonNumOpts*MENU_BUTTON_H;
 		}
 		else{
-			isSelected_y += BUTTON_H;
-			isNselected_y += BUTTON_H;
+			isSelected_y += MENU_BUTTON_H;
+			isNselected_y += MENU_BUTTON_H;
 		}
-		button_y += BUTTON_H+MENU_BUTTON_GAP;
+		button_y += MENU_BUTTON_H+MENU_BUTTON_GAP;
 	}
 
 	/* update the view buttons */
@@ -365,7 +384,7 @@ void startMainMenu(GUIref gui, void* initData){
 	int currentButton = data->mainMenuButton;
 	/* start the main menu gui */
 	startGeneralMenu(gui, initData, imgPath,
-			BUTTON_W*2, 0, 200, MAIN_MENU_NUM_BUTTONS, currentButton, 1, 0);
+			MENU_BUTTON_W*2, 0, 200, MAIN_MENU_NUM_BUTTONS, currentButton, 1, 0);
 }
 
 
@@ -373,34 +392,38 @@ void startChooseAnimal(GUIref gui, void* initData, StateId state){
 	initializeMenuModel(gui, initData);
 	if(isError)
 		return;
-	char imgPath[] = "images/animalSelectionButtons.bmp";
+	char imgPath[] = "images/chooseAnimal_temp.bmp";
 	GameDataRef data = gui->model;
-	int currentButton;
+	int currentButton,titleImgY;
 	switch(state){
 		case(CHOOSE_CAT):
 			currentButton = data->chooseCatButton;
+			titleImgY = 0;
 			break;
 		case(CHOOSE_MOUSE):
 			currentButton = data->chooseMouseButton;
+			titleImgY = MENU_TITLE_H;
+			break;
+		default:
 			break;
 	}
 	startGeneralMenu(gui, initData, imgPath,
-				BUTTON_W*2, 0, 200, COMMON_MENU_NUM_BUTTONS, currentButton, 1, 0);
+			MENU_BUTTON_W*2, titleImgY, 200, COMMON_MENU_NUM_BUTTONS, currentButton, 1, 0);
 }
 
 void startChooseCat(GUIref gui, void* initData){
-	startChooseAnimal(gui, initData, IS_CAT);
+	startChooseAnimal(gui, initData, gui->stateId);
 }
 
 void startChooseMouse(GUIref gui, void* initData){
-	startChooseAnimal(gui, initData, IS_MOUSE);
+	startChooseAnimal(gui, initData, gui->stateId);
 }
 
 void startAnimalSkill(GUIref gui, void* initData, StateId state){
 	initializeMenuModel(gui, initData);
 	if(isError)
 		return;
-	char imgPath[] = "images/animalSkillButtons.bmp";
+	char imgPath[] = "images/animalSkill_temp.bmp";
 	GameDataRef data = gui->model;
 	int currentButton, currentValue, titleImgY;
 	switch(state){
@@ -414,13 +437,16 @@ void startAnimalSkill(GUIref gui, void* initData, StateId state){
 			currentValue = data->mouseSkill;
 			titleImgY = MENU_TITLE_H;
 			break;
+		default:
+			break;
 	}
 	startGeneralMenu(gui, initData, imgPath,
-				BUTTON_W*2, titleImgY, 200, COMMON_MENU_NUM_BUTTONS,currentButton, 1, MAX_SKILL_VALUE);
+			MENU_BUTTON_W*2, titleImgY, 200, COMMON_MENU_NUM_BUTTONS,currentButton, 1, currentValue);
 }
 
 void startCatSkill(GUIref gui, void* initData){
-	startChooseAnimal(gui, initData, gui->stateId);
+	printf ("in cat skill");
+	//startChooseAnimal(gui, initData, gui->stateId);
 }
 
 void startMouseSkill(GUIref gui, void* initData){
@@ -450,9 +476,11 @@ void startWorldMenu(GUIref gui, void* initData, StateId state){
 			currentValue = data->catSkill;
 			titleImgY = 2*MENU_TITLE_H;
 			break;
+		default:
+			break;
 	}
 	startGeneralMenu(gui, initData, imgPath,
-				BUTTON_W*2, titleImgY, 200, COMMON_MENU_NUM_BUTTONS,currentButton, 1, MAX_WORLD);
+			MENU_BUTTON_W*2, titleImgY, 200, COMMON_MENU_NUM_BUTTONS,currentButton, 1, currentValue);
 }
 
 void startEditGame(GUIref gui, void* initData){
@@ -479,7 +507,7 @@ StateId mainMenuPHE(void* model, void* viewState, void* logicalEvent){
 	GameDataRef mainMenuModel = model;
 	StateId mainMenuStates[MAIN_MENU_NUM_BUTTONS] = {CHOOSE_CAT, LOAD_GAME, WORLD_BUILDER, EDIT_GAME, QUIT};
 	returnStateId = generalMenuPHE(model, viewState, logicalEvent, mainMenuStates, MAIN_MENU_NUM_BUTTONS, returnStateId,
-			&mainMenuModel->mainMenuButton);
+			&mainMenuModel->mainMenuButton, NULL, 0);
 	if (returnStateId == CHOOSE_CAT)
 		mainMenuModel->preChooseCat = MAIN_MENU;
 	return returnStateId;
@@ -494,7 +522,7 @@ StateId catSkillPHE(void* model, void* viewState, void* logicalEvent){
 	if (catSkillModel->preChooseCat == PLAY_GAME){
 		catSkillStates[1]=PLAY_GAME;
 	}
-	returnStateId = generalMenuPHE(model, ViewState, logicalEvent, catSkillStates, COMMON_MENU_NUM_BUTTONS,
+	returnStateId = generalMenuPHE(model, viewState, logicalEvent, catSkillStates, COMMON_MENU_NUM_BUTTONS,
 		returnStateId, &catSkillModel->catSkillButton, &catSkillModel->catSkill, MAX_SKILL_VALUE);
 	if (returnStateId == CHOOSE_MOUSE)
 		catSkillModel->preChooseMouse = CAT_SKILL;
@@ -507,7 +535,7 @@ StateId mouseSkillPHE(void* model, void* viewState, void* logicalEvent){
 		return returnStateId;
 	GameDataRef mouseSkillModel = model;
 	StateId mouseSkillStates[COMMON_MENU_NUM_BUTTONS] = {MOUSE_SKILL, PLAY_GAME, CHOOSE_MOUSE};
-	returnStateId = generalMenuPHE(model, ViewState, logicalEvent, mouseSkillStates, COMMON_MENU_NUM_BUTTONS,
+	returnStateId = generalMenuPHE(model, viewState, logicalEvent, mouseSkillStates, COMMON_MENU_NUM_BUTTONS,
 		returnStateId, &mouseSkillModel->mouseSkillButton, &mouseSkillModel->mouseSkill, MAX_SKILL_VALUE);
 	return returnStateId;
 }
@@ -518,7 +546,7 @@ StateId loadGamePHE(void* model, void* viewState, void* logicalEvent){
 		return returnStateId;
 	GameDataRef loadGameModel = model;
 	StateId loadGameStates[COMMON_MENU_NUM_BUTTONS] = {LOAD_GAME, CHOOSE_CAT, MAIN_MENU};
-	returnStateId = generalMenuPHE(model, ViewState, logicalEvent, loadGameStates, COMMON_MENU_NUM_BUTTONS,
+	returnStateId = generalMenuPHE(model, viewState, logicalEvent, loadGameStates, COMMON_MENU_NUM_BUTTONS,
 		returnStateId, &loadGameModel->loadGameButton, &loadGameModel->loadGameWorld, MAX_WORLD);
 	if (returnStateId == CHOOSE_CAT)
 		loadGameModel->preChooseCat = LOAD_GAME;
@@ -531,7 +559,7 @@ StateId editGamePHE(void* model, void* viewState, void* logicalEvent){
 		return returnStateId;
 	GameDataRef editGameModel = model;
 	StateId editGameStates[COMMON_MENU_NUM_BUTTONS] = {EDIT_GAME, WORLD_BUILDER, MAIN_MENU};
-	returnStateId = generalMenuPHE(model, ViewState, logicalEvent, editGameStates, COMMON_MENU_NUM_BUTTONS,
+	returnStateId = generalMenuPHE(model, viewState, logicalEvent, editGameStates, COMMON_MENU_NUM_BUTTONS,
 		returnStateId, &editGameModel->editGameButton, &editGameModel->editedWorld, MAX_WORLD);
 	return returnStateId;
 }
@@ -542,7 +570,7 @@ StateId saveWorldPHE(void* model, void* viewState, void* logicalEvent){
 		return returnStateId;
 	GameDataRef saveWorldModel = model;
 	StateId saveWorldStates[COMMON_MENU_NUM_BUTTONS] = {SAVE_WORLD, WORLD_BUILDER, WORLD_BUILDER};
-	returnStateId = generalMenuPHE(model, ViewState, logicalEvent, saveWorldStates, COMMON_MENU_NUM_BUTTONS,
+	returnStateId = generalMenuPHE(model, viewState, logicalEvent, saveWorldStates, COMMON_MENU_NUM_BUTTONS,
 		returnStateId, &saveWorldModel->saveWorldButton, &saveWorldModel->saveOnWorld, MAX_WORLD);
 	if (saveWorldModel->saveWorldButton == 1){
 		/*update world file*/
@@ -570,7 +598,7 @@ StateId chooseCatPHE(void* model, void* viewState, void* logicalEvent){
 		chooseCatStates[0]=PLAY_GAME;
 	}
 	returnStateId = generalMenuPHE(model, viewState, logicalEvent, chooseCatStates, COMMON_MENU_NUM_BUTTONS,
-			returnStateId, &chooseCatModel->chooseCatButton);
+			returnStateId, &chooseCatModel->chooseCatButton, NULL, 0);
 	if (returnStateId == CHOOSE_MOUSE)
 		chooseCatModel->preChooseMouse = CHOOSE_CAT;
 	return returnStateId;
@@ -583,7 +611,7 @@ StateId chooseMousePHE(void* model, void* viewState, void* logicalEvent){
 	GameDataRef chooseMouseModel = model;
 	StateId chooseMouseStates[COMMON_MENU_NUM_BUTTONS] = {PLAY_GAME, MOUSE_SKILL, chooseMouseModel->preChooseMouse};
 	returnStateId = generalMenuPHE(model, viewState, logicalEvent, chooseMouseStates, COMMON_MENU_NUM_BUTTONS,
-			returnStateId, &chooseMouseModel->chooseMouseButton);
+			returnStateId, &chooseMouseModel->chooseMouseButton, NULL, 0);
 	return returnStateId;
 }
 
@@ -663,14 +691,14 @@ if (animalSelectImage == NULL){
 	sdlErrorPrint("failed to load image");
 	return;
 }
-/* create buttons array
+ create buttons array
 Widget ** buttons = (Widget **)malloc(COMMON_MENU_NUM_BUTTONS*sizeof(Widget *));
 animalSelectView->menuButtons = buttons;
 if (buttons == NULL){
 	perrorPrint("malloc");
 	return;
 }
-/* create the UItree
+ create the UItree
 Widget *win = create_window(WIN_W,WIN_H, 0, 0, 0);
 if (win == NULL){
 	return;
@@ -709,7 +737,7 @@ if (label_node == NULL){
 	freeWidget(label);
 	return;
 }
-/* Add buttons to buttons array and to UI tree
+ Add buttons to buttons array and to UI tree
 int button_x = 20, button_y = 40, isSelected_x = 90, isSelected_y = 100, isNselected_x = 90, isNselected_y=120;
 for (int i = 0; i < COMMON_MENU_NUM_BUTTONS; i++){
 	buttons[i] = create_button(button_x,button_y, 100, 100,
@@ -727,7 +755,7 @@ for (int i = 0; i < COMMON_MENU_NUM_BUTTONS; i++){
 	isNselected_y +=30;
 }
 if (initData == NULL){
-	gui->model = initGameDataToDefault(); /* write this function
+	gui->model = initGameDataToDefault();  write this function
 }
 else{
 	gui->model = initData;

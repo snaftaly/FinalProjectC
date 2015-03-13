@@ -14,6 +14,7 @@ Widget * createGeneralWidget(Sint16 x, Sint16 y, Uint16 width, Uint16 height, wi
 }
 
 Widget * create_window(int width, int height, int red, int green, int blue){
+	/*SDL_WM_SetCaption("sharon and yishay", "sharon and yishay");*/
 	Widget * new_window = createGeneralWidget(0,0,width,height,WINDOW);
 	if(new_window == NULL){
 		return NULL;

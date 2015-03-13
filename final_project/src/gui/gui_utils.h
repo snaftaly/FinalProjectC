@@ -28,8 +28,8 @@
 #define PANEL_BLUE 100
 
 
-#define BUTTON_W 150
-#define BUTTON_H 34
+#define MENU_BUTTON_W 150
+#define MENU_BUTTON_H 34
 #define ARROW_BUTTON_X 120
 #define ARROW_BUTTON_Y 17
 #define MENU_TITLE_H 40
@@ -135,7 +135,7 @@ typedef struct GameData{
 	int editedWorld;
 	int saveOnWorld;
 
-	int ** currWorld;
+	char ** currWorld;
 
 } GameData;
 typedef struct GameData * GameDataRef;
@@ -147,7 +147,16 @@ int calcAbsWidgetXY(ListRef node);
 int isClickEventOnButton(SDL_Event* event, Widget * button, int buttonType);
 int isClickEventOnSpecificButton(SDL_Event* event, Widget * button, int Xdelta, int YdeltaUp, int YdeltaDown);
 int changeSelectedButton(Widget * oldButton, Widget * newButton);
+void setValuesButtonFromInit(int value, Widget* valuesButton);
+void increaseValuesButton(int* currValue, int maxValue, Widget* valuesButton);
+void decreaseValuesButton(int* currValue, int maxValue, Widget* valuesButton);
 GameDataRef initGameDataToDefault();
+int calcPanelX(int titleWidth);
+int calcPanelY(int numButtons);
+int calcPanelWidth(int titleWidth);
+int calcPanelHeight(int numButtons);
+int calcMenuButtonX(int titleWidth);
+int calcMenuButtonY();
 
 
 #endif /* GUI_UTILS_H_ */

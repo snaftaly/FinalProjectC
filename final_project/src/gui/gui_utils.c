@@ -115,22 +115,22 @@ int changeSelectedButton(Widget * oldButton, Widget * newButton){
 	return 0;
 }
 void setValuesButtonFromInit(int value, Widget* valuesButton){
-	valuesButton->button_selected_rect.y += (value-1)*BUTTON_H;
-	valuesButton->button_non_selected_rect.y += (value-1)*BUTTON_H;
+	valuesButton->button_selected_rect.y += (value-1)*MENU_BUTTON_H;
+	valuesButton->button_non_selected_rect.y += (value-1)*MENU_BUTTON_H;
 }
 
 void increaseValuesButton(int* currValue, int maxValue, Widget* valuesButton){
 	if (*currValue < maxValue){
-		valuesButton->button_selected_rect.y += BUTTON_H;
-		valuesButton->button_non_selected_rect.y += BUTTON_H;
+		valuesButton->button_selected_rect.y += MENU_BUTTON_H;
+		valuesButton->button_non_selected_rect.y += MENU_BUTTON_H;
 		*currValue += 1;
 	}
 }
 
 void decreaseValuesButton(int* currValue, int maxValue, Widget* valuesButton){
 	if (*currValue > MIN_VALUE){
-		valuesButton->button_selected_rect.y -= BUTTON_H;
-		valuesButton->button_non_selected_rect.y -= BUTTON_H;
+		valuesButton->button_selected_rect.y -= MENU_BUTTON_H;
+		valuesButton->button_non_selected_rect.y -= MENU_BUTTON_H;
 		*currValue -= 1;
 	}
 }
@@ -150,26 +150,26 @@ GameDataRef initGameDataToDefault(){
 	return gameData;
 }
 
-int calcPanelX(titleWidth){
-	return 0;
+int calcPanelX(int titleWidth){
+	return (WIN_W - calcPanelWidth(titleWidth))/2;
 }
 
-int calcPanelY(numButtons){
-	return 0;
+int calcPanelY(int numButtons){
+	return (WIN_H - calcPanelHeight(numButtons))/2;
 }
 
-int calcPanelWidth(titleWidth){
-	return 0;
+int calcPanelWidth(int titleWidth){
+	return 2*MENU_TITLE_X_GAP + titleWidth;
 }
 
-int calcPanelHeight(numButtons){
-	return 0;
+int calcPanelHeight(int numButtons){
+	return 2*MENU_TITLE_Y_GAP + MENU_TITLE_H + numButtons*(MENU_BUTTON_H + MENU_BUTTON_GAP);
 }
 
-int calcMenuButtonX(titleWidth){
-	return 0;
+int calcMenuButtonX(int titleWidth){
+	return (calcPanelWidth(titleWidth)-MENU_BUTTON_W)/2;
 }
 
 int calcMenuButtonY(){ /* maybe change to a constant */
-	return 0;
+	return 2*MENU_TITLE_Y_GAP+MENU_TITLE_H;
 }
