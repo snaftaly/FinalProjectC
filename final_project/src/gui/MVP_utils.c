@@ -8,7 +8,7 @@ GUI createGUIForState(StateId stateId){
 	returnGUI.stateId = stateId;
 	returnGUI.model = NULL;
 	returnGUI.viewState = NULL;
-	switch(stateId){
+	/*switch(stateId){
 		case(MAIN_MENU):
 			returnGUI.start = startMainMenu;
 			returnGUI.viewTranslateEvent = mainMenuVTE;
@@ -22,9 +22,9 @@ GUI createGUIForState(StateId stateId){
 			returnGUI.stop = menuStop;
 			break;
 		case(CHOOSE_MOUSE):
-			returnGUI.start = startChooseMouse;
+			returnGUI.start = startChooseCat;
 			returnGUI.viewTranslateEvent = chooseAnimalVTE;
-			returnGUI.presenterHandleEvent = chooseMousePHE;
+			returnGUI.presenterHandleEvent = chooseCatPHE;
 			returnGUI.stop = menuStop;
 			break;
 		case(CAT_SKILL):
@@ -82,9 +82,9 @@ GUI createGUIForState(StateId stateId){
 			returnGUI.stop = stopLoadGame;
 			break;
 			*/
-		default:
+		/*default:
 			break;
-	}
+	}*/
 	return returnGUI;
 }
 
@@ -441,16 +441,16 @@ void startAnimalSkill(GUIref gui, void* initData, StateId state){
 			break;
 	}
 	startGeneralMenu(gui, initData, imgPath,
-			MENU_BUTTON_W*2, titleImgY, 200, COMMON_MENU_NUM_BUTTONS,currentButton, 1, currentValue);
+			MENU_BUTTON_W*2, titleImgY, 200, COMMON_MENU_NUM_BUTTONS,currentButton, 9, currentValue);
 }
 
 void startCatSkill(GUIref gui, void* initData){
 	printf ("in cat skill");
-	//startChooseAnimal(gui, initData, gui->stateId);
+	startAnimalSkill(gui, initData, gui->stateId);
 }
 
 void startMouseSkill(GUIref gui, void* initData){
-	startChooseAnimal(gui, initData, gui->stateId);
+	startAnimalSkill(gui, initData, gui->stateId);
 }
 
 void startWorldMenu(GUIref gui, void* initData, StateId state){

@@ -141,6 +141,7 @@ GameDataRef initGameDataToDefault(){
 		perrorPrint("calloc");
 		return NULL;
 	}
+	gameData->chooseMouseButton = 0;
 	gameData->catSkill = DEFAULT_SKILL;
 	gameData->mouseSkill = DEFAULT_SKILL;
 	gameData->currWorld = NULL;

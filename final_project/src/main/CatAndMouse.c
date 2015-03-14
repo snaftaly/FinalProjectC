@@ -51,15 +51,21 @@ int main(int argc, char * argv[]){
 	}
 	return 0;
 	*/
+
+	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+			printf("ERROR: unable to init SDL: %s\n", SDL_GetError());
+			return 1;
+		}
+		atexit(SDL_Quit);
 	printf("aa");
 
-	GUI catSkill =  createGUIForState(CAT_SKILL);
+	GUI chooseCat =  createGUIForState(CHOOSE_MOUSE);
 
 
-	startCatSkill(&catSkill, NULL);
+	startChooseCat(&chooseCat, NULL);
 	SDL_Event e;
 	int quit = 0;
-/*
+
 	while (quit == 0){
 		while (SDL_PollEvent(&e)!= 0) {
 			switch (e.type) {
@@ -70,8 +76,8 @@ int main(int argc, char * argv[]){
 		}
 		SDL_Delay(10);
 	}
-	*/
-	menuStop(&catSkill);
+
+	menuStop(&chooseCat);
 
 	/*
 	// Initialize SDL and make sure it quits
