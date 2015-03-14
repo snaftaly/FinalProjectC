@@ -8,7 +8,7 @@ GUI createGUIForState(StateId stateId){
 	returnGUI.stateId = stateId;
 	returnGUI.model = NULL;
 	returnGUI.viewState = NULL;
-	/*switch(stateId){
+	switch(stateId){
 		case(MAIN_MENU):
 			returnGUI.start = startMainMenu;
 			returnGUI.viewTranslateEvent = mainMenuVTE;
@@ -82,9 +82,9 @@ GUI createGUIForState(StateId stateId){
 			returnGUI.stop = stopLoadGame;
 			break;
 			*/
-		/*default:
+		default:
 			break;
-	}*/
+	}
 	return returnGUI;
 }
 

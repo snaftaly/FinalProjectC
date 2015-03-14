@@ -41,6 +41,8 @@ int blitChildToParentWidget(Widget * childWidget, Widget * parentWidget){
 				return -1;
 			}
 			break;
+		default:
+			break;
 	}
 	return 0;
 }
@@ -136,14 +138,22 @@ void decreaseValuesButton(int* currValue, int maxValue, Widget* valuesButton){
 }
 
 GameDataRef initGameDataToDefault(){
-	GameDataRef gameData = (GameDataRef)calloc(1, sizeof(gameData));
+	GameDataRef gameData = (GameDataRef)malloc(sizeof(gameData));
 	if (gameData == NULL){
 		perrorPrint("calloc");
 		return NULL;
 	}
 	gameData->chooseMouseButton = 0;
+
+	gameData->mainMenuButton = 0;
+	gameData->chooseCatButton = 0;
+	gameData->catSkillButton = 0;
+
+	gameData->mouseSkillButton = 0;
+
 	gameData->catSkill = DEFAULT_SKILL;
 	gameData->mouseSkill = DEFAULT_SKILL;
+
 	gameData->currWorld = NULL;
 
 	/* what else ???? */
