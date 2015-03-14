@@ -3,7 +3,6 @@
 #include "../main/ErrorHandling.h"
 
 GUI createGUIForState(StateId stateId){
-
 	GUI returnGUI;
 	returnGUI.stateId = stateId;
 	returnGUI.model = NULL;
@@ -22,9 +21,9 @@ GUI createGUIForState(StateId stateId){
 			returnGUI.stop = menuStop;
 			break;
 		case(CHOOSE_MOUSE):
-			returnGUI.start = startChooseCat;
+			returnGUI.start = startChooseMouse;
 			returnGUI.viewTranslateEvent = chooseAnimalVTE;
-			returnGUI.presenterHandleEvent = chooseCatPHE;
+			returnGUI.presenterHandleEvent = chooseMousePHE;
 			returnGUI.stop = menuStop;
 			break;
 		case(CAT_SKILL):
@@ -127,6 +126,7 @@ void* simpleMenuVTE(void* viewState, SDL_Event* event, int numOfButtons){
 				if (isClickEventOnButton(event, currButton, REGULAR_BUTTON)){
 					returnEvent->type = MARK_AND_SELECT_BUTTON;
 					returnEvent->buttonNum = i;
+					break;
 				}
 			}
 			break;
@@ -238,6 +238,8 @@ StateId generalMenuPHE(void* model, void* viewState, void* logicalEvent, StateId
 			menuView->currButton = *currButton;
 			break;
 		case(NO_EVENT):
+			break;
+		default:
 			break;
 	}
 	free(logicalEvent);

@@ -149,12 +149,12 @@ GameDataRef initGameDataToDefault(){
 	gameData->chooseCatButton = 0;
 	gameData->catSkillButton = 0;
 
-	gameData->mouseSkillButton = 0;
 
 	gameData->catSkill = DEFAULT_SKILL;
 	gameData->mouseSkill = DEFAULT_SKILL;
 
 	gameData->currWorld = NULL;
+	//gameData->mouseSkillButton = 0;
 
 	/* what else ???? */
 
