@@ -92,7 +92,7 @@ void freeWidget(void * widget_ptr){
 	Widget * widget = widget_ptr;
 	if (widget != NULL){
 		if (widget->surface != NULL)
-			SDL_FreeSurface(widget->surface);
+			//SDL_FreeSurface(widget->surface); //free() invalid pointer error!!!
 		free(widget);
 	}
 }

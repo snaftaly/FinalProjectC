@@ -129,7 +129,7 @@ void increaseValuesButton(int* currValue, int maxValue, Widget* valuesButton){
 	}
 }
 
-void decreaseValuesButton(int* currValue, int maxValue, Widget* valuesButton){
+void decreaseValuesButton(int * currValue, int maxValue, Widget * valuesButton){
 	if (*currValue > MIN_VALUE){
 		valuesButton->button_selected_rect.y -= MENU_BUTTON_H;
 		valuesButton->button_non_selected_rect.y -= MENU_BUTTON_H;
@@ -138,17 +138,17 @@ void decreaseValuesButton(int* currValue, int maxValue, Widget* valuesButton){
 }
 
 GameDataRef initGameDataToDefault(){
-	GameDataRef gameData = (GameDataRef)malloc(sizeof(gameData));
+	GameDataRef gameData = (GameData *)malloc(sizeof(GameData));
 	if (gameData == NULL){
 		perrorPrint("calloc");
 		return NULL;
 	}
-	gameData->chooseMouseButton = 0;
 
 	gameData->mainMenuButton = 0;
 	gameData->chooseCatButton = 0;
+	gameData->chooseMouseButton = 0;
 	gameData->catSkillButton = 0;
-
+	gameData->mouseSkillButton = 0;
 
 	gameData->catSkill = DEFAULT_SKILL;
 	gameData->mouseSkill = DEFAULT_SKILL;

@@ -239,8 +239,6 @@ StateId generalMenuPHE(void* model, void* viewState, void* logicalEvent, StateId
 			break;
 		case(NO_EVENT):
 			break;
-		default:
-			break;
 	}
 	free(logicalEvent);
 	return returnStateId;
@@ -253,17 +251,21 @@ void* menuStop(GUIref gui){ /* maybe this will be a general stop function */
 	ViewStateref guiViewState = gui->viewState;
 	gui->model = NULL;
 	gui->viewState = NULL;
+
 	if (guiViewState != NULL){
-		/* we need to write a function for that */
+		// we need to write a function for that
 		if (guiViewState->menuButtons != NULL)
 			free(guiViewState->menuButtons);
 		if (guiViewState->image != NULL)
 			SDL_FreeSurface(guiViewState->image);
+		if (guiViewState->UITree != NULL)
+			freeTree(guiViewState->UITree, freeWidget);
 	}
 	if (isError || isQuit){
-		free(returnData); /* we need to write a function for that! */
+		free(returnData); // we need to write a function for that!
 		return NULL;
 	}
+
 	return returnData;
 }
 
@@ -447,7 +449,6 @@ void startAnimalSkill(GUIref gui, void* initData, StateId state){
 }
 
 void startCatSkill(GUIref gui, void* initData){
-	printf ("in cat skill");
 	startAnimalSkill(gui, initData, gui->stateId);
 }
 
@@ -618,147 +619,3 @@ StateId chooseMousePHE(void* model, void* viewState, void* logicalEvent){
 }
 
 
-/* from start main Menu
-ViewStateref mainMenuView = initializeGUIViewState();
-if (mainMenuView == NULL){
-	return;
-}
-gui->viewState = mainMenuView;
-
-SDL_Surface *mainMenuImages = SDL_LoadBMP("images/MainMenu_temp.bmp");
-mainMenuView->image = mainMenuImages;
-if (mainMenuImages == NULL){
-	sdlErrorPrint("failed to load image");
-	return;
-}
-Widget ** buttons = (Widget **)malloc(MAIN_MENU_NUM_BUTTONS*sizeof(Widget *));
-mainMenuView->menuButtons = buttons;
-if (buttons == NULL){
-	perrorPrint("malloc");
-	return;
-}
-Widget *win = create_window(WIN_W,WIN_H, 0, 0, 0);
-if (win == NULL){
-	return;
-}
-ListRef win_node = newList(win);
-mainMenuView->UITree = win_node;
-if (win_node == NULL){
-	freeWidget(win);
-	return;
-}
-Widget *panel = create_panel(275,225,250,350,220,230,240);
-if (panel == NULL){
-	return;
-}
-ListRef panel_node = addChildNode(win_node, panel);
-if (panel_node == NULL){
-	freeWidget(panel);
-	return;
-}
-Widget *label = create_image(15,30,220, 40,mainMenuImages,0,175);
-if (label == NULL){
-	return;
-}
-ListRef label_node = addChildNode(panel_node, label);
-if (label_node == NULL){
-	freeWidget(label);
-	return;
-}
- Add buttons to buttons array and to UI tree
-Sint16 button_x = 50, button_y = 100, isSelected_x = BUTTON_W, isSelected_y = 0, isNselected_x = 0, isNselected_y=0;
-for (int i = 0; i < MAIN_MENU_NUM_BUTTONS; i++){
-	buttons[i] = create_button(button_x,button_y, BUTTON_W, BUTTON_H,
-					mainMenuImages, isSelected_x, isSelected_y, isNselected_x, isNselected_y, 0);
-
-	if (buttons[i] == NULL){
-		return;
-	}
-	ListRef newButtonNode = addChildNode(panel_node, buttons[i]);
-	if (newButtonNode == NULL){
-		freeWidget(buttons[i]);
-		return;
-	}
-	button_y += BUTTON_H+15;
-	isSelected_y += BUTTON_H;
-	isNselected_y += BUTTON_H;
-}
-*/
-
-/*
- * from start animal menu
- create image surface
-animalSelectView->image = animalSelectImage;
-if (animalSelectImage == NULL){
-	sdlErrorPrint("failed to load image");
-	return;
-}
- create buttons array
-Widget ** buttons = (Widget **)malloc(COMMON_MENU_NUM_BUTTONS*sizeof(Widget *));
-animalSelectView->menuButtons = buttons;
-if (buttons == NULL){
-	perrorPrint("malloc");
-	return;
-}
- create the UItree
-Widget *win = create_window(WIN_W,WIN_H, 0, 0, 0);
-if (win == NULL){
-	return;
-}
-ListRef win_node = newList(win);
-animalSelectView->UITree = win_node;
-if (win_node == NULL){
-	freeWidget(win);
-	return;
-}
-Widget *panel = create_panel(30,50,300,600,0,0,0);
-if (panel == NULL){
-	return;
-}
-ListRef panel_node = addChildNode(win_node, panel);
-if (panel_node == NULL){
-	freeWidget(panel);
-	return;
-}
-int labelX;
-int labelY;
-if (animal == IS_CAT){
-	labelX = 90;
-	labelY = 90;
-}
-else {
-	labelX = 90;
-	labelY = 100;
-}
-Widget *label = create_image(30,50,300,600, animalSelectImage, labelX, labelY);
-if (label == NULL){
-	return;
-}
-ListRef label_node = addChildNode(panel_node, label);
-if (label_node == NULL){
-	freeWidget(label);
-	return;
-}
- Add buttons to buttons array and to UI tree
-int button_x = 20, button_y = 40, isSelected_x = 90, isSelected_y = 100, isNselected_x = 90, isNselected_y=120;
-for (int i = 0; i < COMMON_MENU_NUM_BUTTONS; i++){
-	buttons[i] = create_button(button_x,button_y, 100, 100,
-			animalSelectImage, isSelected_x, isSelected_y, isNselected_x, isNselected_y, 0);
-	if (buttons[i] == NULL){
-		return;
-	}
-	ListRef newButtonNode = addChildNode(panel_node, buttons[i]);
-	if (newButtonNode == NULL){
-		freeWidget(buttons[i]);
-		return;
-	}
-	button_y +=40;
-	isSelected_y +=30;
-	isNselected_y +=30;
-}
-if (initData == NULL){
-	gui->model = initGameDataToDefault();  write this function
-}
-else{
-	gui->model = initData;
-} */

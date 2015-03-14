@@ -15,7 +15,7 @@
 #define UP_ARROW_BUTTON 1
 #define DOWN_ARROW_BUTTON 2
 
-#define MIN_VALUE 0
+#define MIN_VALUE 1
 #define MAX_SKILL_VALUE 9
 #define MAX_WORLD 5
 
