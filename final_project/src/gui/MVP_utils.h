@@ -2,6 +2,8 @@
 #define MVP_UTILS_H_
 
 /* includes: */
+#include <stdio.h>
+
 #include "gui_utils.h"
 
 /**** functions declaration: ****/

@@ -139,8 +139,8 @@ void decreaseValuesButton(int * currValue, int maxValue, Widget * valuesButton){
 	}
 }
 
-GameDataRef initGameDataToDefault(){
-	GameDataRef gameData = (GameData *)malloc(sizeof(GameData));
+MenuDataRef initMenuDataToDefault(){
+	MenuDataRef gameData = (GameData *)malloc(sizeof(GameData));
 	if (gameData == NULL){
 		perrorPrint("calloc");
 		return NULL;
@@ -161,6 +161,8 @@ GameDataRef initGameDataToDefault(){
 	gameData->editedWorld = MIN_VALUE;
 	gameData->loadGameWorld = MIN_VALUE;
 	gameData->saveOnWorld = MIN_VALUE;
+
+	gameData->currValueTemp = 0;
 
 	gameData->currWorld = NULL;
 

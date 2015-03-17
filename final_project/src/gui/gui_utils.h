@@ -10,14 +10,11 @@
 #define POLLING_DELAY 10
 #define MAIN_MENU_NUM_BUTTONS 5
 #define COMMON_MENU_NUM_BUTTONS 3
+#define WORLD_BUILDER_NUM_BUTTONS 8
 #define FIRST_BUTTON 0
 #define REGULAR_BUTTON 0
 #define UP_ARROW_BUTTON 1
 #define DOWN_ARROW_BUTTON 2
-
-#define MIN_VALUE 1
-#define MAX_SKILL_VALUE 9
-#define MAX_WORLD 5
 
 #define WINDOW_RED 100
 #define WINDOW_GREEN 100
@@ -26,7 +23,6 @@
 #define PANEL_RED 100
 #define PANEL_GREEN 100
 #define PANEL_BLUE 100
-
 
 #define MENU_BUTTON_W 150
 #define MENU_BUTTON_H 34
@@ -37,6 +33,7 @@
 #define MENU_TITLE_Y_GAP 20
 #define MENU_BUTTON_Y 80
 #define MENU_BUTTON_GAP 10
+
 
 
 
@@ -68,6 +65,14 @@ typedef enum{
 	NO_EVENT  /* is necessary ???? */
 } logicalEventType;
 
+typedef enum{
+	CAT,
+	MOUSE,
+	CHEESE,
+	WALL,
+	EMPTY
+} gridItem;
+
 /* The GUI structure. */
 typedef struct GUI {
 	/* The unique state id: */
@@ -98,6 +103,11 @@ typedef struct GUI {
 
 typedef struct GUI* GUIref;
 
+typedef struct gridItemPosition{
+	int col;
+	int row;
+} gridItemPosition;
+
 typedef struct ViewState{
 	SDL_Surface * image;
 	Widget ** menuButtons;
@@ -114,7 +124,7 @@ typedef struct logicalEvent{
 
 typedef struct logicalEvent * logicalEventRef;
 
-typedef struct GameData{
+typedef struct MenuData{
 	int catSkill;
 	int mouseSkill;
 	int isCatHuman;
@@ -122,24 +132,40 @@ typedef struct GameData{
 
 	int mainMenuButton;
 	int chooseCatButton;
-	int chooseMouseButton;
 	StateId preChooseCat;
+	int chooseMouseButton;
 	StateId preChooseMouse;
-
+	StateId preWorldBuilder;
 	int catSkillButton;
 	int mouseSkillButton;
 	int loadGameButton;
 	int editGameButton;
 	int saveWorldButton;
 
+	int currValueTemp;
 	int loadGameWorld;
 	int editedWorld;
 	int saveOnWorld;
 
 	char ** currWorld;
-
 } GameData;
-typedef struct GameData * GameDataRef;
+
+typedef struct MenuData * MenuDataRef;
+
+
+typedef struct worldBuilderData{
+	int mainMenuButton;
+	char ** gameGridData;
+	gridItemPosition catPos;
+	gridItemPosition mousePos;
+	gridItemPosition cheesePos;
+	gridItemPosition currPos;
+	int editedWorld;
+	int isCatFirst;
+} worldBuilderData;
+typedef struct worldBuilderData * worldBuilderDataRef;
+
+
 
 /* functions declarations */
 int addChildWidgetsToParent(ListRef);
@@ -151,7 +177,7 @@ int changeSelectedButton(Widget * oldButton, Widget * newButton);
 void setValuesButtonFromInit(int value, Widget* valuesButton);
 void increaseValuesButton(int* currValue, int maxValue, Widget* valuesButton);
 void decreaseValuesButton(int* currValue, int maxValue, Widget* valuesButton);
-GameDataRef initGameDataToDefault();
+MenuDataRef initMenuDataToDefault();
 int calcPanelX(int titleWidth);
 int calcPanelY(int numButtons);
 int calcPanelWidth(int titleWidth);
