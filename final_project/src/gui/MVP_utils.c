@@ -15,55 +15,53 @@ GUI createGUIForState(StateId stateId){
 			returnGUI.stop = menuStop;
 			break;
 		case(CHOOSE_CAT):
-			returnGUI.start = startChooseCat;
+			returnGUI.start = startChooseAnimal;
 			returnGUI.viewTranslateEvent = chooseAnimalVTE;
 			returnGUI.presenterHandleEvent = chooseCatPHE;
 			returnGUI.stop = menuStop;
 			break;
 		case(CHOOSE_MOUSE):
-			returnGUI.start = startChooseMouse;
+			returnGUI.start = startChooseAnimal;
 			returnGUI.viewTranslateEvent = chooseAnimalVTE;
 			returnGUI.presenterHandleEvent = chooseMousePHE;
 			returnGUI.stop = menuStop;
 			break;
 		case(CAT_SKILL):
-			returnGUI.start = startCatSkill;
+			returnGUI.start = startAnimalSkill;
 			returnGUI.viewTranslateEvent = complexMenuVTE;
 			returnGUI.presenterHandleEvent = catSkillPHE;
 			returnGUI.stop = menuStop;
 			break;
 		case(MOUSE_SKILL):
-			returnGUI.start = startMouseSkill;
+			returnGUI.start = startAnimalSkill;
 			returnGUI.viewTranslateEvent = complexMenuVTE;
 			returnGUI.presenterHandleEvent = mouseSkillPHE;
 			returnGUI.stop = menuStop;
 			break;
-
+		case(LOAD_GAME):
+			returnGUI.start = startWorldMenu;
+			returnGUI.viewTranslateEvent = complexMenuVTE;
+			returnGUI.presenterHandleEvent = loadGamePHE;
+			returnGUI.stop = menuStop;
+			break;
 		/*
-		case(NEW_GAME):
+		case(WORLD_BUILDER):
 			returnGUI.start = startLoadGame;
+			returnGUI.viewTranslateEvent = complexMenuVTE;
+			returnGUI.presenterHandleEvent = mouseSkillPHE;
 			returnGUI.stop = stopLoadGame;
 			break;
-		case(CHOOSE_CAT):
-			returnGUI.start = startLoadGame;
-			returnGUI.stop = stopLoadGame;
-			break;
-		case(CHOOSE_MOUSE):
-			returnGUI.start = startLoadGame;
-			returnGUI.stop = stopLoadGame;
-			break;
-		case(CAT_SKILL):
-			returnGUI.start = startLoadGame;
-			returnGUI.stop = stopLoadGame;
-			break;
-		case(MOUSE_SKILL):
-			returnGUI.start = startLoadGame;
-			returnGUI.stop = stopLoadGame;
-			break;
+			*/
 		case(EDIT_GAME):
-			returnGUI.start = startLoadGame;
-			returnGUI.stop = stopLoadGame;
+			returnGUI.start = startWorldMenu;
+			returnGUI.viewTranslateEvent = complexMenuVTE;
+			returnGUI.presenterHandleEvent = editGamePHE;
+			returnGUI.stop = menuStop;
 			break;
+
+/*
+
+
 		case(WORLD_BUILDER):
 			returnGUI.start = startLoadGame;
 			returnGUI.stop = stopLoadGame;
@@ -240,6 +238,8 @@ StateId generalMenuPHE(void* model, void* viewState, void* logicalEvent, StateId
 		case(NO_EVENT):
 			break;
 	}
+	if (*currButton == numOfButtons-1 && returnStateId != stateId)
+		*currButton = FIRST_BUTTON;
 	free(logicalEvent);
 	return returnStateId;
 
@@ -361,8 +361,9 @@ void startGeneralMenu(GUIref gui, void * initData, char * imgPath, int titleImgX
 	}
 
 	/* update the view buttons */
-	if(firstButtonNumOpts > 1) /* update the values button */
+	if(firstButtonNumOpts > 1){ /* update the values button */
 		setValuesButtonFromInit(value, buttons[0]);
+	}
 	menuViewState->currButton = selectedButton;
 	setButtonSelected(menuViewState->menuButtons[selectedButton]);
 	/* draw GUI according to UItree */
@@ -370,7 +371,7 @@ void startGeneralMenu(GUIref gui, void * initData, char * imgPath, int titleImgX
 }
 
 void initializeMenuModel(GUIref gui, void* initData){
-	if (initData == NULL){ /* memory leak!!! */
+	if (initData == NULL){
 		gui->model = initGameDataToDefault(); /* write this function */
 	}
 	else{
@@ -392,14 +393,14 @@ void startMainMenu(GUIref gui, void* initData){
 }
 
 
-void startChooseAnimal(GUIref gui, void* initData, StateId state){
+void startChooseAnimal(GUIref gui, void* initData){
 	initializeMenuModel(gui, initData);
 	if(isError)
 		return;
 	char imgPath[] = "images/chooseAnimal_temp.bmp";
 	GameDataRef data = gui->model;
 	int currentButton,titleImgY;
-	switch(state){
+	switch(gui->stateId){
 		case(CHOOSE_CAT):
 			currentButton = data->chooseCatButton;
 			titleImgY = 0;
@@ -415,22 +416,14 @@ void startChooseAnimal(GUIref gui, void* initData, StateId state){
 			MENU_BUTTON_W*2, titleImgY, 200, COMMON_MENU_NUM_BUTTONS, currentButton, 1, 0);
 }
 
-void startChooseCat(GUIref gui, void* initData){
-	startChooseAnimal(gui, initData, gui->stateId);
-}
-
-void startChooseMouse(GUIref gui, void* initData){
-	startChooseAnimal(gui, initData, gui->stateId);
-}
-
-void startAnimalSkill(GUIref gui, void* initData, StateId state){
+void startAnimalSkill(GUIref gui, void* initData){
 	initializeMenuModel(gui, initData);
 	if(isError)
 		return;
 	char imgPath[] = "images/animalSkill_temp.bmp";
 	GameDataRef data = gui->model;
 	int currentButton, currentValue, titleImgY;
-	switch(state){
+	switch(gui->stateId){
 		case(CAT_SKILL):
 			currentButton = data->catSkillButton;
 			currentValue = data->catSkill;
@@ -445,58 +438,39 @@ void startAnimalSkill(GUIref gui, void* initData, StateId state){
 			break;
 	}
 	startGeneralMenu(gui, initData, imgPath,
-			MENU_BUTTON_W*2, titleImgY, 200, COMMON_MENU_NUM_BUTTONS,currentButton, 9, currentValue);
+			MENU_BUTTON_W*2, titleImgY, 200, COMMON_MENU_NUM_BUTTONS,currentButton, MAX_SKILL_VALUE, currentValue);
 }
 
-void startCatSkill(GUIref gui, void* initData){
-	startAnimalSkill(gui, initData, gui->stateId);
-}
-
-void startMouseSkill(GUIref gui, void* initData){
-	startAnimalSkill(gui, initData, gui->stateId);
-}
-
-void startWorldMenu(GUIref gui, void* initData, StateId state){
+void startWorldMenu(GUIref gui, void* initData){
 	initializeMenuModel(gui, initData);
 	if(isError)
 		return;
-	char imgPath[] = "images/worldMenuButtons.bmp";
+	char imgPath[] = "images/worldMenu_temp.bmp";
 	GameDataRef data = gui->model;
 	int currentButton, currentValue, titleImgY;
-	switch(state){
+	switch(gui->stateId){
 		case(EDIT_GAME):
-			currentButton = data->catSkillButton;
-			currentValue = data->catSkill;
+			currentButton = data->editGameButton;
+			currentValue = data->editedWorld;
 			titleImgY = 0;
 			break;
 		case(LOAD_GAME):
-			currentButton = data->catSkillButton;
-			currentValue = data->catSkill;
+			currentButton = data->loadGameButton;
+			currentValue = data->loadGameWorld;
 			titleImgY = MENU_TITLE_H;
 			break;
 		case(SAVE_WORLD):
-			currentButton = data->catSkillButton;
-			currentValue = data->catSkill;
+			currentButton = data->saveWorldButton;
+			currentValue = data->saveOnWorld;
 			titleImgY = 2*MENU_TITLE_H;
 			break;
 		default:
 			break;
 	}
 	startGeneralMenu(gui, initData, imgPath,
-			MENU_BUTTON_W*2, titleImgY, 200, COMMON_MENU_NUM_BUTTONS,currentButton, 1, currentValue);
+			MENU_BUTTON_W*2, titleImgY, 200, COMMON_MENU_NUM_BUTTONS,currentButton, MAX_WORLD, currentValue);
 }
 
-void startEditGame(GUIref gui, void* initData){
-	startWorldMenu(gui, initData, gui->stateId);
-}
-
-void startLoadGame(GUIref gui, void* initData){
-	startWorldMenu(gui, initData, gui->stateId);
-}
-
-void startSaveWorld(GUIref gui, void* initData){
-	startWorldMenu(gui, initData, gui->stateId);
-}
 
 void* mainMenuVTE(void* viewState, SDL_Event* event){
 	logicalEventRef returnEvent = simpleMenuVTE(viewState, event, MAIN_MENU_NUM_BUTTONS);
@@ -583,8 +557,6 @@ StateId saveWorldPHE(void* model, void* viewState, void* logicalEvent){
 
 
 /* Choose Cat/ Choose Mouse specific MVP functions */
-
-
 void* chooseAnimalVTE(void* viewState, SDL_Event* event){
 	logicalEventRef returnEvent = simpleMenuVTE(viewState, event, COMMON_MENU_NUM_BUTTONS);
 	return returnEvent;
@@ -602,8 +574,13 @@ StateId chooseCatPHE(void* model, void* viewState, void* logicalEvent){
 	}
 	returnStateId = generalMenuPHE(model, viewState, logicalEvent, chooseCatStates, COMMON_MENU_NUM_BUTTONS,
 			returnStateId, &chooseCatModel->chooseCatButton, NULL, 0);
-	if (returnStateId == CHOOSE_MOUSE)
+	if (returnStateId == CHOOSE_MOUSE){
+		chooseCatModel->isCatHuman = 1;
 		chooseCatModel->preChooseMouse = CHOOSE_CAT;
+
+	}
+	else if (returnStateId == CAT_SKILL)
+		chooseCatModel->isCatHuman = 0;
 	return returnStateId;
 }
 
@@ -615,6 +592,10 @@ StateId chooseMousePHE(void* model, void* viewState, void* logicalEvent){
 	StateId chooseMouseStates[COMMON_MENU_NUM_BUTTONS] = {PLAY_GAME, MOUSE_SKILL, chooseMouseModel->preChooseMouse};
 	returnStateId = generalMenuPHE(model, viewState, logicalEvent, chooseMouseStates, COMMON_MENU_NUM_BUTTONS,
 			returnStateId, &chooseMouseModel->chooseMouseButton, NULL, 0);
+	if (returnStateId == PLAY_GAME)
+		chooseMouseModel->isMouseHuman = 1;
+	else if (returnStateId == CAT_SKILL)
+		chooseMouseModel->isMouseHuman = 0;
 	return returnStateId;
 }
 

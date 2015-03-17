@@ -42,6 +42,8 @@ int main(int argc, char * argv[]){
 	guis[CHOOSE_MOUSE] = createGUIForState(CHOOSE_MOUSE);
 	guis[CAT_SKILL] = createGUIForState(CAT_SKILL);
 	guis[MOUSE_SKILL] = createGUIForState(MOUSE_SKILL);
+	guis[LOAD_GAME] = createGUIForState(LOAD_GAME);
+	guis[EDIT_GAME] = createGUIForState(EDIT_GAME);
 
 	// Starting the default/initial GUI:
 	StateId nextStateId = MAIN_MENU;

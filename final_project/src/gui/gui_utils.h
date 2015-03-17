@@ -122,9 +122,10 @@ typedef struct GameData{
 
 	int mainMenuButton;
 	int chooseCatButton;
+	int chooseMouseButton;
 	StateId preChooseCat;
 	StateId preChooseMouse;
-	int chooseMouseButton;
+
 	int catSkillButton;
 	int mouseSkillButton;
 	int loadGameButton;

@@ -116,9 +116,11 @@ int changeSelectedButton(Widget * oldButton, Widget * newButton){
 	}
 	return 0;
 }
+
 void setValuesButtonFromInit(int value, Widget* valuesButton){
 	valuesButton->button_selected_rect.y += (value-1)*MENU_BUTTON_H;
 	valuesButton->button_non_selected_rect.y += (value-1)*MENU_BUTTON_H;
+	valuesButton->img_rect = valuesButton->button_non_selected_rect;
 }
 
 void increaseValuesButton(int* currValue, int maxValue, Widget* valuesButton){
@@ -149,12 +151,18 @@ GameDataRef initGameDataToDefault(){
 	gameData->chooseMouseButton = 0;
 	gameData->catSkillButton = 0;
 	gameData->mouseSkillButton = 0;
+	gameData->loadGameButton = 0;
+	gameData->editGameButton = 0;
+	gameData->saveWorldButton = 0;
 
 	gameData->catSkill = DEFAULT_SKILL;
 	gameData->mouseSkill = DEFAULT_SKILL;
 
+	gameData->editedWorld = MIN_VALUE;
+	gameData->loadGameWorld = MIN_VALUE;
+	gameData->saveOnWorld = MIN_VALUE;
+
 	gameData->currWorld = NULL;
-	//gameData->mouseSkillButton = 0;
 
 	/* what else ???? */
 
