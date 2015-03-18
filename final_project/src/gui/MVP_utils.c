@@ -45,12 +45,12 @@ GUI createGUIForState(StateId stateId){
 			returnGUI.presenterHandleEvent = loadGamePHE;
 			returnGUI.stop = menuStop;
 			break;
-		case(WORLD_BUILDER):
+		/*case(WORLD_BUILDER):
 			returnGUI.start = startWorldBuilder;
 			returnGUI.viewTranslateEvent = worldBuilderVTE;
 			returnGUI.presenterHandleEvent = worldBuilderPHE;
 			returnGUI.stop = stopWorldBuilder;
-			break;
+			break;*/
 		case(EDIT_GAME):
 			returnGUI.start = startWorldMenu;
 			returnGUI.viewTranslateEvent = complexMenuVTE;
@@ -135,7 +135,7 @@ void startWorldBuilder(GUIref gui, void* initData){
 		return;
 	}
 	/*** continue from here ***/
-	Widget *panel = create_panel(calcPanelX(titleWidth), calcPanelY(numButtons),
+/*	Widget *panel = create_panel(calcPanelX(titleWidth), calcPanelY(numButtons),
 			calcPanelWidth(titleWidth),calcPanelHeight(numButtons),PANEL_RED,PANEL_GREEN,PANEL_BLUE);
 	if (panel == NULL){
 		return;
@@ -155,7 +155,7 @@ void startWorldBuilder(GUIref gui, void* initData){
 		freeWidget(label);
 		return;
 	}
-	/* Add buttons to buttons array and to UI tree */
+	// Add buttons to buttons array and to UI tree
 	int button_x = calcMenuButtonX(titleWidth), button_y = calcMenuButtonY(), isSelected_x = MENU_BUTTON_W, isSelected_y = 0, isNselected_x = 0, isNselected_y=0;
 	for (int i = 0; i < numButtons; i++){
 		buttons[i] = create_button(button_x,button_y, MENU_BUTTON_W, MENU_BUTTON_H,
@@ -179,14 +179,14 @@ void startWorldBuilder(GUIref gui, void* initData){
 		button_y += MENU_BUTTON_H+MENU_BUTTON_GAP;
 	}
 
-	/* update the view buttons */
-	if(firstButtonNumOpts > 1){ /* update the values button */
+	// update the view buttons
+	if(firstButtonNumOpts > 1){ // update the values button
 		setValuesButtonFromInit(value, buttons[0]);
 	}
 	menuViewState->currButton = selectedButton;
 	setButtonSelected(menuViewState->menuButtons[selectedButton]);
-	/* draw GUI according to UItree */
-	drawMenuGui(gui);
+	// draw GUI according to UItree
+	drawMenuGui(gui);*/
 
 
 }
@@ -487,11 +487,11 @@ void initializeWorldBuilderModel(GUIref gui, void* initData){
 
 	if (menuData->preWorldBuilder == MAIN_MENU){
 		wbData->editedWorld = DEFAULT_WORLD;  // maybe change to something else????
-		wbData->gameGridData = initGridData(0);
+		//initGameData(0, wbData->gameGridData, &wbData->isCatFirst);
 	}
 	else{ // preWorldBuilder == EDIT_GAME
 		wbData->editedWorld = menuData->editedWorld;
-		wbData->gameGridData = initGridData(menuData->editedWorld);
+		//initGameData(wbData->editedWorld, wbData->gameGridData, &wbData->isCatFirst);
 	}
 	if (isError)
 		return;
@@ -740,35 +740,36 @@ StateId chooseMousePHE(void* model, void* viewState, void* logicalEvent){
 	return returnStateId;
 }
 
-int initGameData(int worldNum, char ** grid, int * isCatFirst){
-	grid = initGrid();
-	int numTurns = DEFAULT_TURNS;
-	char firstAnimal[6];
+char ** initGameData(int worldNum, int * numTurns, int * isCatFirst){
+	char ** grid = initGrid();
 	if (isError)
-		return -1;
-	if (worldNum == 0)
-		makeEmptyGrid(grid); // write this function!
+		return NULL;
+	*numTurns = DEFAULT_TURNS;
+	char firstAnimal[6];
+	if (worldNum == 0){
+		setEmptyGrid(grid);
+	}// write this function!
 	else{
 		//open the file:
 		char filename[WORLD_FILE_NAME_LEN];
 		if (sprintf(filename, "%s%s%d.%s", WORLD_FILE_PATH, WORLD_FILE_NAME_PREFIX, worldNum, WORLD_FILE_NAME_TYPE) < 0){
 			perrorPrint("sprintf");
-			return -1;
+			return NULL;
 		}
 		FILE * worldFile = fopen(filename,"r");
 		if (worldFile == NULL){
 			perrorPrint("fopen");
-			return -1;
+			return NULL;
 		}
 		//update numTurns
-		if (fscanf(worldFile, "%d", &numTurns) < 0){
+		if (fscanf(worldFile, "%d", numTurns) < 0){
 			perrorPrint("fscanf");
-			return -1;
+			return NULL;
 		}
 		//update isCatFirst
 		if (fscanf(worldFile, "%s", firstAnimal) < 0){
 			perrorPrint("fscanf");
-			return -1;
+			return NULL;
 		}
 		if (strcmp(firstAnimal, "cat") == 0)
 			*isCatFirst = 1;
@@ -776,22 +777,33 @@ int initGameData(int worldNum, char ** grid, int * isCatFirst){
 			*isCatFirst = 0;
 		//fill grid by file
 		char nextChar;
-		for (int i = 0; i< ROW_NUM; i++){
-			for (int j = 0; j< COL_NUM; j++){
-				if ((nextChar = fgetc(worldFile)) == EOF){
-					perrorPrint("fgetc");
-					return -1;
+		for (int i = 0; i< ROW_NUM;i++){
+			//printf("%d", i);
+			for (int j = 0; j< COL_NUM+1; j++){
+//				if (i == ROW_NUM-1 && j == COL_NUM){
+//					printf(":)");
+//					break;
+//				}
+				if ((fscanf(worldFile, "%c" , &nextChar)) < 0){
+					perrorPrint("fscanf");
+					return NULL;
 				}
-				grid[i][j] = nextChar;
+				if(nextChar != '\n'){
+					grid[i][j-1] = nextChar;
+					//printf("%c",grid[i][j-1]);
+
+				}
+
+
 			}
 		}
 		//close the file
 		fclose(worldFile);
 	}
-	return numTurns;
+	return grid;
 }
 
-void makeEmptyGrid(char ** grid){
+void setEmptyGrid(char ** grid){
 	for (int i = 0; i< ROW_NUM; i++){
 		for (int j = 0; j< COL_NUM; j++){
 			grid[i][j] = EMPTY_CELL_CHAR;
@@ -814,7 +826,7 @@ char ** initGrid(){
 
 void initColumns(int rownum, int colnum, char ** grid){
     int i, j;
-    for (i = 0; i<rownum ; ++i){
+    for (i = 0; i<rownum ; i++){
     	grid[i] = (char *)malloc(colnum*sizeof(char));
     	if (grid[i] == NULL){
     		for (j = 0; j<i; j++)

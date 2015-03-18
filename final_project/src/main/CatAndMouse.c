@@ -8,7 +8,35 @@ int isQuit = 0;
 
 int main(int argc, char * argv[]){
 
-	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+	char ** grid = NULL;
+	int isCatFirst;
+	int numTurns= 0 ;
+	int worldNum = 6;
+	int i, j;
+
+	/*grid = (char **)malloc(7*sizeof(char *));
+	if (grid == NULL){
+		perrorPrint("malloc");
+	}*/
+	/*grid = initGrid();
+	//initColumns(7, 7, grid);
+	setEmptyGrid(grid);*/
+
+	grid = initGameData(worldNum, &numTurns, &isCatFirst);
+
+
+
+	for (int i = 0; i<7; i++){
+		for (int j = 0; j<7; j++){
+			printf("%c", grid[i][j]);
+			if (j==6)
+				printf("\n");
+		}
+	}
+
+
+
+	/*if (SDL_Init(SDL_INIT_VIDEO) < 0) {
 		printf("ERROR: unable to init SDL: %s\n", SDL_GetError());
 		return 1;
 	}
@@ -36,7 +64,7 @@ int main(int argc, char * argv[]){
 */
 
 // initialize GUI structs mapping by state ids:
-	GUI guis[10];
+	/*GUI guis[10];
 	guis[MAIN_MENU] = createGUIForState(MAIN_MENU);
 	guis[CHOOSE_CAT] = createGUIForState(CHOOSE_CAT);
 	guis[CHOOSE_MOUSE] = createGUIForState(CHOOSE_MOUSE);
@@ -81,7 +109,7 @@ int main(int argc, char * argv[]){
 	activeGUI.stop(&activeGUI);
 
 	return isError;
-
+*/
 
 }
 

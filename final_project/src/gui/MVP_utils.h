@@ -13,12 +13,14 @@ GUI createGUIForState(StateId stateId);
 /* start functions */
 void drawMenuGui(GUIref gui);
 void initializeMenuModel(GUIref gui, void* initData);
+void initializeWorldBuilderModel(GUIref gui, void* initData);
 ViewStateref initializeGUIViewState();
 void startGeneralMenu(GUIref gui, void * initData, char * imgPath, int titleImgX, int titleImgY, int titleWidth, int numButtons, int selectedButton, int firstButtonNumOpts, int value);
 void startMainMenu(GUIref gui, void* initData);
 void startChooseAnimal(GUIref gui, void* initData);
 void startAnimalSkill(GUIref gui, void* initData);
 void startWorldMenu(GUIref gui, void* initData);
+void startWorldBuilder(GUIref gui, void* initData);
 
 /* VTE fucntions: */
 void* simpleMenuVTE(void* viewState, SDL_Event* event, int numOfButtons);
@@ -41,6 +43,10 @@ StateId saveWorldPHE(void* model, void* viewState, void* logicalEvent);
 /* stop functions */
 void* menuStop(GUIref gui); /* maybe this will be a general stop function */
 
+char ** initGameData(int worldNum, int * numTurns, int * isCatFirst);
+void setEmptyGrid(char ** grid);
+char ** initGrid();
+void initColumns(int rownum, int colnum, char ** grid);
 
 
 #endif /* MVP_UTILS_H_ */
