@@ -11,6 +11,7 @@
 #define MAIN_MENU_NUM_BUTTONS 5
 #define COMMON_MENU_NUM_BUTTONS 3
 #define WORLD_BUILDER_NUM_BUTTONS 8
+#define NUM_GRID_ITEMS 7
 #define FIRST_BUTTON 0
 #define REGULAR_BUTTON 0
 #define UP_ARROW_BUTTON 1
@@ -24,6 +25,10 @@
 #define PANEL_GREEN 100
 #define PANEL_BLUE 100
 
+#define TR_RED  0
+#define TR_BLUE 0
+#define TR_GREEN 250
+
 #define MENU_BUTTON_W 150
 #define MENU_BUTTON_H 34
 #define ARROW_BUTTON_X 120
@@ -33,6 +38,8 @@
 #define MENU_TITLE_Y_GAP 20
 #define MENU_BUTTON_Y 80
 #define MENU_BUTTON_GAP 10
+#define GRID_SQUARE_SIZE 80
+#define GRID_GAP_SIZE 5
 
 
 
@@ -70,7 +77,9 @@ typedef enum{
 	MOUSE,
 	CHEESE,
 	WALL,
-	EMPTY
+	EMPTY,
+	SELECT,
+	DESELECT
 } gridItem;
 
 /* The GUI structure. */
@@ -113,6 +122,8 @@ typedef struct ViewState{
 	Widget ** menuButtons;
 	ListRef UITree;
 	int currButton;
+	Widget * gridPanel;
+	Widget ** gridItemsImages;
 } ViewState;
 
 typedef struct ViewState * ViewStateref;

@@ -9,6 +9,19 @@
 /* define constants: */
 #define WIN_W 800
 #define WIN_H 800
+#define TOP_PANEL_H 200
+#define SIDE_PANEL_W 200
+#define SIDE_PANEL_H 590
+#define GRID_SIZE 590
+#define WB_TITLE_W 240
+#define WB_TITLE_H 60
+#define WB_BUTTON_W 176
+#define WB_BUTTON_H 80
+#define WB_WIDGET_Y_GAP 20
+#define WB_TOP_PANEL_NUM_BUTTONS 3
+#define WB_SIDE_PANEL_NUM_BUTTONS 5
+#define WB_BUTTON_X_GAP 80
+
 
 typedef enum {
 	WINDOW,

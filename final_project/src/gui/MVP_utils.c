@@ -90,6 +90,8 @@ ViewStateref initializeGUIViewState(){
 	viewState->menuButtons = NULL;
 	viewState->UITree = NULL;
 	viewState->currButton = 0;
+	viewState->gridPanel = NULL;
+	viewState->gridImages = NULL;
 	return viewState;
 }
 
@@ -97,8 +99,8 @@ void startWorldBuilder(GUIref gui, void* initData){
 	initializeWorldBuilderModel(gui, initData);
 	if(isError)
 		return;
+	worldBuilderDataRef data = gui->model;
 	char imgPath[] = "images/worldBuilder_temp.bmp";
-	MenuDataRef data = gui->model;
 
 	/* initialize viewState */
 	ViewStateref wbViewState = initializeGUIViewState(); //maybe we will need a different function!
@@ -108,12 +110,12 @@ void startWorldBuilder(GUIref gui, void* initData){
 	gui->viewState = wbViewState;
 
 	/* create image surface */
-	SDL_Surface * menuImage = SDL_LoadBMP(imgPath);
-	if (menuImage == NULL){
+	SDL_Surface * wbImage = SDL_LoadBMP(imgPath);
+	if (wbImage == NULL){
 		sdlErrorPrint("failed to load image");
 		return;
 	}
-	wbViewState->image = menuImage;
+	wbViewState->image = wbImage;
 
 	/* create buttons array */
 	Widget ** buttons = (Widget **)malloc(WORLD_BUILDER_NUM_BUTTONS*sizeof(Widget *));
@@ -128,67 +130,163 @@ void startWorldBuilder(GUIref gui, void* initData){
 	if (win == NULL){
 		return;
 	}
-	ListRef win_node = newList(win);
-	wbViewState->UITree = win_node;
-	if (win_node == NULL){
+	ListRef winNode = newList(win);
+	wbViewState->UITree = winNode;
+	if (winNode == NULL){
 		freeWidget(win);
 		return;
 	}
-	/*** continue from here ***/
-/*	Widget *panel = create_panel(calcPanelX(titleWidth), calcPanelY(numButtons),
-			calcPanelWidth(titleWidth),calcPanelHeight(numButtons),PANEL_RED,PANEL_GREEN,PANEL_BLUE);
-	if (panel == NULL){
+
+	Widget *topPanel = create_panel(0, 0, WIN_W, TOP_PANEL_H,PANEL_RED,PANEL_GREEN,PANEL_BLUE);
+	if (topPanel == NULL){
 		return;
 	}
-	ListRef panel_node = addChildNode(win_node, panel);
-	if (panel_node == NULL){
-		freeWidget(panel);
+	ListRef topPanelNode = addChildNode(winNode, topPanel);
+	if (topPanelNode == NULL){
+		freeWidget(topPanel);
 		return;
 	}
-	Widget *label = create_image(MENU_TITLE_X_GAP, MENU_TITLE_Y_GAP, titleWidth, MENU_TITLE_H,
-			menuImage, titleImgX, titleImgY);
+	Widget *sidePanel = create_panel(0, 210, SIDE_PANEL_W, SIDE_PANEL_H,PANEL_RED,PANEL_GREEN,PANEL_BLUE);
+		if (sidePanel == NULL){
+			return;
+		}
+	ListRef sidePanelNode = addChildNode(winNode, sidePanel);
+	if (sidePanelNode == NULL){
+		freeWidget(sidePanel);
+		return;
+	}
+	Widget *gridPanel = create_panel(210, 210, GRID_SIZE, GRID_SIZE, PANEL_RED, PANEL_GREEN, PANEL_BLUE);
+	if (gridPanel == NULL){
+		return;
+	}
+	ListRef gridPanelNode = addChildNode(winNode, gridPanel);
+	if (gridPanelNode == NULL){
+		freeWidget(gridPanel);
+		return;
+	}
+	Widget *label = create_image(calcWBtitleX(WB_TITLE_W), WB_WIDGET_Y_GAP, WB_TITLE_W, WB_TITLE_H,
+			wbImage, WB_BUTTON_W, data->editedWorld*WB_TITLE_H);
 	if (label == NULL){
 		return;
 	}
-	ListRef label_node = addChildNode(panel_node, label);
-	if (label_node == NULL){
+	ListRef labelNode = addChildNode(topPanelNode, label);
+	if (labelNode == NULL){
 		freeWidget(label);
 		return;
 	}
+	//add buttons to top panel:
+	int topButtonX = calcTopButtonX(), topButtonY = calcTopButtonY(), buttonImgX = 0, buttonImgY = 0;
 	// Add buttons to buttons array and to UI tree
-	int button_x = calcMenuButtonX(titleWidth), button_y = calcMenuButtonY(), isSelected_x = MENU_BUTTON_W, isSelected_y = 0, isNselected_x = 0, isNselected_y=0;
-	for (int i = 0; i < numButtons; i++){
-		buttons[i] = create_button(button_x,button_y, MENU_BUTTON_W, MENU_BUTTON_H,
-				menuImage, isSelected_x, isSelected_y, isNselected_x, isNselected_y, 0);
+	for (int i = 0; i < WB_TOP_PANEL_NUM_BUTTONS; i++){
+		buttons[i] = create_button(topButtonX, topButtonY, WB_BUTTON_W, WB_BUTTON_H,
+				wbImage, buttonImgX, buttonImgY, buttonImgX, buttonImgY, 0);//write function for creating a non markable button
 		if (buttons[i] == NULL){
 			return;
 		}
-		ListRef newButtonNode = addChildNode(panel_node, buttons[i]);
+		ListRef newButtonNode = addChildNode(topPanelNode, buttons[i]);
 		if (newButtonNode == NULL){
 			freeWidget(buttons[i]);
 			return;
 		}
-		if (i == FIRST_BUTTON){
-			isSelected_y += firstButtonNumOpts*MENU_BUTTON_H;
-			isNselected_y += firstButtonNumOpts*MENU_BUTTON_H;
-		}
-		else{
-			isSelected_y += MENU_BUTTON_H;
-			isNselected_y += MENU_BUTTON_H;
-		}
-		button_y += MENU_BUTTON_H+MENU_BUTTON_GAP;
+		buttonImgY += WB_BUTTON_H;
+		topButtonX += WB_BUTTON_W + WB_BUTTON_X_GAP;
 	}
 
-	// update the view buttons
-	if(firstButtonNumOpts > 1){ // update the values button
-		setValuesButtonFromInit(value, buttons[0]);
+	//add buttons to side panel:
+	int sideButtonX = calcSideButtonX(), sideButtonY = calcSideButtonY();
+	// Add buttons to buttons array and to UI tree
+	for (int i = WB_TOP_PANEL_NUM_BUTTONS; i < WORLD_BUILDER_NUM_BUTTONS; i++){
+		buttons[i] = create_button(sideButtonX, sideButtonY, WB_BUTTON_W, WB_BUTTON_H,
+				wbImage, buttonImgX, buttonImgY, buttonImgX, buttonImgY, 0);//write function for creating a non markable button
+		if (buttons[i] == NULL){
+			return;
+		}
+		ListRef newButtonNode = addChildNode(sidePanelNode, buttons[i]);
+		if (newButtonNode == NULL){
+			freeWidget(buttons[i]);
+			return;
+		}
+		buttonImgY += WB_BUTTON_H;
+		sideButtonY += WB_BUTTON_H + WB_WIDGET_Y_GAP;
 	}
-	menuViewState->currButton = selectedButton;
-	setButtonSelected(menuViewState->menuButtons[selectedButton]);
+	Widget ** gridItemImages = malloc(NUM_GRID_ITEMS*sizeof(Widget *));
+	if (buttons == NULL){
+		perrorPrint("malloc");
+		return;
+	}
+	wbViewState->gridItemsImages = gridItemImages;
+	int gridItemImgX = WB_BUTTON_W + WB_TITLE_W;
+	int gridItemImgY = 0;
+	for (int i = 0; i < NUM_GRID_ITEMS; i++){
+		gridItemImages[i] = create_image(0, 0, GRID_SQUARE_SIZE, GRID_SQUARE_SIZE,
+				wbImage, gridItemImgX, gridItemImgY);
+		if (gridItemImages[i] == NULL){
+			return;
+		}
+		gridItemImgY += GRID_SQUARE_SIZE;
+	}
+	setImageTransparent(gridItemImages[SELECT], TR_RED, TR_GREEN, TR_BLUE);//CREATE THIS FUNCTION!!!!!!!
+	if (isError)
+		return;
+	setImageTransparent(gridItemImages[DESELECT], TR_RED, TR_GREEN, TR_BLUE);
+	if (isError)
+		return;
+	createGridByData(gridPanel, data->gameGridData, gridItemImages);
+	if (isError)
+		return
 	// draw GUI according to UItree
-	drawMenuGui(gui);*/
+	drawMenuGui(gui);
+}
 
+void createGridByData(Widget *gridPanel, char **gridData, Widget **gridItemImages){
+	Widget *currItemImage = NULL;
 
+	for (int i = 0; i < ROW_NUM; i++){
+		for (int j = 0; j < COL_NUM; j++){
+			switch(gridData[i][j]){
+				case('C'):
+					currItemImage = gridItemImages[CAT];
+					break;
+				case('M'):
+					currItemImage = gridItemImages[MOUSE];
+					break;
+				case('P'):
+					currItemImage = gridItemImages[CHEESE];
+					break;
+				case('W'):
+					currItemImage = gridItemImages[WALL];
+					break;
+				case('#'):
+					currItemImage = gridItemImages[EMPTY];
+					break;
+				default:
+					break;
+			}
+			currItemImage->location_rect.x = j*(GRID_SQUARE_SIZE + GRID_GAP_SIZE);
+			currItemImage->location_rect.y = i*(GRID_SQUARE_SIZE + GRID_GAP_SIZE);
+			if (SDL_BlitSurface(currItemImage->surface, &currItemImage->img_rect,
+				gridPanel->surface, &currItemImage->location_rect) != 0){
+					sdlErrorPrint("failed to blit image");
+					return;
+			}
+		}
+	}
+	setGridPosSeleced(gridPanel, gridItemImages[SELECT], 0, 0);
+}
+
+void setGridPosSelected(Widget *gridPanel, Widget *gridSelectImage, int row, int col){
+	gridSelectImage->location_rect.x = col*(GRID_SQUARE_SIZE + GRID_GAP_SIZE);
+	gridSelectImage->location_rect.y = row*(GRID_SQUARE_SIZE + GRID_GAP_SIZE);
+	if (SDL_BlitSurface(gridSelectImage->surface, &gridSelectImage->img_rect,
+		gridPanel->surface, &gridSelectImage->location_rect) != 0){
+			sdlErrorPrint("failed to blit image");
+			return;
+	}
+}
+
+void setImageTransparent(Widget *image, int red, int green, int blue){
+	if (SDL_SetColorKey(image->surface, SDL_TRUE, SDL_MapRGB(image->surface->format, red, green, blue)) !=0)
+		isError = 1;
 }
 
 /* general MVP functions - used by several GUIs */
@@ -486,7 +584,7 @@ void initializeWorldBuilderModel(GUIref gui, void* initData){
 	wbData->gameGridData = NULL;
 
 	if (menuData->preWorldBuilder == MAIN_MENU){
-		wbData->editedWorld = DEFAULT_WORLD;  // maybe change to something else????
+		wbData->editedWorld = 0;  // maybe change to something else????
 		wbData->gameGridData = initGameData(0, &wbData->numTurns, &wbData->isCatFirst);
 	}
 	else{ // preWorldBuilder == EDIT_GAME
