@@ -162,6 +162,7 @@ typedef struct worldBuilderData{
 	gridItemPosition currPos;
 	int editedWorld;
 	int isCatFirst;
+	int numTurns;
 } worldBuilderData;
 typedef struct worldBuilderData * worldBuilderDataRef;
 

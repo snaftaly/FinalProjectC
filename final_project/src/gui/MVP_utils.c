@@ -481,17 +481,17 @@ void initializeWorldBuilderModel(GUIref gui, void* initData){
 	gridItemPosition currPos = {0, 0};
 	wbData->catPos = catPos;
 	wbData->mousePos = mousePos;
-	wbData-> cheesePos = cheesePos;
+	wbData->cheesePos = cheesePos;
 	wbData->currPos = currPos;
 	wbData->gameGridData = NULL;
 
 	if (menuData->preWorldBuilder == MAIN_MENU){
 		wbData->editedWorld = DEFAULT_WORLD;  // maybe change to something else????
-		//initGameData(0, wbData->gameGridData, &wbData->isCatFirst);
+		wbData->gameGridData = initGameData(0, &wbData->numTurns, &wbData->isCatFirst);
 	}
 	else{ // preWorldBuilder == EDIT_GAME
 		wbData->editedWorld = menuData->editedWorld;
-		//initGameData(wbData->editedWorld, wbData->gameGridData, &wbData->isCatFirst);
+		wbData->gameGridData = initGameData(wbData->editedWorld, &wbData->numTurns, &wbData->isCatFirst);
 	}
 	if (isError)
 		return;
@@ -775,26 +775,28 @@ char ** initGameData(int worldNum, int * numTurns, int * isCatFirst){
 			*isCatFirst = 1;
 		else
 			*isCatFirst = 0;
-		//fill grid by file
+		//fill grid by file:
 		char nextChar;
 		for (int i = 0; i< ROW_NUM;i++){
-			//printf("%d", i);
-			for (int j = 0; j< COL_NUM+1; j++){
-//				if (i == ROW_NUM-1 && j == COL_NUM){
-//					printf(":)");
-//					break;
-//				}
-				if ((fscanf(worldFile, "%c" , &nextChar)) < 0){
-					perrorPrint("fscanf");
-					return NULL;
+			for (int j = 0; j< COL_NUM; j++){
+				if (j == 0){
+					while (1){
+						if ((fscanf(worldFile, "%c" , &nextChar)) < 0){
+							perrorPrint("fscanf");
+							return NULL;
+						}
+						if (nextChar != '\r' && nextChar != '\n')
+							break;
+					}
+					grid[i][0] = nextChar;
 				}
-				if(nextChar != '\n'){
-					grid[i][j-1] = nextChar;
-					//printf("%c",grid[i][j-1]);
-
+				else{
+					if ((fscanf(worldFile, "%c" , &nextChar)) < 0){
+						perrorPrint("fscanf");
+						return NULL;
+					}
+					grid[i][j] = nextChar;
 				}
-
-
 			}
 		}
 		//close the file

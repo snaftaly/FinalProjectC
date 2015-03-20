@@ -11,7 +11,7 @@ int main(int argc, char * argv[]){
 	char ** grid = NULL;
 	int isCatFirst;
 	int numTurns= 0 ;
-	int worldNum = 6;
+	int worldNum = 1;
 	int i, j;
 
 	/*grid = (char **)malloc(7*sizeof(char *));
