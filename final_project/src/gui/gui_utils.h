@@ -10,7 +10,7 @@
 #define POLLING_DELAY 10
 #define MAIN_MENU_NUM_BUTTONS 5
 #define COMMON_MENU_NUM_BUTTONS 3
-#define WORLD_BUILDER_NUM_BUTTONS 8
+#define WB_NUM_BUTTONS 8
 #define NUM_GRID_ITEMS 7
 #define FIRST_BUTTON 0
 #define REGULAR_BUTTON 0
@@ -26,8 +26,8 @@
 #define PANEL_BLUE 100
 
 #define TR_RED  0
+#define TR_GREEN 255
 #define TR_BLUE 0
-#define TR_GREEN 250
 
 #define MENU_BUTTON_W 150
 #define MENU_BUTTON_H 34
@@ -65,10 +65,15 @@ typedef enum {
 typedef enum{
 	SELECT_CURR_BUTTON,
 	MARK_NEXT_BUTTON,
-	MARK_AND_SELECT_BUTTON,
+	SELECT_BUTTON_NUM,
 	MARK_VALUES_BUTTON,
 	INCREASE_VALUE,
 	DECREASE_VALUE,
+	GO_UP,
+	GO_RIGHT,
+	GO_LEFT,
+	GO_DOWN,
+	SELECT_SQUARE,
 	NO_EVENT  /* is necessary ???? */
 } logicalEventType;
 
@@ -131,6 +136,7 @@ typedef struct ViewState * ViewStateref;
 typedef struct logicalEvent{
 	logicalEventType type;
 	int buttonNum;
+	gridItemPosition gridPos;
 }logicalEvent;
 
 typedef struct logicalEvent * logicalEventRef;
@@ -159,12 +165,12 @@ typedef struct MenuData{
 	int saveOnWorld;
 
 	char ** currWorld;
-} GameData;
+} MenuData;
 
 typedef struct MenuData * MenuDataRef;
 
 
-typedef struct worldBuilderData{
+typedef struct WBData{
 	int mainMenuButton;
 	char ** gameGridData;
 	gridItemPosition catPos;
@@ -174,8 +180,9 @@ typedef struct worldBuilderData{
 	int editedWorld;
 	int isCatFirst;
 	int numTurns;
-} worldBuilderData;
-typedef struct worldBuilderData * worldBuilderDataRef;
+} WBData;
+
+typedef struct WBData * WBDataRef;
 
 
 
@@ -196,6 +203,11 @@ int calcPanelWidth(int titleWidth);
 int calcPanelHeight(int numButtons);
 int calcMenuButtonX(int titleWidth);
 int calcMenuButtonY();
+int calcTopButtonX();
+int calcTopButtonY();
+int calcSideButtonX();
+int calcSideButtonY();
+int calcWBtitleX(int title_W);
 
 
 #endif /* GUI_UTILS_H_ */

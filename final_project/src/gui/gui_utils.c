@@ -140,35 +140,36 @@ void decreaseValuesButton(int * currValue, int maxValue, Widget * valuesButton){
 }
 
 MenuDataRef initMenuDataToDefault(){
-	MenuDataRef gameData = (GameData *)malloc(sizeof(GameData));
-	if (gameData == NULL){
+	MenuDataRef menuData = malloc(sizeof(MenuData));
+	if (menuData == NULL){
 		perrorPrint("calloc");
 		return NULL;
 	}
 
-	gameData->mainMenuButton = 0;
-	gameData->chooseCatButton = 0;
-	gameData->chooseMouseButton = 0;
-	gameData->catSkillButton = 0;
-	gameData->mouseSkillButton = 0;
-	gameData->loadGameButton = 0;
-	gameData->editGameButton = 0;
-	gameData->saveWorldButton = 0;
+	menuData->mainMenuButton = 0;
+	menuData->chooseCatButton = 0;
+	menuData->chooseMouseButton = 0;
+	menuData->catSkillButton = 0;
+	menuData->mouseSkillButton = 0;
+	menuData->loadGameButton = 0;
+	menuData->editGameButton = 0;
+	menuData->saveWorldButton = 0;
 
-	gameData->catSkill = DEFAULT_SKILL;
-	gameData->mouseSkill = DEFAULT_SKILL;
+	menuData->catSkill = DEFAULT_SKILL;
+	menuData->mouseSkill = DEFAULT_SKILL;
 
-	gameData->editedWorld = MIN_VALUE;
-	gameData->loadGameWorld = MIN_VALUE;
-	gameData->saveOnWorld = MIN_VALUE;
+	menuData->editedWorld = MIN_VALUE;
+	menuData->loadGameWorld = MIN_VALUE;
+	menuData->saveOnWorld = MIN_VALUE;
 
-	gameData->currValueTemp = 0;
+	menuData->currValueTemp = 0;
 
-	gameData->currWorld = NULL;
+	menuData->currWorld = NULL;
 
+	menuData->preWorldBuilder = MAIN_MENU;
 	/* what else ???? */
 
-	return gameData;
+	return menuData;
 }
 
 int calcPanelX(int titleWidth){
@@ -193,4 +194,24 @@ int calcMenuButtonX(int titleWidth){
 
 int calcMenuButtonY(){ /* maybe change to a constant */
 	return 2*MENU_TITLE_Y_GAP+MENU_TITLE_H;
+}
+
+int calcTopButtonX(){
+	return (WIN_W - (3*WB_BUTTON_W + 2*WB_BUTTON_X_GAP))/2;
+}
+
+int calcTopButtonY(){
+	return WB_TITLE_H + 2*WB_WIDGET_Y_GAP;
+}
+
+int calcSideButtonX(){
+	return (SIDE_PANEL_W - WB_BUTTON_W)/2;
+}
+
+int calcSideButtonY(){
+	return (SIDE_PANEL_H - (5*WB_BUTTON_H + 4*WB_WIDGET_Y_GAP))/2;
+}
+
+int calcWBtitleX(int title_W){
+	return (WIN_W - WB_TITLE_W)/2;
 }

@@ -11,7 +11,7 @@ GUI createGUIForState(StateId stateId);
 
 /** MVP functions: **/
 /* start functions */
-void drawMenuGui(GUIref gui);
+void drawGui(GUIref gui);
 void initializeMenuModel(GUIref gui, void* initData);
 void initializeWorldBuilderModel(GUIref gui, void* initData);
 ViewStateref initializeGUIViewState();
@@ -47,6 +47,9 @@ char ** initGameData(int worldNum, int * numTurns, int * isCatFirst);
 void setEmptyGrid(char ** grid);
 char ** initGrid();
 void initColumns(int rownum, int colnum, char ** grid);
+void setImageTransparent(Widget *image, int red, int green, int blue);
+void setGridPosSelected(Widget *gridPanel, Widget *gridSelectImage, int row, int col);
+void createGridByData(Widget *gridPanel, char **gridData, Widget **gridItemImages);
 
 
 #endif /* MVP_UTILS_H_ */

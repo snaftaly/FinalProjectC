@@ -45,12 +45,12 @@ GUI createGUIForState(StateId stateId){
 			returnGUI.presenterHandleEvent = loadGamePHE;
 			returnGUI.stop = menuStop;
 			break;
-		/*case(WORLD_BUILDER):
+		case(WORLD_BUILDER):
 			returnGUI.start = startWorldBuilder;
-			returnGUI.viewTranslateEvent = worldBuilderVTE;
+			/*returnGUI.viewTranslateEvent = worldBuilderVTE;
 			returnGUI.presenterHandleEvent = worldBuilderPHE;
-			returnGUI.stop = stopWorldBuilder;
-			break;*/
+			returnGUI.stop = stopWorldBuilder;*/
+			break;
 		case(EDIT_GAME):
 			returnGUI.start = startWorldMenu;
 			returnGUI.viewTranslateEvent = complexMenuVTE;
@@ -91,7 +91,7 @@ ViewStateref initializeGUIViewState(){
 	viewState->UITree = NULL;
 	viewState->currButton = 0;
 	viewState->gridPanel = NULL;
-	viewState->gridImages = NULL;
+	viewState->gridItemsImages = NULL;
 	return viewState;
 }
 
@@ -99,17 +99,17 @@ void startWorldBuilder(GUIref gui, void* initData){
 	initializeWorldBuilderModel(gui, initData);
 	if(isError)
 		return;
-	worldBuilderDataRef data = gui->model;
+	WBDataRef data = gui->model;
 	char imgPath[] = "images/worldBuilder_temp.bmp";
 
-	/* initialize viewState */
+	// initialize viewState
 	ViewStateref wbViewState = initializeGUIViewState(); //maybe we will need a different function!
 	if (wbViewState == NULL){
 		return;
 	}
 	gui->viewState = wbViewState;
 
-	/* create image surface */
+	// create image surface
 	SDL_Surface * wbImage = SDL_LoadBMP(imgPath);
 	if (wbImage == NULL){
 		sdlErrorPrint("failed to load image");
@@ -117,15 +117,15 @@ void startWorldBuilder(GUIref gui, void* initData){
 	}
 	wbViewState->image = wbImage;
 
-	/* create buttons array */
-	Widget ** buttons = (Widget **)malloc(WORLD_BUILDER_NUM_BUTTONS*sizeof(Widget *));
+	// create buttons array
+	Widget ** buttons = (Widget **)malloc(WB_NUM_BUTTONS*sizeof(Widget *));
 	if (buttons == NULL){
 		perrorPrint("malloc");
 		return;
 	}
 	wbViewState->menuButtons = buttons;
 
-	/* create the UItree */
+	// create the UItree
 	Widget *win = create_window(WIN_W,WIN_H, 0, 0, 0);
 	if (win == NULL){
 		return;
@@ -174,6 +174,7 @@ void startWorldBuilder(GUIref gui, void* initData){
 		freeWidget(label);
 		return;
 	}
+
 	//add buttons to top panel:
 	int topButtonX = calcTopButtonX(), topButtonY = calcTopButtonY(), buttonImgX = 0, buttonImgY = 0;
 	// Add buttons to buttons array and to UI tree
@@ -195,7 +196,7 @@ void startWorldBuilder(GUIref gui, void* initData){
 	//add buttons to side panel:
 	int sideButtonX = calcSideButtonX(), sideButtonY = calcSideButtonY();
 	// Add buttons to buttons array and to UI tree
-	for (int i = WB_TOP_PANEL_NUM_BUTTONS; i < WORLD_BUILDER_NUM_BUTTONS; i++){
+	for (int i = WB_TOP_PANEL_NUM_BUTTONS; i < WB_NUM_BUTTONS; i++){
 		buttons[i] = create_button(sideButtonX, sideButtonY, WB_BUTTON_W, WB_BUTTON_H,
 				wbImage, buttonImgX, buttonImgY, buttonImgX, buttonImgY, 0);//write function for creating a non markable button
 		if (buttons[i] == NULL){
@@ -209,6 +210,8 @@ void startWorldBuilder(GUIref gui, void* initData){
 		buttonImgY += WB_BUTTON_H;
 		sideButtonY += WB_BUTTON_H + WB_WIDGET_Y_GAP;
 	}
+
+	//initialize gridItemsImages Array:
 	Widget ** gridItemImages = malloc(NUM_GRID_ITEMS*sizeof(Widget *));
 	if (buttons == NULL){
 		perrorPrint("malloc");
@@ -233,10 +236,12 @@ void startWorldBuilder(GUIref gui, void* initData){
 		return;
 	createGridByData(gridPanel, data->gameGridData, gridItemImages);
 	if (isError)
-		return
+		return;
 	// draw GUI according to UItree
-	drawMenuGui(gui);
+	drawGui(gui);
 }
+
+
 
 void createGridByData(Widget *gridPanel, char **gridData, Widget **gridItemImages){
 	Widget *currItemImage = NULL;
@@ -271,7 +276,7 @@ void createGridByData(Widget *gridPanel, char **gridData, Widget **gridItemImage
 			}
 		}
 	}
-	setGridPosSeleced(gridPanel, gridItemImages[SELECT], 0, 0);
+	setGridPosSelected(gridPanel, gridItemImages[SELECT], 0, 0);
 }
 
 void setGridPosSelected(Widget *gridPanel, Widget *gridSelectImage, int row, int col){
@@ -285,7 +290,7 @@ void setGridPosSelected(Widget *gridPanel, Widget *gridSelectImage, int row, int
 }
 
 void setImageTransparent(Widget *image, int red, int green, int blue){
-	if (SDL_SetColorKey(image->surface, SDL_TRUE, SDL_MapRGB(image->surface->format, red, green, blue)) !=0)
+	if (SDL_SetColorKey(image->surface, SDL_SRCCOLORKEY, SDL_MapRGB(image->surface->format, red, green, blue)) !=0)
 		isError = 1;
 }
 
@@ -310,10 +315,81 @@ void* simpleMenuVTE(void* viewState, SDL_Event* event, int numOfButtons){
 			for (int i = 0; i< numOfButtons; i++){
 				Widget * currButton = menuViewState->menuButtons[i];
 				if (isClickEventOnButton(event, currButton, REGULAR_BUTTON)){
-					returnEvent->type = MARK_AND_SELECT_BUTTON;
+					returnEvent->type = SELECT_BUTTON_NUM;
 					returnEvent->buttonNum = i;
 					break;
 				}
+			}
+			break;
+		default:
+			returnEvent->type = NO_EVENT;
+	}
+	return returnEvent;
+}
+
+int getWBButtonNum(SDLKey key){
+	switch(key){
+		case(SDLK_s):
+			return 0;
+		case(SDLK_F1):
+			return 1;
+		case(SDLK_ESCAPE):
+			return 2;
+		case(SDLK_m):
+			return 3;
+		case(SDLK_c):
+			return 4;
+		case(SDLK_p):
+			return 5;
+		case(SDLK_w):
+			return 6;
+		case(SDLK_SPACE):
+			return 7;
+	}
+}
+
+void* worldBuilderVTE(void* viewState, SDL_Event* event){
+	logicalEventRef returnEvent = malloc(sizeof(logicalEvent));
+	returnEvent->type = NO_EVENT;
+	if (returnEvent == NULL){
+		perrorPrint("malloc");
+		return NULL;
+	}
+	ViewStateref wbViewState = viewState;
+	SDLKey key;
+	switch (event->type) {
+		case (SDL_KEYUP):
+			key = event->key.keysym.sym;
+			if (key == SDLK_s || key == SDLK_F1 || key == SDLK_ESCAPE ||
+					key == SDLK_m || key == SDLK_c || key == SDLK_p || key == SDLK_w || key == SDLK_SPACE){
+				returnEvent->type = SELECT_BUTTON_NUM;
+				returnEvent->buttonNum = getWBButtonNum(key);
+			}
+			else if (key == SDLK_UP)
+				returnEvent->type = GO_UP;
+			else if (key ==  SDLK_DOWN)
+				returnEvent->type = GO_DOWN;
+			else if (key ==  SDLK_RIGHT)
+				returnEvent->type = GO_RIGHT;
+			else if (key ==  SDLK_LEFT)
+				returnEvent->type = GO_LEFT;
+			break;
+		case (SDL_MOUSEBUTTONUP):
+			if (event->button.x < WIN_W - GRID_SIZE || event->button.y < WIN_H - GRID_SIZE){
+				for (int i = 0; i< WB_NUM_BUTTONS; i++){
+					Widget * currButton = wbViewState->menuButtons[i];
+					if (isClickEventOnButton(event, currButton, REGULAR_BUTTON)){
+						returnEvent->type = SELECT_BUTTON_NUM;
+						returnEvent->buttonNum = i;
+						break;
+					}
+				}
+			}
+			else{ // click is inside the grid
+				returnEvent->type = SELECT_SQUARE;
+				//MayBe write a function for that !!!!!
+				returnEvent->gridPos.col = (event->button.x-(WIN_W - GRID_SIZE))/(GRID_SQUARE_SIZE+GRID_GAP_SIZE);
+				returnEvent->gridPos.row = (event->button.y-(WIN_W - GRID_SIZE))/(GRID_SQUARE_SIZE+GRID_GAP_SIZE);
 			}
 			break;
 		default:
@@ -368,7 +444,7 @@ void* complexMenuVTE(void* viewState, SDL_Event* event){
 					}
 				}
 				if (isClickEventOnButton(event, currButton, REGULAR_BUTTON)){
-					returnEvent->type = MARK_AND_SELECT_BUTTON;
+					returnEvent->type = SELECT_BUTTON_NUM;
 					returnEvent->buttonNum = i;
 					break;
 				}
@@ -397,7 +473,7 @@ StateId generalMenuPHE(void* model, void* viewState, void* logicalEvent, StateId
 			*currButton = (*currButton + 1)%numOfButtons;
 			menuView->currButton = *currButton;
 			break;
-		case(MARK_AND_SELECT_BUTTON):
+		case(SELECT_BUTTON_NUM):
 			*currButton = menuEvent->buttonNum;
 			returnStateId = states[menuEvent->buttonNum];
 			menuView->currButton = *currButton;
@@ -456,10 +532,10 @@ void* menuStop(GUIref gui){ /* maybe this will be a general stop function */
 	return returnData;
 }
 
-void drawMenuGui(GUIref gui){
-	ViewStateref menuViewState = gui->viewState;
-	treeDFS(menuViewState->UITree, calcAbsWidgetXY, addChildWidgetsToParent);
-	Widget * window = menuViewState->UITree->data;
+void drawGui(GUIref gui){
+	ViewStateref viewState = gui->viewState;
+	treeDFS(viewState->UITree, calcAbsWidgetXY, addChildWidgetsToParent);
+	Widget * window = viewState->UITree->data;
 	if (SDL_Flip(window->surface) != 0) {
 		sdlErrorPrint("failed to flip buffer");
 		return;
@@ -554,7 +630,7 @@ void startGeneralMenu(GUIref gui, void * initData, char * imgPath, int titleImgX
 	menuViewState->currButton = selectedButton;
 	setButtonSelected(menuViewState->menuButtons[selectedButton]);
 	/* draw GUI according to UItree */
-	drawMenuGui(gui);
+	drawGui(gui);
 }
 
 void initializeMenuModel(GUIref gui, void* initData){
@@ -568,10 +644,12 @@ void initializeMenuModel(GUIref gui, void* initData){
 
 void initializeWorldBuilderModel(GUIref gui, void* initData){
 	MenuDataRef menuData = initData;
-	worldBuilderDataRef wbData = malloc(sizeof(worldBuilderData));
-	if (gui->model == NULL){
+
+	WBDataRef wbData = malloc(sizeof(WBData));
+	if (wbData == NULL){
 		perrorPrint("malloc");
 	}
+	gui->model = wbData;
 	wbData->mainMenuButton = menuData->mainMenuButton;
 	gridItemPosition catPos = {-1, -1};
 	gridItemPosition mousePos = {-1, -1};
@@ -583,8 +661,9 @@ void initializeWorldBuilderModel(GUIref gui, void* initData){
 	wbData->currPos = currPos;
 	wbData->gameGridData = NULL;
 
+
 	if (menuData->preWorldBuilder == MAIN_MENU){
-		wbData->editedWorld = 0;  // maybe change to something else????
+		wbData->editedWorld = 0; //0;  // maybe change to something else????
 		wbData->gameGridData = initGameData(0, &wbData->numTurns, &wbData->isCatFirst);
 	}
 	else{ // preWorldBuilder == EDIT_GAME

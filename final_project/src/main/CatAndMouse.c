@@ -7,13 +7,6 @@ int isError = 0;
 int isQuit = 0;
 
 int main(int argc, char * argv[]){
-
-	char ** grid = NULL;
-	int isCatFirst;
-	int numTurns= 0 ;
-	int worldNum = 1;
-	int i, j;
-
 	/*grid = (char **)malloc(7*sizeof(char *));
 	if (grid == NULL){
 		perrorPrint("malloc");
@@ -22,7 +15,7 @@ int main(int argc, char * argv[]){
 	//initColumns(7, 7, grid);
 	setEmptyGrid(grid);*/
 
-	grid = initGameData(worldNum, &numTurns, &isCatFirst);
+	/*grid = initGameData(worldNum, &numTurns, &isCatFirst);
 
 
 
@@ -32,20 +25,25 @@ int main(int argc, char * argv[]){
 			if (j==6)
 				printf("\n");
 		}
-	}
+	}*/
 
 
 
-	/*if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
 		printf("ERROR: unable to init SDL: %s\n", SDL_GetError());
 		return 1;
 	}
 	atexit(SDL_Quit);
-	/*
-	GUI chooseCat =  createGUIForState(CHOOSE_MOUSE);
+/*
+	WBDataRef wbData = malloc(sizeof(WBData));
+	if (wbData == NULL){
+		perrorPrint("malloc");
+	}
+	GUI worldBuilder =  createGUIForState(WORLD_BUILDER);
+	MenuDataRef initData= initMenuDataToDefault();
 
+	startWorldBuilder(&worldBuilder, initData);
 
-	startChooseCat(&chooseCat, NULL);
 	SDL_Event e;
 	int quit = 0;
 
@@ -60,11 +58,11 @@ int main(int argc, char * argv[]){
 		SDL_Delay(10);
 	}
 
-	menuStop(&chooseCat);
+	//menuStop(&worldBuilder);
 */
 
 // initialize GUI structs mapping by state ids:
-	/*GUI guis[10];
+	GUI guis[10];
 	guis[MAIN_MENU] = createGUIForState(MAIN_MENU);
 	guis[CHOOSE_CAT] = createGUIForState(CHOOSE_CAT);
 	guis[CHOOSE_MOUSE] = createGUIForState(CHOOSE_MOUSE);
@@ -72,6 +70,7 @@ int main(int argc, char * argv[]){
 	guis[MOUSE_SKILL] = createGUIForState(MOUSE_SKILL);
 	guis[LOAD_GAME] = createGUIForState(LOAD_GAME);
 	guis[EDIT_GAME] = createGUIForState(EDIT_GAME);
+	//guis[WORLD_BUILDER] = createGUIForState(WORLD_BUILDER);
 
 	// Starting the default/initial GUI:
 	StateId nextStateId = MAIN_MENU;
@@ -109,7 +108,7 @@ int main(int argc, char * argv[]){
 	activeGUI.stop(&activeGUI);
 
 	return isError;
-*/
+
 
 }
 
