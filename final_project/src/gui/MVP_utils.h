@@ -48,7 +48,7 @@ void setEmptyGrid(char ** grid);
 char ** initGrid();
 void initColumns(int rownum, int colnum, char ** grid);
 void setImageTransparent(Widget *image, int red, int green, int blue);
-void setGridPosSelected(Widget *gridPanel, Widget *gridSelectImage, int row, int col);
+void selectGridPos(Widget *gridPanel, Widget *gridSelectImage, int row, int col);
 void createGridByData(Widget *gridPanel, char **gridData, Widget **gridItemImages);
 
 

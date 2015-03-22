@@ -105,16 +105,29 @@ int changeSelectedButton(Widget * oldButton, Widget * newButton){
 		return -1;
 	if (blitChildToParentWidget(newButton, newButton->parentWidget) == -1)
 		return -1;
-	Widget * currChild = newButton->parentWidget;
+	blitUpToWindow(newButton->parentWidget);
+	/*Widget * currChild = newButton->parentWidget;
 	while(currChild->parentWidget != NULL){
 		if (blitChildToParentWidget(currChild, currChild->parentWidget) == -1)
 			return -1;
 		currChild = currChild->parentWidget;
 	}
-	if (SDL_Flip(currChild->surface) != 0) { /* we are in the top level widget - the window */
+	if (SDL_Flip(currChild->surface) != 0) { // we are in the top level widget - the window
+		sdlErrorPrint("failed to flip buffer");
+	}*/
+	return 0;
+}
+
+void blitUpToWindow(Widget * widget){
+	Widget * currWidget = widget;
+	while(currWidget->parentWidget != NULL){
+		if (blitChildToParentWidget(currWidget, currWidget->parentWidget) == -1)
+			return;
+		currWidget = currWidget->parentWidget;
+	}
+	if (SDL_Flip(currWidget->surface) != 0) { /* we are in the top level widget - the window */
 		sdlErrorPrint("failed to flip buffer");
 	}
-	return 0;
 }
 
 void setValuesButtonFromInit(int value, Widget* valuesButton){

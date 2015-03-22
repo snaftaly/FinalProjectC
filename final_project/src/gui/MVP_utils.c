@@ -276,14 +276,24 @@ void createGridByData(Widget *gridPanel, char **gridData, Widget **gridItemImage
 			}
 		}
 	}
-	setGridPosSelected(gridPanel, gridItemImages[SELECT], 0, 0);
+	gridItemPosition zeroPos = {0,0}
+	selectGridPos(gridPanel, gridItemImages, zeroPos);
 }
 
-void setGridPosSelected(Widget *gridPanel, Widget *gridSelectImage, int row, int col){
-	gridSelectImage->location_rect.x = col*(GRID_SQUARE_SIZE + GRID_GAP_SIZE);
-	gridSelectImage->location_rect.y = row*(GRID_SQUARE_SIZE + GRID_GAP_SIZE);
-	if (SDL_BlitSurface(gridSelectImage->surface, &gridSelectImage->img_rect,
-		gridPanel->surface, &gridSelectImage->location_rect) != 0){
+void selectGridPos(Widget *gridPanel, Widget ** gridSelectImages, gridItemPosition currPos){
+	blitItemToGrid(gridPanel, gridSelectImages[SELECT], currPos.row, currPos.col);
+}
+
+//maybe??????
+void deselectGridPos(Widget *gridPanel, Widget ** gridDeselectImages, gridItemPosition currPos){
+	blitItemToGrid(gridPanel, gridDeselectImages[DESELECT], currPos.row, currPos.col);
+}
+
+void blitItemToGrid(Widget *gridPanel, Widget * itemImage, int row, int col){
+	itemImage->location_rect.x = col*(GRID_SQUARE_SIZE + GRID_GAP_SIZE);
+	itemImage->location_rect.y = row*(GRID_SQUARE_SIZE + GRID_GAP_SIZE);
+	if (SDL_BlitSurface(itemImage->surface, &itemImage->img_rect,
+		gridPanel->surface, &itemImage->location_rect) != 0){
 			sdlErrorPrint("failed to blit image");
 			return;
 	}
@@ -348,56 +358,6 @@ int getWBButtonNum(SDLKey key){
 	}
 }
 
-void* worldBuilderVTE(void* viewState, SDL_Event* event){
-	logicalEventRef returnEvent = malloc(sizeof(logicalEvent));
-	returnEvent->type = NO_EVENT;
-	if (returnEvent == NULL){
-		perrorPrint("malloc");
-		return NULL;
-	}
-	ViewStateref wbViewState = viewState;
-	SDLKey key;
-	switch (event->type) {
-		case (SDL_KEYUP):
-			key = event->key.keysym.sym;
-			if (key == SDLK_s || key == SDLK_F1 || key == SDLK_ESCAPE ||
-					key == SDLK_m || key == SDLK_c || key == SDLK_p || key == SDLK_w || key == SDLK_SPACE){
-				returnEvent->type = SELECT_BUTTON_NUM;
-				returnEvent->buttonNum = getWBButtonNum(key);
-			}
-			else if (key == SDLK_UP)
-				returnEvent->type = GO_UP;
-			else if (key ==  SDLK_DOWN)
-				returnEvent->type = GO_DOWN;
-			else if (key ==  SDLK_RIGHT)
-				returnEvent->type = GO_RIGHT;
-			else if (key ==  SDLK_LEFT)
-				returnEvent->type = GO_LEFT;
-			break;
-		case (SDL_MOUSEBUTTONUP):
-			if (event->button.x < WIN_W - GRID_SIZE || event->button.y < WIN_H - GRID_SIZE){
-				for (int i = 0; i< WB_NUM_BUTTONS; i++){
-					Widget * currButton = wbViewState->menuButtons[i];
-					if (isClickEventOnButton(event, currButton, REGULAR_BUTTON)){
-						returnEvent->type = SELECT_BUTTON_NUM;
-						returnEvent->buttonNum = i;
-						break;
-					}
-				}
-			}
-			else{ // click is inside the grid
-				returnEvent->type = SELECT_SQUARE;
-				//MayBe write a function for that !!!!!
-				returnEvent->gridPos.col = (event->button.x-(WIN_W - GRID_SIZE))/(GRID_SQUARE_SIZE+GRID_GAP_SIZE);
-				returnEvent->gridPos.row = (event->button.y-(WIN_W - GRID_SIZE))/(GRID_SQUARE_SIZE+GRID_GAP_SIZE);
-			}
-			break;
-		default:
-			returnEvent->type = NO_EVENT;
-	}
-	return returnEvent;
-}
-
 void* complexMenuVTE(void* viewState, SDL_Event* event){
 	logicalEventRef returnEvent = malloc(sizeof(logicalEvent));
 	int numOfButtons = COMMON_MENU_NUM_BUTTONS;
@@ -454,6 +414,204 @@ void* complexMenuVTE(void* viewState, SDL_Event* event){
 	return returnEvent;
 }
 
+void* worldBuilderVTE(void* viewState, SDL_Event* event){
+	logicalEventRef returnEvent = malloc(sizeof(logicalEvent));
+	returnEvent->type = NO_EVENT;
+	if (returnEvent == NULL){
+		perrorPrint("malloc");
+		return NULL;
+	}
+	ViewStateref wbViewState = viewState;
+	SDLKey key;
+	switch (event->type) {
+		case (SDL_KEYUP):
+			key = event->key.keysym.sym;
+			if (key == SDLK_s || key == SDLK_F1 || key == SDLK_ESCAPE ||
+					key == SDLK_m || key == SDLK_c || key == SDLK_p || key == SDLK_w || key == SDLK_SPACE){
+				returnEvent->type = SELECT_BUTTON_NUM;
+				returnEvent->buttonNum = getWBButtonNum(key);
+			}
+			else if (key == SDLK_UP)
+				returnEvent->type = GO_UP;
+			else if (key ==  SDLK_DOWN)
+				returnEvent->type = GO_DOWN;
+			else if (key ==  SDLK_RIGHT)
+				returnEvent->type = GO_RIGHT;
+			else if (key ==  SDLK_LEFT)
+				returnEvent->type = GO_LEFT;
+			break;
+		case (SDL_MOUSEBUTTONUP):
+			if (event->button.x < WIN_W - GRID_SIZE || event->button.y < WIN_H - GRID_SIZE){
+				for (int i = 0; i< WB_NUM_BUTTONS; i++){
+					Widget * currButton = wbViewState->menuButtons[i];
+					if (isClickEventOnButton(event, currButton, REGULAR_BUTTON)){
+						returnEvent->type = SELECT_BUTTON_NUM;
+						returnEvent->buttonNum = i;
+						break;
+					}
+				}
+			}
+			else{ // click is inside the grid
+				returnEvent->type = SELECT_SQUARE;
+				//MayBe write a function for that !!!!!
+				returnEvent->gridPos.col = (event->button.x-(WIN_W - GRID_SIZE))/(GRID_SQUARE_SIZE+GRID_GAP_SIZE);
+				returnEvent->gridPos.row = (event->button.y-(WIN_W - GRID_SIZE))/(GRID_SQUARE_SIZE+GRID_GAP_SIZE);
+			}
+			break;
+		default:
+			returnEvent->type = NO_EVENT;
+	}
+	return returnEvent;
+}
+
+StateId worldBuilderPHE(void* model, void* viewState, void* logicalEvent){
+	StateId returnStateId = WORLD_BUILDER;
+	if (logicalEvent == NULL || viewState == NULL || model == NULL)
+		return returnStateId;
+	logicalEventRef wbEvent = logicalEvent;
+	ViewStateref wbView = viewState;
+	WBDataRef wbModel = model;
+	StateId states[WB_NUM_BUTTONS] = {SAVE_WORLD, MAIN_MENU, QUIT, WORLD_BUILDER, WORLD_BUILDER, WORLD_BUILDER,
+			WORLD_BUILDER,WORLD_BUILDER};
+	switch(wbEvent->type){
+		case(SELECT_BUTTON_NUM):
+			returnStateId = states[wbEvent->buttonNum];
+			if(returnStateId == SAVE_WORLD)
+				returnStateId = checkIfGridValid(wbModel);
+			else if (returnStateId == WORLD_BUILDER){
+				putGridItemInPos(wbView->gridPanel, wbView->gridItemsImages, wbModel->currPos, wbEvent->buttonNum);
+			}
+			break;
+		case(SELECT_SQUARE):
+			changeSelectedGridSquare(wbView->gridPanel, wbView->gridItemsImages,&wbModel->currPos, wbEvent->gridPos);
+			break;
+		case(GO_UP):
+			changeSelectedPosByArrow(wbView->gridPanel, wbView->gridItemsImages, &wbModel->currPos, GO_UP);  //Write this function!!!
+			break;
+		case(GO_DOWN):
+			changeSelectedPosByArrow(wbView->gridPanel, wbView->gridItemsImages, &wbModel->currPos, GO_DOWN);
+			break;
+		case(GO_RIGHT):
+			changeSelectedPosByArrow(wbView->gridPanel, wbView->gridItemsImages, &wbModel->currPos, GO_RIGHT);
+			break;
+		case(GO_LEFT):
+			changeSelectedPosByArrow(wbView->gridPanel, wbView->gridItemsImages, &wbModel->currPos, GO_LEFT);
+			break;
+		case(NO_EVENT):
+			break;
+	}
+	free(logicalEvent);
+	return returnStateId;
+
+}
+
+void putGridItemInPos(WBDataRef wbModel, Widget * gridPanel, Widget ** gridItemsImages,
+		gridItemPosition currPos, int buttonNum){
+	gridItem buttonsItems[5] = {MOUSE, CAT, CHEESE, WALL, EMPTY};
+	gridItem itemType = buttonsItems[buttonNum-WB_TOP_PANEL_NUM_BUTTONS];
+	if (itemType == WALL || itemType == EMPTY){
+		addReusableItemToPos(itemType, wbModel->gameGridData, gridPanel, gridItemsImages, currPos);
+	}
+	else{ // item is MOUSE, CAT or CHEESE
+		gridItemPosition * itemPosRef = NULL;
+		if(itemType == MOUSE)
+			itemPosRef = &wbModel->mousePos;
+		else if (itemType == CAT)
+			itemPosRef = &wbModel->catPos;
+		else
+			itemPosRef = &wbModel->cheesePos;
+		moveItemToPos(itemType, gridItemsImages, gridPanel, wbModel->gameGridData, currPos, itemPosRef);
+	}
+	fixOverride(itemType, wbModel, currPos);
+	selectGridPos(gridPanel, gridItemsImages[SELECT], currPos);
+}
+
+void addReusableItemToPos(gridItem itemType, char ** gridData, Widget * gridPanel,
+		Widget ** gridItemsImages, gridItemPosition currPos){
+	Widget * itemImage = gridItemsImages[itemType];
+	blitItemToGrid(gridPanel, itemImage, currPos.row, currPos.col);
+	if (itemType == WALL)
+		gridData[currPos.row][currPos.col] = 'W';
+	else
+		gridData[currPos.row][currPos.col] = '#';
+}
+
+
+
+void moveItemToPos(gridItem itemType, Widget ** gridItemsImages, Widget * gridPanel, char ** gridData,
+		gridItemPosition currPos, gridItemPosition * prevItemPos){
+	gridItemPosition noPos = {-1,-1};
+	if (*prevItemPos != noPos){
+		blitItemToGrid(gridPanel, gridItemsImages[EMPTY], prevItemPos.row, prevItemPos.col);
+		if (isError)
+			return;
+		gridData[prevItemPos->row][prevItemPos->col] = getItemChar(EMPTY);
+		prevItemPos->row = currPos.row;
+		prevItemPos->col = currPos.col;
+	}
+	gridData[currPos.row][currPos.col] = getItemChar(itemType);
+	blitItemToGrid(gridPanel, gridItemsImages[itemType], currPos.row, currPos.col);
+}
+
+char getItemChar(gridItem item){
+	char itemsChars[5] = {'M', 'C', 'P', 'W', '#'};
+	return itemsChars[item];
+}
+
+
+void fixOverride(gridItem itemType, WBDataRef wbModel, gridItemPosition currPos){
+	gridItemPosition noPos = {-1,-1};
+	if (itemType != CAT && currPos == wbModel->catPos)
+		wbModel->catPos = noPos;
+	if (itemType != MOUSE && currPos == wbModel->mousePos)
+		wbModel->mousePos = noPos;
+	if (itemType != CHEESE && currPos == wbModel->cheesePos)
+		wbModel->cheesePos = noPos;
+}
+
+void changeSelectedPosByArrow(Widget * gridPanel, Widget ** gridItemsImages,
+		gridItemPosition * currPos, logicalEventType direction){
+	gridItemPosition newPos = {currPos->row, currPos->col};
+	switch(direction){
+		case(GO_UP):
+			if (currPos->row > 0)
+				newPos.row -= 1;
+			else
+				return;
+			break;
+		case(GO_DOWN):
+			if (currPos->row < ROW_NUM)
+				newPos.row += 1;
+			else
+				return;
+			break;
+		case(GO_LEFT):
+			if (currPos->col > 0)
+				newPos.col -= 1;
+			else
+				return;
+			break;
+		case(GO_LEFT):
+			if (currPos->col < COL_NUM)
+				newPos.col += 1;
+			else
+				return;
+			break;
+	}
+	changeSelectedGridSquare(gridPanel, gridItemsImages, currPos, newPos);
+}
+
+void changeSelectedGridSquare(Widget * gridPanel, Widget ** gridItemsImages, gridItemPosition * currPos, gridItemPosition newPos){
+	deselectGridPos(gridPanel, gridItemsImages, *currPos);
+	if (isError)
+		return;
+	selectGridPos(gridPanel, gridItemsImages, newPos);
+	if (isError)
+		return;
+	currPos->row = newPos.row;
+	currPos->col = newPos.col;
+	blitUpToWindow(gridPanel);
+}
 
 StateId generalMenuPHE(void* model, void* viewState, void* logicalEvent, StateId states[], int numOfButtons,
 		StateId stateId, int* currButton, int* currValue, int maxValue){
