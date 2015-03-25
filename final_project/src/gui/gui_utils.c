@@ -228,3 +228,11 @@ int calcSideButtonY(){
 int calcWBtitleX(int title_W){
 	return (WIN_W - WB_TITLE_W)/2;
 }
+
+void freeGridData(char ** gridData){
+	if (gridData != NULL){
+		for (int i = 0; i< ROW_NUM; i++)
+			free gridData[i];
+	}
+	free(gridData);
+}

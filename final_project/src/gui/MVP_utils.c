@@ -47,9 +47,9 @@ GUI createGUIForState(StateId stateId){
 			break;
 		case(WORLD_BUILDER):
 			returnGUI.start = startWorldBuilder;
-			/*returnGUI.viewTranslateEvent = worldBuilderVTE;
+			returnGUI.viewTranslateEvent = worldBuilderVTE;
 			returnGUI.presenterHandleEvent = worldBuilderPHE;
-			returnGUI.stop = stopWorldBuilder;*/
+			returnGUI.stop = stopWorldBuilder;
 			break;
 		case(EDIT_GAME):
 			returnGUI.start = startWorldMenu;
@@ -242,6 +242,61 @@ void startWorldBuilder(GUIref gui, void* initData){
 }
 
 
+void * stopWorldBuilder(GUI * gui){
+
+	ViewStateref guiViewState = gui->viewState;
+	WBDataRef wbData = gui->model;
+	gui->model = NULL;
+	gui->viewState = NULL;
+
+	MenuDataRef returnData = initMenuDataToDefault();
+	if (isError)
+		return NULL;
+	//put things in return Data
+	//for main menu:
+	returnData->mainMenuButton = wbData->mainMenuButton;
+	//for save world:
+	returnData->currWorld = wbData->gameGridData;
+	returnData->editedWorld = wbData->editedWorld;
+	returnData->isCatFirst = wbData->isCatFirst;
+	returnData-> numTurns = wbData->numTurns;
+	returnData->wbCurrPos = wbData->currPos;
+
+	if (guiViewState != NULL){
+		freeViewState(guiViewState);
+	}
+	if (wbData != NULL){
+		free(wbData); // maybe we need a function for that????
+	}
+	if (isError || isQuit){
+		free(returnData); // we need to write a function for that!
+		return NULL;
+	}
+
+	return returnData;
+}
+
+
+void freeViewState(ViewStateref guiViewState){
+	if (guiViewState->menuButtons != NULL)
+		free(guiViewState->menuButtons);
+	if (guiViewState->image != NULL)
+		SDL_FreeSurface(guiViewState->image);
+	if (guiViewState->UITree != NULL)
+		freeTree(guiViewState->UITree, freeWidget);
+	if (guiViewState->gridItemsImages != NULL)
+		freeGridItems(guiViewState->gridItemsImages);
+	free(guiViewState);
+}
+
+
+void freeGridItems(Widget ** gridItemsImages){
+	for (int i = 0; NUM_GRID_ITEMS; i++)
+		freeWidget(gridItemsImages[i]);
+	free(gridItemsImages);
+}
+
+
 
 void createGridByData(Widget *gridPanel, char **gridData, Widget **gridItemImages){
 	Widget *currItemImage = NULL;
@@ -276,7 +331,7 @@ void createGridByData(Widget *gridPanel, char **gridData, Widget **gridItemImage
 			}
 		}
 	}
-	gridItemPosition zeroPos = {0,0}
+	gridItemPosition zeroPos = {0,0};
 	selectGridPos(gridPanel, gridItemImages, zeroPos);
 }
 
@@ -514,10 +569,18 @@ void putGridItemInPos(WBDataRef wbModel, Widget * gridPanel, Widget ** gridItems
 	}
 	else{ // item is MOUSE, CAT or CHEESE
 		gridItemPosition * itemPosRef = NULL;
-		if(itemType == MOUSE)
+		if(itemType == MOUSE){
 			itemPosRef = &wbModel->mousePos;
-		else if (itemType == CAT)
+			if (wbModel-> editedWorld == 0){ //edited from create world!
+				wbModel->isCatFirst = 0;
+			}
+		}
+		else if (itemType == CAT){
 			itemPosRef = &wbModel->catPos;
+			if (wbModel-> editedWorld == 0){ //edited from create world!
+				wbModel->isCatFirst = 1;
+			}
+		}
 		else
 			itemPosRef = &wbModel->cheesePos;
 		moveItemToPos(itemType, gridItemsImages, gridPanel, wbModel->gameGridData, currPos, itemPosRef);
@@ -809,27 +872,54 @@ void initializeWorldBuilderModel(GUIref gui, void* initData){
 	}
 	gui->model = wbData;
 	wbData->mainMenuButton = menuData->mainMenuButton;
+	wbData->gameGridData = NULL;
+	wbData->editedWorld = menuData->editedWorld;
+
 	gridItemPosition catPos = {-1, -1};
 	gridItemPosition mousePos = {-1, -1};
 	gridItemPosition cheesePos = {-1, -1};
 	gridItemPosition currPos = {0, 0};
+
+
+	if (menuData->preWorldBuilder == SAVE_WORLD && menuData->loadFromFile == 0){ //we pressed back in SAVE_WORLD
+		wbData->gameGridData = menuData->currWorld;
+		currPos = menuData->wbCurrPos;
+		wbData->numTurns = menuData->numTurns;
+		wbData->isCatFirst = menuData->isCatFirst; //check this!!!
+	}
+	else{ // preWorldBuilder == MAIN_MENU || (preWorldBuilder == EDIT_GAME || preWorldBuilder = SAVE_WORLD) && loadFromFile=1
+		wbData->gameGridData = initGameData(wbData->editedWorld, &wbData->numTurns, &wbData->isCatFirst);
+	}
+
+	updateItemsPostions(&mousePos,&catPos,&cheesePos, wbData->gameGridData);
 	wbData->catPos = catPos;
 	wbData->mousePos = mousePos;
 	wbData->cheesePos = cheesePos;
 	wbData->currPos = currPos;
-	wbData->gameGridData = NULL;
 
+	free(initData);
+}
 
-	if (menuData->preWorldBuilder == MAIN_MENU){
-		wbData->editedWorld = 0; //0;  // maybe change to something else????
-		wbData->gameGridData = initGameData(0, &wbData->numTurns, &wbData->isCatFirst);
+void updateItemsPostions(gridItemPosition * mousePos,gridItemPosition * catPos,gridItemPosition * cheesePos,
+		char ** gameGridData){
+	for (int i = 0 ; i < ROW_NUM ;i++){
+		for (int j = 0; j < COL_NUM; j++){
+			char currItemChar = gameGridData[i][j];
+			if (currItemChar == 'M'){
+				mousePos->row = i;
+				mousePos->col = j;
+			}
+			else if (currItemChar == 'C'){
+				catPos->row = i;
+				catPos->col = j;
+			}
+			else if (currItemChar == 'P'){
+				cheesePos->row = i;
+				cheesePos->col = j;
+			}
+		}
 	}
-	else{ // preWorldBuilder == EDIT_GAME
-		wbData->editedWorld = menuData->editedWorld;
-		wbData->gameGridData = initGameData(wbData->editedWorld, &wbData->numTurns, &wbData->isCatFirst);
-	}
-	if (isError)
-		return;
+
 }
 
 /* Main Menu specific MVP functions */
@@ -900,6 +990,7 @@ void startWorldMenu(GUIref gui, void* initData){
 		return;
 	char imgPath[] = "images/worldMenu_temp.bmp";
 	MenuDataRef data = gui->model;
+
 	int currentButton, currentValue, titleImgY;
 	switch(gui->stateId){
 		case(EDIT_GAME):
@@ -914,7 +1005,7 @@ void startWorldMenu(GUIref gui, void* initData){
 			break;
 		case(SAVE_WORLD):
 			currentButton = data->saveWorldButton;
-			currentValue = data->saveOnWorld;
+			currentValue = data->editedWorld ? data->editedWorld: MIN_VALUE; //if edited world is 0 this will show 1
 			titleImgY = 2*MENU_TITLE_H;
 			break;
 		default:
@@ -942,8 +1033,10 @@ StateId mainMenuPHE(void* model, void* viewState, void* logicalEvent){
 	// and maybe it should be in start main menu!
 	if (returnStateId == CHOOSE_CAT)
 		mainMenuModel->preChooseCat = MAIN_MENU;
-	else if (returnStateId == WORLD_BUILDER)
+	else if (returnStateId == WORLD_BUILDER){
 		mainMenuModel->preWorldBuilder = MAIN_MENU;
+		mainMenuModel->editedWorld = 0; // we can delete this line!!!
+	}
 	else if (returnStateId == LOAD_GAME)
 		mainMenuModel->loadGameWorld = DEFAULT_WORLD;
 	else if (returnStateId == EDIT_GAME)
@@ -1013,8 +1106,10 @@ StateId editGamePHE(void* model, void* viewState, void* logicalEvent){
 	StateId editGameStates[COMMON_MENU_NUM_BUTTONS] = {EDIT_GAME, WORLD_BUILDER, MAIN_MENU};
 	returnStateId = generalMenuPHE(model, viewState, logicalEvent, editGameStates, COMMON_MENU_NUM_BUTTONS,
 		returnStateId, &editGameModel->editGameButton, &editGameModel->editedWorld, MAX_WORLD);
-	if (returnStateId == WORLD_BUILDER)
+	if (returnStateId == WORLD_BUILDER){
 		editGameModel->preWorldBuilder = EDIT_GAME;
+		editGameModel->loadFromFile = 1;
+	}
 	return returnStateId;
 }
 
@@ -1024,11 +1119,23 @@ StateId saveWorldPHE(void* model, void* viewState, void* logicalEvent){
 		return returnStateId;
 	MenuDataRef saveWorldModel = model;
 	StateId saveWorldStates[COMMON_MENU_NUM_BUTTONS] = {SAVE_WORLD, WORLD_BUILDER, WORLD_BUILDER};
+	saveWorldModel->currValueTemp = saveWorldModel->editedWorld;
 	returnStateId = generalMenuPHE(model, viewState, logicalEvent, saveWorldStates, COMMON_MENU_NUM_BUTTONS,
-		returnStateId, &saveWorldModel->saveWorldButton, &saveWorldModel->saveOnWorld, MAX_WORLD);
-	if (saveWorldModel->saveWorldButton == 1){
-		/*update world file*/
+		returnStateId, &saveWorldModel->saveWorldButton, &saveWorldModel->currValueTemp, MAX_WORLD);
+	if (returnStateId == WORLD_BUILDER){
+		saveWorldModel->preWorldBuilder = SAVE_WORLD; // do we need this?
 	}
+	if (saveWorldModel->saveWorldButton == 1){ //done was pressed
+		saveWorldModel->loadFromFile = 1;// tell wb to use file to load the grid
+		saveWorldModel->editedWorld = saveWorldModel->currValueTemp;
+		saveGridDataToFile(saveWorldModel->editedWorld, saveWorldModel->isCatFirst, saveWorldModel->currWorld);
+
+		//free grid data
+		freeGridData(saveWorldModel->currWorld);
+		saveWorldModel->currWorld = NULL;
+	}
+	else if (saveWorldModel->saveWorldButton == 2) //back was pressed
+		saveWorldModel->loadFromFile = 0;// tell wb to use char ** to load the grid
 	return returnStateId;
 }
 
@@ -1074,6 +1181,55 @@ StateId chooseMousePHE(void* model, void* viewState, void* logicalEvent){
 		chooseMouseModel->currValueTemp = chooseMouseModel->mouseSkill;
 	return returnStateId;
 }
+
+void saveGridDataToFile(int worldNum, int isCatFirst, char ** gridData, ){
+	char filename[WORLD_FILE_NAME_LEN];
+	if (sprintf(filename, "%s%s%d.%s", WORLD_FILE_PATH, WORLD_FILE_NAME_PREFIX, worldNum, WORLD_FILE_NAME_TYPE) < 0){
+		perrorPrint("sprintf");
+		return;
+	}
+	FILE * worldFile = fopen(filename,"w");
+	if (worldFile == NULL){
+		perrorPrint("fopen");
+		return;
+	}
+
+	//update numTurns
+	if (fprintf(worldFile, "%d\n", DEFAULT_TURNS) < 0){
+		perrorPrint("fprintf");
+		return;
+	}
+	//update isCatFirst
+	char firstAnimal[6];
+	if (isCatFirst)
+		firstAnimal = "cat";
+	else
+		firstAnimal = "mouse";
+	if (fscanf(worldFile, "%s\n", firstAnimal) < 0){
+		perrorPrint("fprintf");
+		return;
+	}
+	//fill file by grid:
+	char nextChar;
+	for (int i = 0; i< ROW_NUM;i++){
+		for (int j = 0; j< COL_NUM; j++){
+			nextChar = gridData[i][j];
+			if ((fprintf(worldFile, "%c" , nextChar)) < 0){
+				perrorPrint("fprintf");
+				return;
+			}
+			if (j == COL_NUM-1){
+				if ((fprintf(worldFile, "\n" , nextChar)) < 0){
+					perrorPrint("fprintf");
+					return;
+				}
+			}
+		}
+	}
+	//close the file
+	fclose(worldFile);
+}
+
 
 char ** initGameData(int worldNum, int * numTurns, int * isCatFirst){
 	char ** grid = initGrid();

@@ -164,6 +164,10 @@ typedef struct MenuData{
 	int editedWorld;
 	int saveOnWorld;
 
+	int isCatFirst;
+	int numTurns;
+	gridItemPosition wbCurrPos;
+	int loadFromFile;
 	char ** currWorld;
 } MenuData;
 
