@@ -158,6 +158,8 @@ MenuDataRef initMenuDataToDefault(){
 	menuData->loadGameButton = 0;
 	menuData->editGameButton = 0;
 	menuData->saveWorldButton = 0;
+	menuData->errMsgButton = 0;
+
 
 	menuData->catSkill = DEFAULT_SKILL;
 	menuData->mouseSkill = DEFAULT_SKILL;

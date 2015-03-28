@@ -70,7 +70,7 @@ void updateItemsPostions(gridItemPosition * mousePos,gridItemPosition * catPos,g
 		char ** gameGridData);
 void saveGridDataToFile(int worldNum, int isCatFirst, char ** gridData);
 int isSamePos(gridItemPosition pos1, gridItemPosition pos2);
-int isGridValid(WBDataRef wbModel);
+int isGridInvalid(WBDataRef wbModel);
 
 
 

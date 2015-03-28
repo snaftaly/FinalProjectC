@@ -67,12 +67,11 @@ GUI createGUIForState(StateId stateId){
 		case(PLAY_GAME):
 			returnGUI.start = startLoadGame;
 			returnGUI.stop = stopLoadGame;
-			break;
+			break;*/
 		case(ERR_MSG):
 			returnGUI.start = startLoadGame;
 			returnGUI.stop = stopLoadGame;
 			break;
-			*/
 		default:
 			break;
 	}
@@ -101,7 +100,7 @@ void startWorldBuilder(GUIref gui, void* initData){
 	initializeWorldBuilderModel(gui, initData);
 	if(isError)
 		return;
-	WBDataRef data = gui->model;
+	WBDataRef wbModel = gui->model;
 	char imgPath[] = "images/worldBuilder_temp.bmp";
 
 	// initialize viewState
@@ -168,7 +167,7 @@ void startWorldBuilder(GUIref gui, void* initData){
 		return;
 	}
 	Widget *label = create_image(calcWBtitleX(WB_TITLE_W), WB_WIDGET_Y_GAP, WB_TITLE_W, WB_TITLE_H,
-			wbImage, WB_BUTTON_W, data->editedWorld*WB_TITLE_H);
+			wbImage, WB_BUTTON_W, wbModel->editedWorld*WB_TITLE_H);
 	if (label == NULL){
 		return;
 	}
@@ -237,7 +236,8 @@ void startWorldBuilder(GUIref gui, void* initData){
 	setImageTransparent(gridItemImages[DESELECT], TR_RED, TR_GREEN, TR_BLUE);
 	if (isError)
 		return;
-	createGridByData(gridPanel, data->gameGridData, gridItemImages);
+	createGridByData(gridPanel, wbModel->gameGridData, gridItemImages);
+	selectGridPos(gridPanel, gridItemImages, wbModel->currPos);
 	if (isError)
 		return;
 	// draw GUI according to UItree
@@ -335,8 +335,7 @@ void createGridByData(Widget *gridPanel, char **gridData, Widget **gridItemImage
 			}
 		}
 	}
-	gridItemPosition zeroPos = {0,0};
-	selectGridPos(gridPanel, gridItemImages, zeroPos);
+
 }
 
 void selectGridPos(Widget *gridPanel, Widget ** gridSelectImages, gridItemPosition currPos){
@@ -536,7 +535,7 @@ StateId worldBuilderPHE(void* model, void* viewState, void* logicalEvent){
 	switch(wbEvent->type){
 		case(SELECT_BUTTON_NUM):
 			returnStateId = states[wbEvent->buttonNum];
-			if(returnStateId == SAVE_WORLD && ! isGridValid(wbModel))
+			if(returnStateId == SAVE_WORLD && isGridInvalid(wbModel))
 				returnStateId = ERR_MSG;
 			else if (returnStateId == WORLD_BUILDER){
 				putGridItemInPos(wbModel, wbView->gridPanel, wbView->gridItemsImages, wbModel->currPos, wbEvent->buttonNum);
@@ -565,18 +564,27 @@ StateId worldBuilderPHE(void* model, void* viewState, void* logicalEvent){
 
 	}
 	free(logicalEvent);
-
 	return returnStateId;
-
 }
 
-int isGridValid(WBDataRef wbModel){
+int isGridInvalid(WBDataRef wbModel){
 	gridItemPosition invalidPos = {-1,-1};
-	if (isSamePos(wbModel->catPos, invalidPos) || isSamePos(wbModel->mousePos, invalidPos)
-			|| isSamePos(wbModel->cheesePos, invalidPos) ){
-		return 0;
+	char missingItems = 0, mouse = 1, cat = 2, cheese = 4;
+	int isInvalid = 0;
+	if (isSamePos(wbModel->catPos, invalidPos)){
+		isInvalid = 1;
+		missingItems |= cat;
 	}
-	return 1;
+	if (isSamePos(wbModel->mousePos, invalidPos)){
+		isInvalid = 1;
+		missingItems |= mouse;
+	}
+	if (isSamePos(wbModel->cheesePos, invalidPos)){
+		isInvalid = 1;
+		missingItems |= cheese;
+	}
+	wbModel->missingItems = missingItems;
+	return isInvalid;
 }
 
 void addReusableItemToPos(gridItem itemType, char ** gridData, Widget * gridPanel,
@@ -913,19 +921,19 @@ void initializeWorldBuilderModel(GUIref gui, void* initData){
 
 	if (menuData->preWorldBuilder == SAVE_WORLD && menuData->loadFromFile == 0){ //we pressed back in SAVE_WORLD
 		wbData->gameGridData = menuData->currWorld;
-		currPos = menuData->wbCurrPos;
+		wbData->currPos = menuData->wbCurrPos;
 		wbData->numTurns = menuData->numTurns;
 		wbData->isCatFirst = menuData->isCatFirst; //check this!!!
 	}
 	else{ // preWorldBuilder == MAIN_MENU || (preWorldBuilder == EDIT_GAME || preWorldBuilder = SAVE_WORLD) && loadFromFile=1
 		wbData->gameGridData = initGameDataByFile(wbData->editedWorld, &wbData->numTurns, &wbData->isCatFirst);
+		wbData->currPos = currPos;
 	}
 
 	updateItemsPostions(&mousePos,&catPos,&cheesePos, wbData->gameGridData);
 	wbData->catPos = catPos;
 	wbData->mousePos = mousePos;
 	wbData->cheesePos = cheesePos;
-	wbData->currPos = currPos;
 
 	free(initData);
 }
@@ -961,9 +969,142 @@ void startMainMenu(GUIref gui, void* initData){
 	MenuDataRef data = gui->model;
 	int currentButton = data->mainMenuButton;
 	/* start the main menu gui */
-	startGeneralMenu(gui, initData, imgPath,
-			MENU_BUTTON_W*2, 0, 200, MAIN_MENU_NUM_BUTTONS, currentButton, 1, 0);
+
 }
+
+
+
+/* Main Menu specific MVP functions */
+void startErrMsg(GUIref gui, void* initData){
+	initializeMenuModel(gui, initData);
+	if(isError)
+		return;
+	MenuDataRef data = gui->model;
+
+	char imgPath[] = "images/ErrMsg_temp.bmp";
+
+	ViewStateref menuViewState = initializeGUIViewState();
+	if (menuViewState == NULL){
+		return;
+	}
+	gui->viewState = menuViewState;
+
+	/* create image surface */
+	SDL_Surface * menuImage = SDL_LoadBMP(imgPath);
+	if (menuImage == NULL){
+		sdlErrorPrint("failed to load image");
+		return;
+	}
+	menuViewState->image = menuImage;
+
+	/* create buttons array */
+	Widget ** buttons = (Widget **)malloc(ERR_MSG_NUM_BUTTONS*sizeof(Widget *));
+	if (buttons == NULL){
+		perrorPrint("malloc");
+		return;
+	}
+	menuViewState->menuButtons = buttons;
+
+	/* create the UItree */
+	Widget *win = create_window(WIN_W,WIN_H, 0, 0, 0);
+	if (win == NULL){
+		return;
+	}
+	ListRef win_node = newList(win);
+	menuViewState->UITree = win_node;
+	if (win_node == NULL){
+		freeWidget(win);
+		return;
+	}
+	Widget *panel = create_panel(calcPanelX(ERR_MSG_TITLE_W), calcErrPanelY(),
+			calcPanelWidth(ERR_MSG_TITLE_W),calcErrPanelHeight(),PANEL_RED,PANEL_GREEN,PANEL_BLUE);
+	if (panel == NULL){
+		return;
+	}
+	ListRef panel_node = addChildNode(win_node, panel);
+	if (panel_node == NULL){
+		freeWidget(panel);
+		return;
+	}
+	Widget *label = create_image(MENU_TITLE_X_GAP, MENU_TITLE_Y_GAP, ERR_MSG_TITLE_W, ERR_MSG_H,
+			menuImage, 0, 0);
+	if (label == NULL){
+		return;
+	}
+	ListRef label_node = addChildNode(panel_node, label);
+	if (label_node == NULL){
+		freeWidget(label);
+		return;
+	}
+	Widget * missingItemMsg = create_image(calcMisItemMsgX(MISSING_ITEM_MSG_W), calcMisItemMsgY(),
+			MISSING_ITEM_MSG_W, ERR_MSG_H, menuImage, 0, data->missingItems*ERR_MSG_H);
+	if (missingItemMsg == NULL){
+		return;
+	}
+	ListRef Msg_node = addChildNode(panel_node, label);
+	if (label_node == NULL){
+		freeWidget(label);
+		return;
+	}
+
+	/* Add buttons to buttons array and to UI tree */
+	int button_x = calcMenuButtonX(ERR_MSG_TITLE_W), button_y = calcErrMsgButtonY(), isSelected_x = MENU_BUTTON_W, isSelected_y = 0, isNselected_x = 0, isNselected_y=0;
+	buttons[0] = create_button(button_x,button_y, MENU_BUTTON_W, MENU_BUTTON_H,
+			menuImage, isSelected_x, isSelected_y, isNselected_x, isNselected_y, 0);
+	if (buttons[0] == NULL){
+		return;
+	}
+	ListRef newButtonNode = addChildNode(panel_node, buttons[0]);
+	if (newButtonNode == NULL){
+		freeWidget(buttons[0]);
+		return;
+	}
+	setButtonSelected(menuViewState->menuButtons[0]);
+	/* draw GUI according to UItree */
+	drawGui(gui);
+}
+
+void* errMsgVTE(void* viewState, SDL_Event* event){
+	logicalEventRef returnEvent = malloc(sizeof(logicalEvent));
+	if (returnEvent == NULL){
+		perrorPrint("malloc");
+		return NULL;
+	}
+	ViewStateref menuViewState = viewState;
+	switch (event->type) {
+		case (SDL_KEYUP):
+			if (event->key.keysym.sym == SDLK_RETURN || event->key.keysym.sym == SDLK_KP_ENTER){
+				returnEvent->type = SELECT_CURR_BUTTON;
+			}
+			break;
+		case (SDL_MOUSEBUTTONUP):
+			Widget * currButton = menuViewState->menuButtons[0];
+			if (isClickEventOnButton(event, currButton, REGULAR_BUTTON)){
+				returnEvent->type = SELECT_BUTTON_NUM;
+				returnEvent->buttonNum = 0;
+			}
+			break;
+		default:
+			returnEvent->type = NO_EVENT;
+	}
+	return returnEvent;
+}
+
+
+
+StateId errMsgPHE(void* model, void* viewState, void* logicalEvent){
+	StateId returnStateId = ERR_MSG;
+	if (model == NULL)
+		return returnStateId;
+	MenuDataRef errMsgModel = model;
+	StateId mainMenuStates[MAIN_MENU_NUM_BUTTONS] = {WORLD_BUILDER};
+	returnStateId = generalMenuPHE(model, viewState, logicalEvent, mainMenuStates, ERR_MSG_NUM_BUTTONS,
+			returnStateId, NULL, NULL, 0);
+	if (returnStateId == WORLD_BUILDER)
+		errMsgModel->loadFromFile = 0;
+	return returnStateId;
+}
+
 
 
 void startChooseAnimal(GUIref gui, void* initData){

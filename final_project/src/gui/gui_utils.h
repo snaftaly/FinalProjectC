@@ -10,6 +10,7 @@
 #define POLLING_DELAY 10
 #define MAIN_MENU_NUM_BUTTONS 5
 #define COMMON_MENU_NUM_BUTTONS 3
+#define ERR_MSG_NUM_BUTTONS 1
 #define WB_NUM_BUTTONS 8
 #define NUM_GRID_ITEMS 7
 #define FIRST_BUTTON 0
@@ -40,6 +41,9 @@
 #define MENU_BUTTON_GAP 10
 #define GRID_SQUARE_SIZE 80
 #define GRID_GAP_SIZE 5
+#define ERR_MSG_TITLE_W 300
+#define ERR_MSG_H 50
+#define MISSING_ITEM_MSG_W 200
 
 
 
@@ -158,6 +162,7 @@ typedef struct MenuData{
 	int loadGameButton;
 	int editGameButton;
 	int saveWorldButton;
+	int errMsgButton;
 
 	int currValueTemp;
 	int loadGameWorld;
@@ -169,6 +174,8 @@ typedef struct MenuData{
 	gridItemPosition wbCurrPos;
 	int loadFromFile;
 	char ** currWorld;
+	char missingItems;
+
 } MenuData;
 
 typedef struct MenuData * MenuDataRef;
@@ -185,6 +192,7 @@ typedef struct WBData{
 	int isCatFirst;
 	int numTurns;
 	int currValueTemp;
+	char missingItems;
 } WBData;
 
 typedef struct WBData * WBDataRef;
