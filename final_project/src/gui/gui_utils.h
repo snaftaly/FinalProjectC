@@ -212,6 +212,9 @@ int calcTopButtonY();
 int calcSideButtonX();
 int calcSideButtonY();
 int calcWBtitleX(int title_W);
+void setImageTransparent(Widget *image, int red, int green, int blue);
+void blitUpToWindow(Widget * widget);
+
 
 
 #endif /* GUI_UTILS_H_ */

@@ -70,7 +70,9 @@ int main(int argc, char * argv[]){
 	guis[MOUSE_SKILL] = createGUIForState(MOUSE_SKILL);
 	guis[LOAD_GAME] = createGUIForState(LOAD_GAME);
 	guis[EDIT_GAME] = createGUIForState(EDIT_GAME);
-	//guis[WORLD_BUILDER] = createGUIForState(WORLD_BUILDER);
+	guis[WORLD_BUILDER] = createGUIForState(WORLD_BUILDER);
+	guis[SAVE_WORLD] = createGUIForState(SAVE_WORLD);
+
 
 	// Starting the default/initial GUI:
 	StateId nextStateId = MAIN_MENU;

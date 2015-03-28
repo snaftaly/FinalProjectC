@@ -57,11 +57,13 @@ GUI createGUIForState(StateId stateId){
 			returnGUI.presenterHandleEvent = editGamePHE;
 			returnGUI.stop = menuStop;
 			break;
-/*
 		case(SAVE_WORLD):
-			returnGUI.start = startLoadGame;
-			returnGUI.stop = stopLoadGame;
+			returnGUI.start = startWorldMenu;
+			returnGUI.viewTranslateEvent = complexMenuVTE;
+			returnGUI.presenterHandleEvent = saveWorldPHE;
+			returnGUI.stop = menuStop;
 			break;
+			/*
 		case(PLAY_GAME):
 			returnGUI.start = startLoadGame;
 			returnGUI.stop = stopLoadGame;
@@ -242,7 +244,7 @@ void startWorldBuilder(GUIref gui, void* initData){
 }
 
 
-void * stopWorldBuilder(GUI * gui){
+void* stopWorldBuilder(GUI * gui){
 
 	ViewStateref guiViewState = gui->viewState;
 	WBDataRef wbData = gui->model;
@@ -354,10 +356,7 @@ void blitItemToGrid(Widget *gridPanel, Widget * itemImage, int row, int col){
 	}
 }
 
-void setImageTransparent(Widget *image, int red, int green, int blue){
-	if (SDL_SetColorKey(image->surface, SDL_SRCCOLORKEY, SDL_MapRGB(image->surface->format, red, green, blue)) !=0)
-		isError = 1;
-}
+
 
 /* general MVP functions - used by several GUIs */
 void* simpleMenuVTE(void* viewState, SDL_Event* event, int numOfButtons){
@@ -410,7 +409,10 @@ int getWBButtonNum(SDLKey key){
 			return 6;
 		case(SDLK_SPACE):
 			return 7;
+		default:
+			return -1;
 	}
+	return -1; //check !!!!
 }
 
 void* complexMenuVTE(void* viewState, SDL_Event* event){
@@ -532,9 +534,9 @@ StateId worldBuilderPHE(void* model, void* viewState, void* logicalEvent){
 		case(SELECT_BUTTON_NUM):
 			returnStateId = states[wbEvent->buttonNum];
 			if(returnStateId == SAVE_WORLD)
-				returnStateId = checkIfGridValid(wbModel);
+				returnStateId = isGridValid(wbModel);
 			else if (returnStateId == WORLD_BUILDER){
-				putGridItemInPos(wbView->gridPanel, wbView->gridItemsImages, wbModel->currPos, wbEvent->buttonNum);
+				putGridItemInPos(wbModel, wbView->gridPanel, wbView->gridItemsImages, wbModel->currPos, wbEvent->buttonNum);
 			}
 			break;
 		case(SELECT_SQUARE):
@@ -554,10 +556,21 @@ StateId worldBuilderPHE(void* model, void* viewState, void* logicalEvent){
 			break;
 		case(NO_EVENT):
 			break;
+		default:
+			break;
 	}
 	free(logicalEvent);
 	return returnStateId;
 
+}
+
+int isGridValid(WBDataRef wbModel){
+	gridItemPosition invalidPos = {-1,-1};
+	if (isSamePos(wbModel->catPos, invalidPos) || isSamePos(wbModel->mousePos, invalidPos)
+			|| isSamePos(wbModel->cheesePos, invalidPos) ){
+		return 0;
+	}
+	return 1;
 }
 
 void putGridItemInPos(WBDataRef wbModel, Widget * gridPanel, Widget ** gridItemsImages,
@@ -586,7 +599,7 @@ void putGridItemInPos(WBDataRef wbModel, Widget * gridPanel, Widget ** gridItems
 		moveItemToPos(itemType, gridItemsImages, gridPanel, wbModel->gameGridData, currPos, itemPosRef);
 	}
 	fixOverride(itemType, wbModel, currPos);
-	selectGridPos(gridPanel, gridItemsImages[SELECT], currPos);
+	selectGridPos(gridPanel, gridItemsImages, currPos);
 }
 
 void addReusableItemToPos(gridItem itemType, char ** gridData, Widget * gridPanel,
@@ -604,8 +617,8 @@ void addReusableItemToPos(gridItem itemType, char ** gridData, Widget * gridPane
 void moveItemToPos(gridItem itemType, Widget ** gridItemsImages, Widget * gridPanel, char ** gridData,
 		gridItemPosition currPos, gridItemPosition * prevItemPos){
 	gridItemPosition noPos = {-1,-1};
-	if (*prevItemPos != noPos){
-		blitItemToGrid(gridPanel, gridItemsImages[EMPTY], prevItemPos.row, prevItemPos.col);
+	if (isSamePos(*prevItemPos, noPos) == 0){
+		blitItemToGrid(gridPanel, gridItemsImages[EMPTY], prevItemPos->row, prevItemPos->col);
 		if (isError)
 			return;
 		gridData[prevItemPos->row][prevItemPos->col] = getItemChar(EMPTY);
@@ -624,12 +637,18 @@ char getItemChar(gridItem item){
 
 void fixOverride(gridItem itemType, WBDataRef wbModel, gridItemPosition currPos){
 	gridItemPosition noPos = {-1,-1};
-	if (itemType != CAT && currPos == wbModel->catPos)
+	if (itemType != CAT && isSamePos(currPos, wbModel->catPos))
 		wbModel->catPos = noPos;
-	if (itemType != MOUSE && currPos == wbModel->mousePos)
+	if (itemType != MOUSE && isSamePos(currPos, wbModel->mousePos))
 		wbModel->mousePos = noPos;
-	if (itemType != CHEESE && currPos == wbModel->cheesePos)
+	if (itemType != CHEESE && isSamePos(currPos, wbModel->cheesePos))
 		wbModel->cheesePos = noPos;
+}
+
+int isSamePos(gridItemPosition pos1, gridItemPosition pos2){
+	if (pos1.row == pos2.row && pos1.col == pos2.col)
+		return 1;
+	return 0;
 }
 
 void changeSelectedPosByArrow(Widget * gridPanel, Widget ** gridItemsImages,
@@ -654,17 +673,20 @@ void changeSelectedPosByArrow(Widget * gridPanel, Widget ** gridItemsImages,
 			else
 				return;
 			break;
-		case(GO_LEFT):
+		case(GO_RIGHT):
 			if (currPos->col < COL_NUM)
 				newPos.col += 1;
 			else
 				return;
 			break;
+		default:
+			break;
 	}
 	changeSelectedGridSquare(gridPanel, gridItemsImages, currPos, newPos);
 }
 
-void changeSelectedGridSquare(Widget * gridPanel, Widget ** gridItemsImages, gridItemPosition * currPos, gridItemPosition newPos){
+void changeSelectedGridSquare(Widget * gridPanel, Widget ** gridItemsImages, gridItemPosition * currPos,
+		gridItemPosition newPos){
 	deselectGridPos(gridPanel, gridItemsImages, *currPos);
 	if (isError)
 		return;
@@ -720,6 +742,8 @@ StateId generalMenuPHE(void* model, void* viewState, void* logicalEvent, StateId
 			menuView->currButton = *currButton;
 			break;
 		case(NO_EVENT):
+			break;
+		default:
 			break;
 	}
 	if (*currButton == numOfButtons-1 && returnStateId != stateId)
@@ -1055,7 +1079,6 @@ StateId catSkillPHE(void* model, void* viewState, void* logicalEvent){
 	}
 	returnStateId = generalMenuPHE(model, viewState, logicalEvent, catSkillStates, COMMON_MENU_NUM_BUTTONS,
 		returnStateId, &catSkillModel->catSkillButton, &catSkillModel->currValueTemp, MAX_SKILL_VALUE);
-	printf("currValue: %d", catSkillModel->currValueTemp);
 	if (returnStateId == PLAY_GAME || returnStateId == CHOOSE_MOUSE){ // Done button was pressed
 		catSkillModel->isCatHuman = 0;
 		catSkillModel->catSkill = catSkillModel->currValueTemp;
@@ -1182,7 +1205,7 @@ StateId chooseMousePHE(void* model, void* viewState, void* logicalEvent){
 	return returnStateId;
 }
 
-void saveGridDataToFile(int worldNum, int isCatFirst, char ** gridData, ){
+void saveGridDataToFile(int worldNum, int isCatFirst, char ** gridData){
 	char filename[WORLD_FILE_NAME_LEN];
 	if (sprintf(filename, "%s%s%d.%s", WORLD_FILE_PATH, WORLD_FILE_NAME_PREFIX, worldNum, WORLD_FILE_NAME_TYPE) < 0){
 		perrorPrint("sprintf");
@@ -1202,9 +1225,9 @@ void saveGridDataToFile(int worldNum, int isCatFirst, char ** gridData, ){
 	//update isCatFirst
 	char firstAnimal[6];
 	if (isCatFirst)
-		firstAnimal = "cat";
+		strcpy(firstAnimal,"cat");
 	else
-		firstAnimal = "mouse";
+		strcpy(firstAnimal,"mouse");
 	if (fscanf(worldFile, "%s\n", firstAnimal) < 0){
 		perrorPrint("fprintf");
 		return;
@@ -1219,7 +1242,7 @@ void saveGridDataToFile(int worldNum, int isCatFirst, char ** gridData, ){
 				return;
 			}
 			if (j == COL_NUM-1){
-				if ((fprintf(worldFile, "\n" , nextChar)) < 0){
+				if (fprintf(worldFile, "\n") < 0){
 					perrorPrint("fprintf");
 					return;
 				}
@@ -1298,10 +1321,8 @@ char ** initGameData(int worldNum, int * numTurns, int * isCatFirst){
 
 void setEmptyGrid(char ** grid){
 	for (int i = 0; i< ROW_NUM; i++){
-		for (int j = 0; j< COL_NUM; j++){
+		for (int j = 0; j< COL_NUM; j++)
 			grid[i][j] = EMPTY_CELL_CHAR;
-
-		}
 	}
 }
 
@@ -1330,4 +1351,13 @@ void initColumns(int rownum, int colnum, char ** grid){
     		return;
     	}
     }
+}
+
+
+void freeGridData(char ** gridData){
+	if (gridData != NULL){
+		for (int i = 0; i< ROW_NUM; i++)
+			free(gridData[i]);
+	}
+	free(gridData);
 }

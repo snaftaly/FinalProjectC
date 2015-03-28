@@ -229,10 +229,11 @@ int calcWBtitleX(int title_W){
 	return (WIN_W - WB_TITLE_W)/2;
 }
 
-void freeGridData(char ** gridData){
-	if (gridData != NULL){
-		for (int i = 0; i< ROW_NUM; i++)
-			free gridData[i];
+void setImageTransparent(Widget *image, int red, int green, int blue){
+	if (SDL_SetColorKey(image->surface, SDL_SRCCOLORKEY, SDL_MapRGB(image->surface->format, red, green, blue)) !=0){
+		sdlErrorPrint("failed setting image transparent");
+		isError = 1;
 	}
-	free(gridData);
 }
+
+
