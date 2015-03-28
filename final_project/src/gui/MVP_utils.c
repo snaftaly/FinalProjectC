@@ -161,6 +161,7 @@ void startWorldBuilder(GUIref gui, void* initData){
 	if (gridPanel == NULL){
 		return;
 	}
+	wbViewState->gridPanel = gridPanel;//put panel in viewstate
 	ListRef gridPanelNode = addChildNode(winNode, gridPanel);
 	if (gridPanelNode == NULL){
 		freeWidget(gridPanel);
@@ -342,8 +343,8 @@ void selectGridPos(Widget *gridPanel, Widget ** gridSelectImages, gridItemPositi
 }
 
 //maybe??????
-void deselectGridPos(Widget *gridPanel, Widget ** gridDeselectImages, gridItemPosition currPos){
-	blitItemToGrid(gridPanel, gridDeselectImages[DESELECT], currPos.row, currPos.col);
+void deselectGridPos(Widget *gridPanel, Widget ** gridSelectImages, gridItemPosition currPos){
+	blitItemToGrid(gridPanel, gridSelectImages[DESELECT], currPos.row, currPos.col);
 }
 
 void blitItemToGrid(Widget *gridPanel, Widget * itemImage, int row, int col){
@@ -473,11 +474,11 @@ void* complexMenuVTE(void* viewState, SDL_Event* event){
 
 void* worldBuilderVTE(void* viewState, SDL_Event* event){
 	logicalEventRef returnEvent = malloc(sizeof(logicalEvent));
-	returnEvent->type = NO_EVENT;
 	if (returnEvent == NULL){
 		perrorPrint("malloc");
 		return NULL;
 	}
+	returnEvent->type = NO_EVENT;
 	ViewStateref wbViewState = viewState;
 	SDLKey key;
 	switch (event->type) {
@@ -500,11 +501,12 @@ void* worldBuilderVTE(void* viewState, SDL_Event* event){
 		case (SDL_MOUSEBUTTONUP):
 			if (event->button.x < WIN_W - GRID_SIZE || event->button.y < WIN_H - GRID_SIZE){
 				for (int i = 0; i< WB_NUM_BUTTONS; i++){
+					printf("button %d", i);
 					Widget * currButton = wbViewState->menuButtons[i];
 					if (isClickEventOnButton(event, currButton, REGULAR_BUTTON)){
 						returnEvent->type = SELECT_BUTTON_NUM;
 						returnEvent->buttonNum = i;
-						break;
+						return returnEvent;
 					}
 				}
 			}
@@ -533,8 +535,8 @@ StateId worldBuilderPHE(void* model, void* viewState, void* logicalEvent){
 	switch(wbEvent->type){
 		case(SELECT_BUTTON_NUM):
 			returnStateId = states[wbEvent->buttonNum];
-			if(returnStateId == SAVE_WORLD)
-				returnStateId = isGridValid(wbModel);
+			if(returnStateId == SAVE_WORLD && ! isGridValid(wbModel))
+				returnStateId = ERR_MSG;
 			else if (returnStateId == WORLD_BUILDER){
 				putGridItemInPos(wbModel, wbView->gridPanel, wbView->gridItemsImages, wbModel->currPos, wbEvent->buttonNum);
 			}
@@ -542,6 +544,7 @@ StateId worldBuilderPHE(void* model, void* viewState, void* logicalEvent){
 		case(SELECT_SQUARE):
 			changeSelectedGridSquare(wbView->gridPanel, wbView->gridItemsImages,&wbModel->currPos, wbEvent->gridPos);
 			break;
+
 		case(GO_UP):
 			changeSelectedPosByArrow(wbView->gridPanel, wbView->gridItemsImages, &wbModel->currPos, GO_UP);  //Write this function!!!
 			break;
@@ -554,12 +557,15 @@ StateId worldBuilderPHE(void* model, void* viewState, void* logicalEvent){
 		case(GO_LEFT):
 			changeSelectedPosByArrow(wbView->gridPanel, wbView->gridItemsImages, &wbModel->currPos, GO_LEFT);
 			break;
+
 		case(NO_EVENT):
 			break;
 		default:
 			break;
+
 	}
 	free(logicalEvent);
+
 	return returnStateId;
 
 }
@@ -600,6 +606,7 @@ void putGridItemInPos(WBDataRef wbModel, Widget * gridPanel, Widget ** gridItems
 	}
 	fixOverride(itemType, wbModel, currPos);
 	selectGridPos(gridPanel, gridItemsImages, currPos);
+	blitUpToWindow(gridPanel);
 }
 
 void addReusableItemToPos(gridItem itemType, char ** gridData, Widget * gridPanel,
