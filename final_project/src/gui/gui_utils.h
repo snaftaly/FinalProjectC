@@ -118,8 +118,8 @@ typedef struct GUI {
 typedef struct GUI* GUIref;
 
 typedef struct gridItemPosition{
-	int col;
 	int row;
+	int col;
 } gridItemPosition;
 
 typedef struct ViewState{
@@ -184,6 +184,7 @@ typedef struct WBData{
 	int editedWorld;
 	int isCatFirst;
 	int numTurns;
+	int currValueTemp;
 } WBData;
 
 typedef struct WBData * WBDataRef;

@@ -106,15 +106,6 @@ int changeSelectedButton(Widget * oldButton, Widget * newButton){
 	if (blitChildToParentWidget(newButton, newButton->parentWidget) == -1)
 		return -1;
 	blitUpToWindow(newButton->parentWidget);
-	/*Widget * currChild = newButton->parentWidget;
-	while(currChild->parentWidget != NULL){
-		if (blitChildToParentWidget(currChild, currChild->parentWidget) == -1)
-			return -1;
-		currChild = currChild->parentWidget;
-	}
-	if (SDL_Flip(currChild->surface) != 0) { // we are in the top level widget - the window
-		sdlErrorPrint("failed to flip buffer");
-	}*/
 	return 0;
 }
 
@@ -173,13 +164,15 @@ MenuDataRef initMenuDataToDefault(){
 
 	menuData->editedWorld = MIN_VALUE;
 	menuData->loadGameWorld = MIN_VALUE;
-	menuData->saveOnWorld = MIN_VALUE;
+	//menuData->saveOnWorld = MIN_VALUE; maybe we can delete this!
 
 	menuData->currValueTemp = 0;
 
 	menuData->currWorld = NULL;
+	menuData->isCatFirst = 0;
 
 	menuData->preWorldBuilder = MAIN_MENU;
+	menuData->loadFromFile = 0;
 	/* what else ???? */
 
 	return menuData;

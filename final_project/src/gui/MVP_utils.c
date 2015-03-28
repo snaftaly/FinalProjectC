@@ -264,15 +264,16 @@ void* stopWorldBuilder(GUI * gui){
 	returnData->isCatFirst = wbData->isCatFirst;
 	returnData-> numTurns = wbData->numTurns;
 	returnData->wbCurrPos = wbData->currPos;
+	returnData->currValueTemp = wbData->editedWorld ? wbData->editedWorld : MIN_VALUE;
 
 	if (guiViewState != NULL){
 		freeViewState(guiViewState);
 	}
 	if (wbData != NULL){
-		free(wbData); // maybe we need a function for that????
+		//free(wbData); // maybe we need a function for that????
 	}
 	if (isError || isQuit){
-		free(returnData); // we need to write a function for that!
+		//free(returnData); // we need to write a function for that!
 		return NULL;
 	}
 
@@ -294,7 +295,7 @@ void freeViewState(ViewStateref guiViewState){
 
 
 void freeGridItems(Widget ** gridItemsImages){
-	for (int i = 0; NUM_GRID_ITEMS; i++)
+	for (int i = 0; i < NUM_GRID_ITEMS; i++)
 		freeWidget(gridItemsImages[i]);
 	free(gridItemsImages);
 }
@@ -498,10 +499,10 @@ void* worldBuilderVTE(void* viewState, SDL_Event* event){
 			else if (key ==  SDLK_LEFT)
 				returnEvent->type = GO_LEFT;
 			break;
+
 		case (SDL_MOUSEBUTTONUP):
 			if (event->button.x < WIN_W - GRID_SIZE || event->button.y < WIN_H - GRID_SIZE){
 				for (int i = 0; i< WB_NUM_BUTTONS; i++){
-					printf("button %d", i);
 					Widget * currButton = wbViewState->menuButtons[i];
 					if (isClickEventOnButton(event, currButton, REGULAR_BUTTON)){
 						returnEvent->type = SELECT_BUTTON_NUM;
@@ -557,7 +558,6 @@ StateId worldBuilderPHE(void* model, void* viewState, void* logicalEvent){
 		case(GO_LEFT):
 			changeSelectedPosByArrow(wbView->gridPanel, wbView->gridItemsImages, &wbModel->currPos, GO_LEFT);
 			break;
-
 		case(NO_EVENT):
 			break;
 		default:
@@ -577,6 +577,16 @@ int isGridValid(WBDataRef wbModel){
 		return 0;
 	}
 	return 1;
+}
+
+void addReusableItemToPos(gridItem itemType, char ** gridData, Widget * gridPanel,
+		Widget ** gridItemsImages, gridItemPosition currPos){
+	Widget * itemImage = gridItemsImages[itemType];
+	blitItemToGrid(gridPanel, itemImage, currPos.row, currPos.col);
+	if (itemType == WALL)
+		gridData[currPos.row][currPos.col] = 'W';
+	else
+		gridData[currPos.row][currPos.col] = '#';
 }
 
 void putGridItemInPos(WBDataRef wbModel, Widget * gridPanel, Widget ** gridItemsImages,
@@ -609,17 +619,6 @@ void putGridItemInPos(WBDataRef wbModel, Widget * gridPanel, Widget ** gridItems
 	blitUpToWindow(gridPanel);
 }
 
-void addReusableItemToPos(gridItem itemType, char ** gridData, Widget * gridPanel,
-		Widget ** gridItemsImages, gridItemPosition currPos){
-	Widget * itemImage = gridItemsImages[itemType];
-	blitItemToGrid(gridPanel, itemImage, currPos.row, currPos.col);
-	if (itemType == WALL)
-		gridData[currPos.row][currPos.col] = 'W';
-	else
-		gridData[currPos.row][currPos.col] = '#';
-}
-
-
 
 void moveItemToPos(gridItem itemType, Widget ** gridItemsImages, Widget * gridPanel, char ** gridData,
 		gridItemPosition currPos, gridItemPosition * prevItemPos){
@@ -629,9 +628,9 @@ void moveItemToPos(gridItem itemType, Widget ** gridItemsImages, Widget * gridPa
 		if (isError)
 			return;
 		gridData[prevItemPos->row][prevItemPos->col] = getItemChar(EMPTY);
-		prevItemPos->row = currPos.row;
-		prevItemPos->col = currPos.col;
 	}
+	prevItemPos->row = currPos.row;
+	prevItemPos->col = currPos.col;
 	gridData[currPos.row][currPos.col] = getItemChar(itemType);
 	blitItemToGrid(gridPanel, gridItemsImages[itemType], currPos.row, currPos.col);
 }
@@ -669,7 +668,7 @@ void changeSelectedPosByArrow(Widget * gridPanel, Widget ** gridItemsImages,
 				return;
 			break;
 		case(GO_DOWN):
-			if (currPos->row < ROW_NUM)
+			if (currPos->row < ROW_NUM-1)
 				newPos.row += 1;
 			else
 				return;
@@ -681,13 +680,13 @@ void changeSelectedPosByArrow(Widget * gridPanel, Widget ** gridItemsImages,
 				return;
 			break;
 		case(GO_RIGHT):
-			if (currPos->col < COL_NUM)
+			if (currPos->col < COL_NUM-1)
 				newPos.col += 1;
 			else
 				return;
 			break;
 		default:
-			break;
+			return;
 	}
 	changeSelectedGridSquare(gridPanel, gridItemsImages, currPos, newPos);
 }
@@ -905,12 +904,12 @@ void initializeWorldBuilderModel(GUIref gui, void* initData){
 	wbData->mainMenuButton = menuData->mainMenuButton;
 	wbData->gameGridData = NULL;
 	wbData->editedWorld = menuData->editedWorld;
+	wbData->currValueTemp = menuData->currValueTemp; // maybe?????
 
 	gridItemPosition catPos = {-1, -1};
 	gridItemPosition mousePos = {-1, -1};
 	gridItemPosition cheesePos = {-1, -1};
 	gridItemPosition currPos = {0, 0};
-
 
 	if (menuData->preWorldBuilder == SAVE_WORLD && menuData->loadFromFile == 0){ //we pressed back in SAVE_WORLD
 		wbData->gameGridData = menuData->currWorld;
@@ -919,7 +918,7 @@ void initializeWorldBuilderModel(GUIref gui, void* initData){
 		wbData->isCatFirst = menuData->isCatFirst; //check this!!!
 	}
 	else{ // preWorldBuilder == MAIN_MENU || (preWorldBuilder == EDIT_GAME || preWorldBuilder = SAVE_WORLD) && loadFromFile=1
-		wbData->gameGridData = initGameData(wbData->editedWorld, &wbData->numTurns, &wbData->isCatFirst);
+		wbData->gameGridData = initGameDataByFile(wbData->editedWorld, &wbData->numTurns, &wbData->isCatFirst);
 	}
 
 	updateItemsPostions(&mousePos,&catPos,&cheesePos, wbData->gameGridData);
@@ -1036,7 +1035,7 @@ void startWorldMenu(GUIref gui, void* initData){
 			break;
 		case(SAVE_WORLD):
 			currentButton = data->saveWorldButton;
-			currentValue = data->editedWorld ? data->editedWorld: MIN_VALUE; //if edited world is 0 this will show 1
+			currentValue = data->editedWorld ? data->editedWorld: 1; //if edited world is 0 this will show 1
 			titleImgY = 2*MENU_TITLE_H;
 			break;
 		default:
@@ -1149,7 +1148,6 @@ StateId saveWorldPHE(void* model, void* viewState, void* logicalEvent){
 		return returnStateId;
 	MenuDataRef saveWorldModel = model;
 	StateId saveWorldStates[COMMON_MENU_NUM_BUTTONS] = {SAVE_WORLD, WORLD_BUILDER, WORLD_BUILDER};
-	saveWorldModel->currValueTemp = saveWorldModel->editedWorld;
 	returnStateId = generalMenuPHE(model, viewState, logicalEvent, saveWorldStates, COMMON_MENU_NUM_BUTTONS,
 		returnStateId, &saveWorldModel->saveWorldButton, &saveWorldModel->currValueTemp, MAX_WORLD);
 	if (returnStateId == WORLD_BUILDER){
@@ -1158,6 +1156,7 @@ StateId saveWorldPHE(void* model, void* viewState, void* logicalEvent){
 	if (saveWorldModel->saveWorldButton == 1){ //done was pressed
 		saveWorldModel->loadFromFile = 1;// tell wb to use file to load the grid
 		saveWorldModel->editedWorld = saveWorldModel->currValueTemp;
+		printf("edited world after done: %d", saveWorldModel->editedWorld);
 		saveGridDataToFile(saveWorldModel->editedWorld, saveWorldModel->isCatFirst, saveWorldModel->currWorld);
 
 		//free grid data
@@ -1214,6 +1213,7 @@ StateId chooseMousePHE(void* model, void* viewState, void* logicalEvent){
 
 void saveGridDataToFile(int worldNum, int isCatFirst, char ** gridData){
 	char filename[WORLD_FILE_NAME_LEN];
+	worldNum = worldNum ? worldNum : 1;
 	if (sprintf(filename, "%s%s%d.%s", WORLD_FILE_PATH, WORLD_FILE_NAME_PREFIX, worldNum, WORLD_FILE_NAME_TYPE) < 0){
 		perrorPrint("sprintf");
 		return;
@@ -1235,10 +1235,11 @@ void saveGridDataToFile(int worldNum, int isCatFirst, char ** gridData){
 		strcpy(firstAnimal,"cat");
 	else
 		strcpy(firstAnimal,"mouse");
-	if (fscanf(worldFile, "%s\n", firstAnimal) < 0){
+	if (fprintf(worldFile, "%s\n", firstAnimal) < 0){
 		perrorPrint("fprintf");
 		return;
 	}
+
 	//fill file by grid:
 	char nextChar;
 	for (int i = 0; i< ROW_NUM;i++){
@@ -1261,7 +1262,7 @@ void saveGridDataToFile(int worldNum, int isCatFirst, char ** gridData){
 }
 
 
-char ** initGameData(int worldNum, int * numTurns, int * isCatFirst){
+char ** initGameDataByFile(int worldNum, int * numTurns, int * isCatFirst){
 	char ** grid = initGrid();
 	if (isError)
 		return NULL;

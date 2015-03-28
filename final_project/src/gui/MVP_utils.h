@@ -46,7 +46,7 @@ StateId worldBuilderPHE(void* model, void* viewState, void* logicalEvent);
 void* menuStop(GUIref gui); /* maybe this will be a general stop function */
 void* stopWorldBuilder(GUI * gui);
 
-char ** initGameData(int worldNum, int * numTurns, int * isCatFirst);
+char ** initGameDataByFile(int worldNum, int * numTurns, int * isCatFirst);
 void setEmptyGrid(char ** grid);
 char ** initGrid();
 void initColumns(int rownum, int colnum, char ** grid);
