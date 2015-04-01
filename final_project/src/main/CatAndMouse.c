@@ -62,7 +62,7 @@ int main(int argc, char * argv[]){
 */
 
 // initialize GUI structs mapping by state ids:
-	GUI guis[10];
+	GUI guis[11];
 	guis[MAIN_MENU] = createGUIForState(MAIN_MENU);
 	guis[CHOOSE_CAT] = createGUIForState(CHOOSE_CAT);
 	guis[CHOOSE_MOUSE] = createGUIForState(CHOOSE_MOUSE);
@@ -72,6 +72,8 @@ int main(int argc, char * argv[]){
 	guis[EDIT_GAME] = createGUIForState(EDIT_GAME);
 	guis[WORLD_BUILDER] = createGUIForState(WORLD_BUILDER);
 	guis[SAVE_WORLD] = createGUIForState(SAVE_WORLD);
+	guis[ERR_MSG] = createGUIForState(ERR_MSG);
+
 
 
 	// Starting the default/initial GUI:

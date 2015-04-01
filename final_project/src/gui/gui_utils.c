@@ -170,7 +170,7 @@ MenuDataRef initMenuDataToDefault(){
 
 	menuData->currValueTemp = 0;
 
-	menuData->currWorld = NULL;
+	menuData->gameGridData = NULL;
 	menuData->isCatFirst = 0;
 
 	menuData->preWorldBuilder = MAIN_MENU;
@@ -222,6 +222,26 @@ int calcSideButtonY(){
 
 int calcWBtitleX(int title_W){
 	return (WIN_W - WB_TITLE_W)/2;
+}
+
+int calcErrPanelY(){
+	return (WIN_H - calcErrPanelHeight())/2;
+}
+
+int calcErrPanelHeight(){
+	return MENU_TITLE_H + MENU_TITLE_H + MENU_BUTTON_H + 4*MENU_TITLE_Y_GAP;
+}
+
+int calcMisItemMsgX(int messageWidth, int titleWidth){
+	return (calcPanelWidth(titleWidth)-messageWidth)/2;
+}
+
+int calcMisItemMsgY(){
+	return MENU_TITLE_H + 2*MENU_TITLE_Y_GAP;
+}
+
+int calcErrMsgButtonY(){
+	return calcMisItemMsgY() + MENU_TITLE_Y_GAP + MENU_TITLE_H;
 }
 
 void setImageTransparent(Widget *image, int red, int green, int blue){

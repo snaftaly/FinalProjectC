@@ -13,7 +13,7 @@ GUI createGUIForState(StateId stateId);
 /* start functions */
 void drawGui(GUIref gui);
 void initializeMenuModel(GUIref gui, void* initData);
-void initializeWorldBuilderModel(GUIref gui, void* initData);
+void initWorldBuilderModel(GUIref gui, void* initData);
 ViewStateref initializeGUIViewState();
 void startGeneralMenu(GUIref gui, void * initData, char * imgPath, int titleImgX, int titleImgY, int titleWidth, int numButtons, int selectedButton, int firstButtonNumOpts, int value);
 void startMainMenu(GUIref gui, void* initData);
@@ -21,6 +21,8 @@ void startChooseAnimal(GUIref gui, void* initData);
 void startAnimalSkill(GUIref gui, void* initData);
 void startWorldMenu(GUIref gui, void* initData);
 void startWorldBuilder(GUIref gui, void* initData);
+void startErrMsg(GUIref gui, void* initData);
+
 
 /* VTE fucntions: */
 void* simpleMenuVTE(void* viewState, SDL_Event* event, int numOfButtons);
@@ -28,6 +30,7 @@ void* mainMenuVTE(void* viewState, SDL_Event* event);
 void* chooseAnimalVTE(void* viewState, SDL_Event* event);
 void* complexMenuVTE(void* viewState, SDL_Event* event);
 void* worldBuilderVTE(void* viewState, SDL_Event* event);
+void* errMsgVTE(void* viewState, SDL_Event* event);
 
 /* PHE functions */
 StateId generalMenuPHE(void* model, void* viewState, void* logicalEvent, StateId states[], int numOfButtons,
@@ -41,6 +44,7 @@ StateId loadGamePHE(void* model, void* viewState, void* logicalEvent);
 StateId editGamePHE(void* model, void* viewState, void* logicalEvent);
 StateId saveWorldPHE(void* model, void* viewState, void* logicalEvent);
 StateId worldBuilderPHE(void* model, void* viewState, void* logicalEvent);
+StateId errMsgPHE(void* model, void* viewState, void* logicalEvent);
 
 /* stop functions */
 void* menuStop(GUIref gui); /* maybe this will be a general stop function */

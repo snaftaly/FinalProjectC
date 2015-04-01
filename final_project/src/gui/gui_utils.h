@@ -35,15 +35,17 @@
 #define ARROW_BUTTON_X 120
 #define ARROW_BUTTON_Y 17
 #define MENU_TITLE_H 40
+#define MENU_TITLE_W 200
 #define MENU_TITLE_X_GAP 20
 #define MENU_TITLE_Y_GAP 20
 #define MENU_BUTTON_Y 80
 #define MENU_BUTTON_GAP 10
 #define GRID_SQUARE_SIZE 80
 #define GRID_GAP_SIZE 5
-#define ERR_MSG_TITLE_W 300
-#define ERR_MSG_H 50
-#define MISSING_ITEM_MSG_W 200
+#define ERR_MSG_TITLE_W 350
+//#define ERR_MSG_H 50
+#define MISSING_ITEM_MSG_W 300
+//#define MISSING_ITEM_MSG_H 40
 
 
 
@@ -173,8 +175,8 @@ typedef struct MenuData{
 	int numTurns;
 	gridItemPosition wbCurrPos;
 	int loadFromFile;
-	char ** currWorld;
-	char missingItems;
+	char ** gameGridData;
+	int missingItems;
 
 } MenuData;
 
@@ -197,6 +199,28 @@ typedef struct WBData{
 
 typedef struct WBData * WBDataRef;
 
+typedef struct PGData{
+	char ** gameGridData;
+
+	gridItemPosition catPos;
+	gridItemPosition mousePos;
+	gridItemPosition cheesePos;
+	//gridItemPosition currPos; we probably don't need this!
+	int loadGameWorld;
+
+	int isCatCurrPlayer;
+	int numTurnsLeft;
+	int isGameOver;
+	int isGamePaused;
+
+	int isCatHuman;
+	int isMouseHuman;
+	int catSkill;
+	int mouseSkill;
+
+} PGData;
+
+typedef struct PGData * PGDataRef;
 
 
 /* functions declarations */
@@ -221,6 +245,13 @@ int calcTopButtonY();
 int calcSideButtonX();
 int calcSideButtonY();
 int calcWBtitleX(int title_W);
+int calcErrPanelY();
+int calcErrPanelHeight();
+int calcMisItemMsgX(int messageWidth, int titleWidth);
+int calcMisItemMsgY();
+int calcMenuButtonX(int titleWidth);
+int calcErrMsgButtonY();
+
 void setImageTransparent(Widget *image, int red, int green, int blue);
 void blitUpToWindow(Widget * widget);
 
