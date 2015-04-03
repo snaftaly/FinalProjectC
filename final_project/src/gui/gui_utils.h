@@ -12,11 +12,17 @@
 #define COMMON_MENU_NUM_BUTTONS 3
 #define ERR_MSG_NUM_BUTTONS 1
 #define WB_NUM_BUTTONS 8
+#define WB_TOP_PANEL_NUM_BUTTONS 3
+#define WB_SIDE_PANEL_NUM_BUTTONS 5
+#define PG_TOP_PANEL_NUM_BUTTONS 1
+#define PG_NUM_BUTTONS 6
 #define NUM_GRID_ITEMS 7
 #define FIRST_BUTTON 0
 #define REGULAR_BUTTON 0
 #define UP_ARROW_BUTTON 1
 #define DOWN_ARROW_BUTTON 2
+#define PG_NUM_LABELS 4
+
 
 #define WINDOW_RED 100
 #define WINDOW_GREEN 100
@@ -93,6 +99,12 @@ typedef enum{
 	DESELECT
 } gridItem;
 
+typedef enum{
+	CAT_WINS,
+	MOUSE_WINS,
+	TIE
+} gameOverType;
+
 /* The GUI structure. */
 typedef struct GUI {
 	/* The unique state id: */
@@ -130,11 +142,15 @@ typedef struct gridItemPosition{
 
 typedef struct ViewState{
 	SDL_Surface * image;
+	SDL_Surface * gridItemImage;
 	Widget ** menuButtons;
 	ListRef UITree;
 	int currButton;
+	ListRef topPanelNode;
+	ListRef sidePanelNode;
 	Widget * gridPanel;
-	Widget ** gridItemsImages;
+	Widget ** gridItemsImgArr;
+	Widget ** labelArr;
 } ViewState;
 
 typedef struct ViewState * ViewStateref;
@@ -184,7 +200,6 @@ typedef struct MenuData * MenuDataRef;
 
 
 typedef struct WBData{
-	int mainMenuButton;
 	char ** gameGridData;
 	gridItemPosition catPos;
 	gridItemPosition mousePos;
@@ -211,6 +226,7 @@ typedef struct PGData{
 	int isCatCurrPlayer;
 	int numTurnsLeft;
 	int isGameOver;
+	gameOverType gameOverType;
 	int isGamePaused;
 
 	int isCatHuman;

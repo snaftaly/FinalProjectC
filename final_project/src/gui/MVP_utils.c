@@ -90,11 +90,13 @@ ViewStateref initializeGUIViewState(){
 	}
 	/* initialize viewState fields */
 	viewState->image = NULL;
+	viewState->gridItemImage = NULL;
 	viewState->menuButtons = NULL;
 	viewState->UITree = NULL;
 	viewState->currButton = 0;
 	viewState->gridPanel = NULL;
-	viewState->gridItemsImages = NULL;
+	viewState->gridItemsImgArr = NULL;
+	viewState->labelArr = NULL;
 	return viewState;
 }
 
@@ -105,144 +107,63 @@ void startPlayGame(GUIref gui, void* initData){
 	initPlayGameModel(gui, initData);
 	if(isError)
 		return;
-	WBDataRef wbModel = gui->model;
+	PGDataRef pgModel = gui->model;
 	char imgPath[] = "images/playGame_temp.bmp";
 
 	// initialize viewState
-	ViewStateref wbViewState = initializeGUIViewState(); //maybe we will need a different function!
-	if (wbViewState == NULL){
+	ViewStateref pgViewState = initializeGUIViewState(); //maybe we will need a different function!
+	if (pgViewState == NULL){
 		return;
 	}
-	gui->viewState = wbViewState;
+	gui->viewState = pgViewState;
+	pgModel->isGameOver = isGameOver(pgModel);
+
 
 	// create image surface
-	SDL_Surface * wbImage = SDL_LoadBMP(imgPath);
-	if (wbImage == NULL){
+	SDL_Surface * pgImage = SDL_LoadBMP(imgPath);
+	if (pgImage == NULL){
 		sdlErrorPrint("failed to load image");
 		return;
 	}
-	wbViewState->image = wbImage;
-
+	pgViewState->image = pgImage;
+	createGridItemsImgArr(pgViewState);
+	if (isError)
+		return;
+	setThreePartLayout(pgViewState, pgModel->gameGridData);
+	if (isError)
+		return;
 	// create buttons array
-	Widget ** buttons = (Widget **)malloc(WB_NUM_BUTTONS*sizeof(Widget *));
+	Widget ** buttons = (Widget **)malloc(PG_NUM_BUTTONS*sizeof(Widget *));
 	if (buttons == NULL){
 		perrorPrint("malloc");
 		return;
 	}
-	wbViewState->menuButtons = buttons;
-
-	// create the UItree
-	Widget *win = create_window(WIN_W,WIN_H, 0, 0, 0);
-	if (win == NULL){
+	pgViewState->menuButtons = buttons;
+	// create labels array
+	Widget ** labels = (Widget **)malloc(PG_NUM_LABELS*sizeof(Widget *));
+	if (labels == NULL){
+		perrorPrint("malloc");
 		return;
 	}
-	ListRef winNode = newList(win);
-	wbViewState->UITree = winNode;
-	if (winNode == NULL){
-		freeWidget(win);
+	pgViewState->labelArr = labels;
+	//handle top panel presentation
+	if (pgModel->isGameOver)
+		setTopPanelGameOver(pgModel, pgViewState);
+	else
+		setTopPanelPlayGame(pgModel, pgViewState);
+	if (isError)
 		return;
-	}
-
-	Widget *topPanel = create_panel(0, 0, WIN_W, TOP_PANEL_H,PANEL_RED,PANEL_GREEN,PANEL_BLUE);
-	if (topPanel == NULL){
-		return;
-	}
-	ListRef topPanelNode = addChildNode(winNode, topPanel);
-	if (topPanelNode == NULL){
-		freeWidget(topPanel);
-		return;
-	}
-	Widget *sidePanel = create_panel(0, 210, SIDE_PANEL_W, SIDE_PANEL_H,PANEL_RED,PANEL_GREEN,PANEL_BLUE);
-		if (sidePanel == NULL){
-			return;
-		}
-	ListRef sidePanelNode = addChildNode(winNode, sidePanel);
-	if (sidePanelNode == NULL){
-		freeWidget(sidePanel);
-		return;
-	}
-	Widget *gridPanel = create_panel(210, 210, GRID_SIZE, GRID_SIZE, PANEL_RED, PANEL_GREEN, PANEL_BLUE);
-	if (gridPanel == NULL){
-		return;
-	}
-	wbViewState->gridPanel = gridPanel;//put panel in viewstate
-	ListRef gridPanelNode = addChildNode(winNode, gridPanel);
-	if (gridPanelNode == NULL){
-		freeWidget(gridPanel);
-		return;
-	}
-	Widget *label = create_image(calcWBtitleX(WB_TITLE_W), WB_WIDGET_Y_GAP, WB_TITLE_W, WB_TITLE_H,
-			wbImage, WB_BUTTON_W, wbModel->editedWorld*WB_TITLE_H);
-	if (label == NULL){
-		return;
-	}
-	ListRef labelNode = addChildNode(topPanelNode, label);
-	if (labelNode == NULL){
-		freeWidget(label);
-		return;
-	}
-
-	//add buttons to top panel:
-	int topButtonX = calcTopButtonX(), topButtonY = calcTopButtonY(), buttonImgX = 0, buttonImgY = 0;
-	// Add buttons to buttons array and to UI tree
-	for (int i = 0; i < WB_TOP_PANEL_NUM_BUTTONS; i++){
-		buttons[i] = create_button(topButtonX, topButtonY, WB_BUTTON_W, WB_BUTTON_H,
-				wbImage, buttonImgX, buttonImgY, buttonImgX, buttonImgY, 0);//write function for creating a non markable button
-		if (buttons[i] == NULL){
-			return;
-		}
-		ListRef newButtonNode = addChildNode(topPanelNode, buttons[i]);
-		if (newButtonNode == NULL){
-			freeWidget(buttons[i]);
-			return;
-		}
-		buttonImgY += WB_BUTTON_H;
-		topButtonX += WB_BUTTON_W + WB_BUTTON_X_GAP;
-	}
 
 	//add buttons to side panel:
-	int sideButtonX = calcSideButtonX(), sideButtonY = calcSideButtonY();
-	// Add buttons to buttons array and to UI tree
-	for (int i = WB_TOP_PANEL_NUM_BUTTONS; i < WB_NUM_BUTTONS; i++){
-		buttons[i] = create_button(sideButtonX, sideButtonY, WB_BUTTON_W, WB_BUTTON_H,
-				wbImage, buttonImgX, buttonImgY, buttonImgX, buttonImgY, 0);//write function for creating a non markable button
-		if (buttons[i] == NULL){
-			return;
-		}
-		ListRef newButtonNode = addChildNode(sidePanelNode, buttons[i]);
-		if (newButtonNode == NULL){
-			freeWidget(buttons[i]);
-			return;
-		}
-		buttonImgY += WB_BUTTON_H;
-		sideButtonY += WB_BUTTON_H + WB_WIDGET_Y_GAP;
-	}
+	int buttonImgX = 0, buttonImgY = 3*PAUSE_BUTTON_H;
+	int buttonImgDisX = PANEL_BUTTON_W, buttonImgDisY = 3*PAUSE_BUTTON_H;//change this values
+	addButtonsToSidePanel(pgViewState, buttonImgX, buttonImgY, buttonImgDisX, buttonImgDisY ,1,
+			PG_NUM_BUTTONS);
+	if (isError)//check if we need this
+		return;
 
-	//initialize gridItemsImages Array:
-	Widget ** gridItemImages = malloc(NUM_GRID_ITEMS*sizeof(Widget *));
-	if (buttons == NULL){
-		perrorPrint("malloc");
-		return;
-	}
-	wbViewState->gridItemsImages = gridItemImages;
-	int gridItemImgX = WB_BUTTON_W + WB_TITLE_W;
-	int gridItemImgY = 0;
-	for (int i = 0; i < NUM_GRID_ITEMS; i++){
-		gridItemImages[i] = create_image(0, 0, GRID_SQUARE_SIZE, GRID_SQUARE_SIZE,
-				wbImage, gridItemImgX, gridItemImgY);
-		if (gridItemImages[i] == NULL){
-			return;
-		}
-		gridItemImgY += GRID_SQUARE_SIZE;
-	}
-	setImageTransparent(gridItemImages[SELECT], TR_RED, TR_GREEN, TR_BLUE);//CREATE THIS FUNCTION!!!!!!!
-	if (isError)
-		return;
-	setImageTransparent(gridItemImages[DESELECT], TR_RED, TR_GREEN, TR_BLUE);
-	if (isError)
-		return;
-	createGridByData(gridPanel, wbModel->gameGridData, gridItemImages);
-	selectGridPos(gridPanel, gridItemImages, wbModel->currPos);
+	gridItemPosition selectedPos = pgModel->isCatCurrPlayer ? pgModel->catPos : pgModel->mousePos;
+	selectGridPos(pgViewState->gridPanel, pgViewState->gridItemsImgArr, selectedPos);
 	if (isError)
 		return;
 	// draw GUI according to UItree
@@ -275,6 +196,279 @@ void initPlayGameModel(GUIref gui, void* initData){
 	free(initData);
 }
 
+void setTopPanelGameOver(PGDataRef pgModel, ViewStateref pgViewState){
+	freeTree(pgViewState->topPanelNode, freeWidget());
+	Widget *topPanel = create_panel(0, 0, WIN_W, TOP_PANEL_H,PANEL_RED,PANEL_GREEN,PANEL_BLUE);
+	if (topPanel == NULL){
+		return;
+	}
+	ListRef topPanelNode = addChildNode(pgViewState->UITree, topPanel);
+	if (topPanelNode == NULL){
+		freeWidget(topPanel);
+		return;
+	}
+	pgViewState->topPanelNode = topPanelNode;
+	Widget * gameOverLabel = create_image(calcGameOverX(), calcGameOverY(), GAME_OVER_LABEL_W, GAME_OVER_LABEL_H,
+			pgViewState->image, PAUSE_BUTTON_W, pgModel->gameOverType*GAME_OVER_LABEL_H);
+	ListRef gameOverLabelNode = addChildNode(topPanelNode, gameOverLabelNode);
+	if (gameOverLabelNode == NULL){
+		freeWidget(gameOverLabel);
+		return;
+	}
+}
+
+void setTopPanelPlayGame(PGDataRef pgModel, ViewStateref pgViewState){
+	Widget * pauseButton = create_button(calcPauseButtonX(), calcPauseButtonY(), PAUSE_BUTTON_W,
+			PAUSE_BUTTON_H, pgViewState->image, 0, 0, 0, 0, 0);
+	if (pauseButton == NULL)
+		return;
+	pgViewState->menuButtons[0] = pauseButton;
+	ListRef pauseButtonNode = addChildNode(pgViewState->topPanelNode, pauseButton);
+	if (pauseButtonNode == NULL){
+		freeWidget(pauseButton);
+		return;
+	}
+	setPauseButton(pgModel, pgViewState);
+
+	Widget * playerStateLabel = create_image(calcStateLabelX(), calcStateLabelY(), STATE_LABEL_W,
+			STATE_LABEL_H, pgViewState->image, PAUSE_BUTTON_W, 3*GAME_OVER_LABEL_H);
+	if (playerStateLabel == NULL)
+		return;
+	pgViewState->labelArr[0] = playerStateLabel;
+	ListRef stateLabelNode = addChildNode(pgViewState->topPanelNode, playerStateLabel);
+	if (stateLabelNode == NULL){
+		freeWidget(playerStateLabel);
+		return;
+	}
+	setPlayerStateLabel(pgModel, pgViewState);
+
+
+	Widget * playerMoveLabel = create_image(calcMoveLabelX(pgModel->isCatCurrPlayer), PANEL_WIDGET_Y_GAP, GAME_INFO_LABEL_W,
+			GAME_INFO_LABEL_H, pgViewState->image, PAUSE_BUTTON_W + GAME_OVER_LABEL_W, 0);
+	if (playerStateLabel == NULL)
+		return;
+	pgViewState->labelArr[1] = playerMoveLabel;
+	ListRef moveLabelNode = addChildNode(pgViewState->topPanelNode, playerMoveLabel);
+	if (moveLabelNode == NULL){
+		freeWidget(playerMoveLabel);
+		return;
+	}
+	setPlayerMoveLabel(pgModel, pgViewState);
+
+	Widget * turnsTensLabel = create_image(calcTensLabelX(pgModel->isCatCurrPlayer), PANEL_WIDGET_Y_GAP,
+			DIGIT_LABEL_W,GAME_INFO_LABEL_H, pgViewState->image, PAUSE_BUTTON_W + GAME_OVER_LABEL_W, 2*GAME_INFO_LABEL_H);
+	if (turnsTensLabel == NULL)
+		return;
+	pgViewState->labelArr[2] = turnsTensLabel;
+	ListRef turnsTensLabelNode = addChildNode(pgViewState->topPanelNode, turnsTensLabel);
+	if (turnsTensLabelNode == NULL){
+		freeWidget(turnsTensLabel);
+		return;
+	}
+	Widget * turnsUnitsLabel = create_image(calcUnitsLabelX(pgModel->isCatCurrPlayer), PANEL_WIDGET_Y_GAP, DIGIT_LABEL_W,
+			GAME_INFO_LABEL_H, pgViewState->image, PAUSE_BUTTON_W + GAME_OVER_LABEL_W + DIGIT_LABEL_W, 2*GAME_INFO_LABEL_H);
+	if (turnsUnitsLabel == NULL)
+		return;
+	pgViewState->labelArr[3] = turnsUnitsLabel;
+	ListRef turnsUnitsLabelNode = addChildNode(pgViewState->topPanelNode, turnsUnitsLabel);
+	if (turnsUnitsLabelNode == NULL){
+		freeWidget(turnsUnitsLabel);
+		return;
+	}
+	setNumTurnsLabels(pgModel, pgViewState);
+}
+
+void setNumTurnsLabels(PGDataRef pgModel, ViewStateref pgViewState){
+	Widget * turnsUnitsLabel = pgViewState->labelArr[3];
+	Widget * turnsTensLabel = pgViewState->labelArr[2];
+	int turnsTensDigit = pgModel->numTurnsLeft/10;
+	int turnsUnitsDigit = pgModel->numTurnsLeft%10;
+	int yStartPoint = 2*GAME_INFO_LABEL_H;
+	turnsUnitsLabel->img_rect.y = yStartPoint + turnsUnitsDigit*GAME_INFO_LABEL_H;
+	turnsTensLabel->img_rect.y = yStartPoint + turnsTensDigit*GAME_INFO_LABEL_H;
+}
+
+
+
+void setPlayerMoveLabel(PGDataRef pgModel, ViewStateref pgViewState){
+	Widget * moveLabel = pgViewState->labelArr[1];
+	if (pgModel->isCatCurrPlayer)
+		moveLabel->img_rect.y = 0;
+	else
+		moveLabel->img_rect.y = GAME_INFO_LABEL_H;
+}
+
+
+void setPlayerStateLabel(PGDataRef pgModel, ViewStateref pgViewState){
+	int yStartPoint = 3*GAME_OVER_LABEL_H;
+	Widget * label = pgViewState->labelArr[0];
+	if (isCurrPlayerHuman(pgModel)){
+		if (pgModel->isGamePaused)
+			label->img_rect.y = yStartPoint + STATE_LABEL_H;
+		else
+			label->img_rect.y = yStartPoint;
+	}
+	else{ //cuurent player is machine
+		if (pgModel->isGamePaused)
+			label->img_rect.y = yStartPoint + 3*STATE_LABEL_H;
+		else
+			label->img_rect.y = yStartPoint + 2*STATE_LABEL_H;
+	}
+}
+
+
+
+
+void setPauseButton(PGDataRef pgModel, ViewStateref pgViewState){
+	Widget * pauseButton = pgViewState->menuButtons[0];
+	if (pgModel->isGamePaused){
+		pauseButton->button_non_selected_rect.y = 2*PAUSE_BUTTON_H;
+		pauseButton->button_selected_rect.y = 2*PAUSE_BUTTON_H;
+	}
+	else{
+		if (isCurrPlayerHuman(pgModel)){
+			pauseButton->button_non_selected_rect.y = PAUSE_BUTTON_H;
+			pauseButton->button_selected_rect.y = PAUSE_BUTTON_H;
+		}
+		else{
+			pauseButton->button_non_selected_rect.y = 0;
+			pauseButton->button_selected_rect.y = 0;
+		}
+	}
+
+}
+
+int isCurrPlayerHuman(PGDataRef pgModel){
+	if ((pgModel->isCatCurrPlayer && pgModel->isCatHuman) ||
+			(!pgModel->isCatCurrPlayer && pgModel->isMouseHuman))
+		return 1;
+	return 0;
+}
+
+
+void addButtonsToSidePanel(ViewStateref viewState, int buttonImgX, int buttonImgY,
+		int buttonImgDisX, int buttonImgDisY, int fromButtonNum, int toButtonNum){
+	int sideButtonX = calcSideButtonX(), sideButtonY = calcSideButtonY();
+	// Add buttons to buttons array and to UI tree
+	for (int i = fromButtonNum; i < toButtonNum; i++){
+		viewState->menuButtons[i] = create_button(sideButtonX, sideButtonY, PANEL_BUTTON_W, PANEL_BUTTON_H,
+				viewState->image, buttonImgDisX, buttonImgDisY, buttonImgX, buttonImgY, 1);//write function for creating a non markable button
+		if (viewState->menuButtons[i] == NULL){
+			return;
+		}
+		ListRef newButtonNode = addChildNode(viewState->sidePanelNode, viewState->menuButtons[i]);
+		if (newButtonNode == NULL){
+			freeWidget(viewState->menuButtons[i]);
+			return;
+		}
+		buttonImgY += PANEL_BUTTON_H;
+		buttonImgDisY += PANEL_BUTTON_H;
+		sideButtonY += PANEL_BUTTON_H + PANEL_WIDGET_Y_GAP;
+	}
+}
+
+void createGridItemsImgArr(ViewStateref viewState){
+	SDL_Surface * gridItemsImg = SDL_LoadBMP("images/gridItem_temp.bmp");
+	if (gridItemsImg == NULL){
+		sdlErrorPrint("failed to load image");
+		return;
+	}
+	Widget ** gridItemImagesArr = malloc(NUM_GRID_ITEMS*sizeof(Widget *));
+	if (gridItemImagesArr == NULL){
+		perrorPrint("malloc");
+		return;
+	}
+	viewState->gridItemsImgArr = gridItemImagesArr;
+	int gridItemImgX = 0;
+	int gridItemImgY = 0;
+	for (int i = 0; i < NUM_GRID_ITEMS; i++){
+		gridItemImagesArr[i] = create_image(0, 0, GRID_SQUARE_SIZE, GRID_SQUARE_SIZE,
+				gridItemsImg, gridItemImgX, gridItemImgY);
+		if (gridItemImagesArr[i] == NULL){
+			for (int j = 0; j < i; j++){
+				freeWidget(gridItemImagesArr[i]);
+			}
+			free(gridItemImagesArr);
+			gridItemImagesArr = NULL;
+			return;
+		}
+		gridItemImgY += GRID_SQUARE_SIZE;
+	}
+	setImageTransparent(gridItemImagesArr[SELECT], TR_RED, TR_GREEN, TR_BLUE);
+	if (isError)
+		return;
+	setImageTransparent(gridItemImagesArr[DESELECT], TR_RED, TR_GREEN, TR_BLUE);
+	if (isError)
+		return;
+}
+
+void setThreePartLayout(ViewStateref viewState, char ** gameGridData){
+	Widget *win = create_window(WIN_W,WIN_H, 0, 0, 0);
+	if (win == NULL){
+		return;
+	}
+	ListRef winNode = newList(win);
+	viewState->UITree = winNode;
+	if (winNode == NULL){
+		freeWidget(win);
+		return;
+	}
+
+	Widget *topPanel = create_panel(0, 0, WIN_W, TOP_PANEL_H,PANEL_RED,PANEL_GREEN,PANEL_BLUE);
+	if (topPanel == NULL){
+		return;
+	}
+	ListRef topPanelNode = addChildNode(winNode, topPanel);
+	if (topPanelNode == NULL){
+		freeWidget(topPanel);
+		return;
+	}
+	viewState->topPanelNode = topPanelNode;
+	Widget *sidePanel = create_panel(0, 210, SIDE_PANEL_W, SIDE_PANEL_H,PANEL_RED,PANEL_GREEN,PANEL_BLUE);
+	if (sidePanel == NULL){
+		return;
+	}
+	ListRef sidePanelNode = addChildNode(winNode, sidePanel);
+	if (sidePanelNode == NULL){
+		freeWidget(sidePanel);
+		return;
+	}
+	viewState->sidePanelNode = sidePanelNode;
+	Widget *gridPanel = create_panel(210, 210, GRID_SIZE, GRID_SIZE, PANEL_RED, PANEL_GREEN, PANEL_BLUE);
+	if (gridPanel == NULL){
+		return;
+	}
+	viewState->gridPanel = gridPanel;//put panel in viewstate
+	ListRef gridPanelNode = addChildNode(winNode, gridPanel);
+	if (gridPanelNode == NULL){
+		freeWidget(gridPanel);
+		return;
+	}
+	createGridByData(gridPanel, gameGridData, viewState->gridItemsImgArr);
+}
+
+int isGameOver(PGDataRef pgModel){
+	if (isAdjPos(pgModel->catPos, pgModel->mousePos)){
+		pgModel->gameOverType = CAT_WINS;
+		return 1;
+	}
+	if (isAdjPos(pgModel->cheesePos, pgModel->mousePos)){
+		pgModel->gameOverType = MOUSE_WINS;
+		return 1;
+	}
+	if (pgModel->numTurnsLeft==0){
+		pgModel->gameOverType = TIE;
+		return 1;
+	}
+	return 0;
+}
+
+int isAdjPos(gridItemPosition pos1, gridItemPosition pos2){
+	if ((pos1.col == pos2.col && abs(pos1.row - pos2.row) == 1) ||
+			(pos1.row == pos2.row && abs(pos1.col - pos2.col) == 1))
+		return 1;
+	return 0;
+}
 
 void startWorldBuilder(GUIref gui, void* initData){
 	initWorldBuilderModel(gui, initData);
@@ -399,7 +593,7 @@ void startWorldBuilder(GUIref gui, void* initData){
 		perrorPrint("malloc");
 		return;
 	}
-	wbViewState->gridItemsImages = gridItemImages;
+	wbViewState->gridItemsImgArr = gridItemImages;
 	int gridItemImgX = WB_BUTTON_W + WB_TITLE_W;
 	int gridItemImgY = 0;
 	for (int i = 0; i < NUM_GRID_ITEMS; i++){
@@ -436,8 +630,6 @@ void* stopWorldBuilder(GUI * gui){
 	if (isError)
 		return NULL;
 	//put things in return Data
-	//for main menu:
-	returnData->mainMenuButton = wbData->mainMenuButton;
 	//for save world & error message:
 	returnData->gameGridData = wbData->gameGridData;
 	returnData->editedWorld = wbData->editedWorld;
@@ -467,10 +659,12 @@ void freeViewState(ViewStateref guiViewState){
 		free(guiViewState->menuButtons);
 	if (guiViewState->image != NULL)
 		SDL_FreeSurface(guiViewState->image);
+	if (guiViewState->gridItemImage != NULL)
+		SDL_FreeSurface(guiViewState->gridItemImage);
 	if (guiViewState->UITree != NULL)
 		freeTree(guiViewState->UITree, freeWidget);
-	if (guiViewState->gridItemsImages != NULL)
-		freeGridItems(guiViewState->gridItemsImages);
+	if (guiViewState->gridItemsImgArr != NULL)
+		freeGridItems(guiViewState->gridItemsImgArr);
 	free(guiViewState);
 }
 
@@ -719,24 +913,24 @@ StateId worldBuilderPHE(void* model, void* viewState, void* logicalEvent){
 			if(returnStateId == SAVE_WORLD && isGridInvalid(wbModel))
 				returnStateId = ERR_MSG;
 			else if (returnStateId == WORLD_BUILDER){
-				putGridItemInPos(wbModel, wbView->gridPanel, wbView->gridItemsImages, wbModel->currPos, wbEvent->buttonNum);
+				putGridItemInPos(wbModel, wbView->gridPanel, wbView->gridItemsImgArr, wbModel->currPos, wbEvent->buttonNum);
 			}
 			break;
 		case(SELECT_SQUARE):
-			changeSelectedGridSquare(wbView->gridPanel, wbView->gridItemsImages,&wbModel->currPos, wbEvent->gridPos);
+			changeSelectedGridSquare(wbView->gridPanel, wbView->gridItemsImgArr,&wbModel->currPos, wbEvent->gridPos);
 			break;
 
 		case(GO_UP):
-			changeSelectedPosByArrow(wbView->gridPanel, wbView->gridItemsImages, &wbModel->currPos, GO_UP);  //Write this function!!!
+			changeSelectedPosByArrow(wbView->gridPanel, wbView->gridItemsImgArr, &wbModel->currPos, GO_UP);  //Write this function!!!
 			break;
 		case(GO_DOWN):
-			changeSelectedPosByArrow(wbView->gridPanel, wbView->gridItemsImages, &wbModel->currPos, GO_DOWN);
+			changeSelectedPosByArrow(wbView->gridPanel, wbView->gridItemsImgArr, &wbModel->currPos, GO_DOWN);
 			break;
 		case(GO_RIGHT):
-			changeSelectedPosByArrow(wbView->gridPanel, wbView->gridItemsImages, &wbModel->currPos, GO_RIGHT);
+			changeSelectedPosByArrow(wbView->gridPanel, wbView->gridItemsImgArr, &wbModel->currPos, GO_RIGHT);
 			break;
 		case(GO_LEFT):
-			changeSelectedPosByArrow(wbView->gridPanel, wbView->gridItemsImages, &wbModel->currPos, GO_LEFT);
+			changeSelectedPosByArrow(wbView->gridPanel, wbView->gridItemsImgArr, &wbModel->currPos, GO_LEFT);
 			break;
 		case(NO_EVENT):
 			break;
@@ -1090,7 +1284,6 @@ void initWorldBuilderModel(GUIref gui, void* initData){
 		perrorPrint("malloc");
 	}
 	gui->model = wbData;
-	wbData->mainMenuButton = menuData->mainMenuButton;
 	wbData->gameGridData = NULL;
 	wbData->editedWorld = menuData->editedWorld;
 	wbData->currValueTemp = menuData->currValueTemp; // maybe?????

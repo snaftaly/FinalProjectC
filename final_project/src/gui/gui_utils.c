@@ -244,6 +244,26 @@ int calcErrMsgButtonY(){
 	return calcMisItemMsgY() + MENU_TITLE_Y_GAP + MENU_TITLE_H;
 }
 
+int calcGameOverX(){
+	return (WIN_W - GAME_OVER_LABEL_W)/2;
+}
+
+int calcGameOverY(){
+	return (TOP_PANEL_H - GAME_OVER_LABEL_H)/2;
+}
+
+int calcPauseButtonX(){
+	return (WIN_W - GAME_OVER_LABEL_W)/2;
+}
+
+int calcPauseButtonY(){
+	return 3*PANEL_WIDGET_Y_GAP + 2*GAME_INFO_LABEL_H;
+}
+
+
+
+
+
 void setImageTransparent(Widget *image, int red, int green, int blue){
 	if (SDL_SetColorKey(image->surface, SDL_SRCCOLORKEY, SDL_MapRGB(image->surface->format, red, green, blue)) !=0){
 		sdlErrorPrint("failed setting image transparent");
