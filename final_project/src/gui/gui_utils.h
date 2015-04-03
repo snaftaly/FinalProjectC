@@ -194,6 +194,8 @@ typedef struct MenuData{
 	char ** gameGridData;
 	int missingItems;
 
+	StateId returnStateId;
+
 } MenuData;
 
 typedef struct MenuData * MenuDataRef;
@@ -210,6 +212,9 @@ typedef struct WBData{
 	int numTurns;
 	int currValueTemp;
 	char missingItems;
+
+	StateId returnStateId;
+
 } WBData;
 
 typedef struct WBData * WBDataRef;
@@ -228,11 +233,14 @@ typedef struct PGData{
 	int isGameOver;
 	gameOverType gameOverType;
 	int isGamePaused;
+	int doRestartGame;
 
 	int isCatHuman;
 	int isMouseHuman;
 	int catSkill;
 	int mouseSkill;
+
+	StateId returnStateId;
 
 } PGData;
 

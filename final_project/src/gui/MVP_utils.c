@@ -81,7 +81,7 @@ void initPlayGameModel(GUIref gui, void* initData){
 	}
 	else
 		pgData->gameGridData = menuData->gameGridData;
-	pgData->gameGridData = menuData->gameGridData;
+
 	pgData->loadGameWorld = menuData->loadGameWorld;
 	pgData->isCatCurrPlayer = menuData->isCatFirst;
 	pgData->numTurnsLeft = menuData->numTurns;
@@ -92,6 +92,7 @@ void initPlayGameModel(GUIref gui, void* initData){
 
 	pgData->isGameOver = 0;
 	pgData->isGamePaused = 0;
+	pgData->doRestartGame = 0;
 
 	updateItemsPostions(&pgData->mousePos,&pgData->catPos,&pgData->cheesePos, pgData->gameGridData);
 
@@ -473,6 +474,24 @@ int getWBButtonNum(SDLKey key){
 	return -1; //check !!!!
 }
 
+int getPGButtonNum(SDLKey key){
+	switch(key){
+		case(SDLK_SPACE):
+			return 0;
+		case(SDLK_F1):
+			return 1;
+		case(SDLK_F2):
+			return 2;
+		case(SDLK_F3):
+			return 3;
+		case(SDLK_F4):
+			return 4;
+		case(SDLK_ESCAPE):
+			return 5;
+	}
+	return -1; //check !!!!
+}
+
 
 
 
@@ -580,34 +599,7 @@ int isSamePos(gridItemPosition pos1, gridItemPosition pos2){
 void changeSelectedPosByArrow(Widget * gridPanel, Widget ** gridItemsImages,
 		gridItemPosition * currPos, logicalEventType direction){
 	gridItemPosition newPos = {currPos->row, currPos->col};
-	switch(direction){
-		case(GO_UP):
-			if (currPos->row > 0)
-				newPos.row -= 1;
-			else
-				return;
-			break;
-		case(GO_DOWN):
-			if (currPos->row < ROW_NUM-1)
-				newPos.row += 1;
-			else
-				return;
-			break;
-		case(GO_LEFT):
-			if (currPos->col > 0)
-				newPos.col -= 1;
-			else
-				return;
-			break;
-		case(GO_RIGHT):
-			if (currPos->col < COL_NUM-1)
-				newPos.col += 1;
-			else
-				return;
-			break;
-		default:
-			return;
-	}
+	changePosDirection(&newPos ,direction);
 	changeSelectedGridSquare(gridPanel, gridItemsImages, currPos, newPos);
 }
 
@@ -663,39 +655,6 @@ void updateItemsPostions(gridItemPosition * mousePosRef,gridItemPosition * catPo
 		}
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 void saveGridDataToFile(int worldNum, int isCatFirst, char ** gridData){
@@ -885,7 +844,6 @@ void initColumns(int rownum, int colnum, char ** grid){
     }
 }
 
-
 void freeGridData(char ** gridData){
 	if (gridData != NULL){
 		for (int i = 0; i< ROW_NUM; i++)
@@ -898,5 +856,57 @@ void freeMenuData(MenuDataRef menuData){
 	if (menuData != NULL){
 		freeGridData(menuData->gameGridData);
 		free(menuData);
+	}
+}
+
+void makeGameMoveIfLegal(ViewStateref pgView, PGDataRef pgModel, gridItemPosition eventPos){
+	if (!pgModel->isGamePaused || !pgModel->isGameOver){
+		gridItemPosition currPlayerPos = pgModel->isCatCurrPlayer ? pgModel->catPos : pgModel->mousePos;
+		gridItem currPlayerType = pgModel->isCatCurrPlayer ? CAT : MOUSE;
+		if (isAdjPos(currPlayerPos, eventPos) && isGridPosFree(eventPos)){
+			moveItemToPos(currPlayerType, pgView->gridItemsImgArr, pgView->gridPanel,
+					pgModel->gameGridData, eventPos, &currPlayerPos);
+			changeSelectedGridSquare(pgModel->gameGridData, pgView->gridItemsImgArr, &eventPos, currPlayerPos);
+			blitUpToWindow(pgView->gridPanel);
+		}
+	}
+}
+
+void makeGameMoveByArrowIfLegal(ViewStateref pgView, PGDataRef pgModel, logicalEventType direction){
+	gridItemPosition currPlayerPos = pgModel->isCatCurrPlayer ? pgModel->catPos : pgModel->mousePos;
+	gridItemPosition newPlayerPos = {currPlayerPos->row, currPlayerPos->col};
+	changePosDirection(&newPlayerPos);
+	if (!isSamePos(newPlayerPos, currPlayerPos))
+		makeGameMoveIfLegal(pgView, pgModel, newPlayerPos);
+}
+
+void changePosDirection(gridItemPosition * currPos, logicalEventType direction){
+	switch(direction){
+		case(GO_UP):
+			if (currPos->row > 0)
+				currPos->row -= 1;
+			else
+				return;
+			break;
+		case(GO_DOWN):
+			if (currPos->row < ROW_NUM-1)
+				currPos->row += 1;
+			else
+				return;
+			break;
+		case(GO_LEFT):
+			if (currPos->col > 0)
+				currPos->col -= 1;
+			else
+				return;
+			break;
+		case(GO_RIGHT):
+			if (currPos->col < COL_NUM-1)
+				currPos->col += 1;
+			else
+				return;
+			break;
+		default:
+			return;
 	}
 }

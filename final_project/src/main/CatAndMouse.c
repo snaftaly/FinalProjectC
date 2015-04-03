@@ -75,8 +75,6 @@ int main(int argc, char * argv[]){
 	guis[PLAY_GAME] = createGUIForState(PLAY_GAME);
 	guis[ERR_MSG] = createGUIForState(ERR_MSG);
 
-
-
 	// Starting the default/initial GUI:
 	StateId nextStateId = MAIN_MENU;
 
@@ -84,6 +82,9 @@ int main(int argc, char * argv[]){
 	activeGUI.start(&activeGUI, NULL);
 
 	while (!isError && nextStateId != QUIT) {
+		if (activeGUI.stateId == PLAY_GAME){ //maybe this condition is not exactly what we need?
+			updateMachineMoveIfNeeded(activeGUI);
+		}
 		SDL_Event event;
 		while (SDL_PollEvent(&event) != 0) {
 

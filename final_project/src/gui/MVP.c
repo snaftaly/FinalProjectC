@@ -697,6 +697,57 @@ void* errMsgVTE(void* viewState, SDL_Event* event){
 	return returnEvent;
 }
 
+void* playGameVTE(void* viewState, SDL_Event* event){
+	logicalEventRef returnEvent = malloc(sizeof(logicalEvent));
+	if (returnEvent == NULL){
+		perrorPrint("malloc");
+		return NULL;
+	}
+	returnEvent->type = NO_EVENT;
+	ViewStateref pgViewState = viewState;
+	SDLKey key;
+	switch (event->type) {
+		case (SDL_KEYUP):
+			key = event->key.keysym.sym;
+			if (key == SDLK_SPACE || key == SDLK_F1 || key == SDLK_F2 || key == SDLK_F3 || key == SDLK_F4 ||
+					key == SDLK_ESCAPE){
+				returnEvent->type = SELECT_BUTTON_NUM;
+				returnEvent->buttonNum = getWBButtonNum(key);
+			}
+			else if (key == SDLK_UP)
+				returnEvent->type = GO_UP;
+			else if (key ==  SDLK_DOWN)
+				returnEvent->type = GO_DOWN;
+			else if (key ==  SDLK_RIGHT)
+				returnEvent->type = GO_RIGHT;
+			else if (key ==  SDLK_LEFT)
+				returnEvent->type = GO_LEFT;
+			break;
+		case (SDL_MOUSEBUTTONUP):
+			if (event->button.x < WIN_W - GRID_SIZE || event->button.y < WIN_H - GRID_SIZE){
+				for (int i = 0; i< PG_NUM_BUTTONS; i++){
+					Widget * currButton = pgViewState->menuButtons[i];
+					if (isClickEventOnButton(event, currButton, REGULAR_BUTTON)){
+						returnEvent->type = SELECT_BUTTON_NUM;
+						returnEvent->buttonNum = i;
+						return returnEvent;
+					}
+				}
+			}
+			else{ // click is inside the grid
+				returnEvent->type = SELECT_SQUARE;
+				//MayBe write a function for that !!!!!
+				returnEvent->gridPos.col = (event->button.x-(WIN_W - GRID_SIZE))/(GRID_SQUARE_SIZE+GRID_GAP_SIZE);
+				returnEvent->gridPos.row = (event->button.y-(WIN_W - GRID_SIZE))/(GRID_SQUARE_SIZE+GRID_GAP_SIZE);
+			}
+			break;
+		default:
+			returnEvent->type = NO_EVENT;
+	}
+	return returnEvent;
+}
+
+
 
 
 
@@ -705,10 +756,11 @@ void* errMsgVTE(void* viewState, SDL_Event* event){
 StateId generalMenuPHE(void* model, void* viewState, void* logicalEvent, StateId states[], int numOfButtons,
 		StateId stateId, int* currButton, int* currValue, int maxValue){
 	StateId returnStateId = stateId;
-	if (logicalEvent == NULL || viewState == NULL)
+	if (logicalEvent == NULL || viewState == NULL || model == NULL)
 		return returnStateId;
 	logicalEventRef menuEvent = logicalEvent;
 	ViewStateref menuView = viewState;
+	MenuDataRef menuModel = menuModel;
 	switch(menuEvent->type){
 		case(SELECT_CURR_BUTTON):
 			returnStateId = states[*currButton];
@@ -753,6 +805,7 @@ StateId generalMenuPHE(void* model, void* viewState, void* logicalEvent, StateId
 	if (*currButton == numOfButtons-1 && returnStateId != stateId)
 		*currButton = FIRST_BUTTON;
 	free(logicalEvent);
+	menuModel->returnStateId = returnStateId;
 	return returnStateId;
 }
 
@@ -955,8 +1008,68 @@ StateId worldBuilderPHE(void* model, void* viewState, void* logicalEvent){
 
 	}
 	free(logicalEvent);
+	wbModel->returnStateId = returnStateId;
 	return returnStateId;
 }
+
+
+StateId playGamePHE(void* model, void* viewState, void* logicalEvent){
+	StateId returnStateId = PLAY_GAME;
+	if (logicalEvent == NULL || viewState == NULL || model == NULL)
+		return returnStateId;
+	logicalEventRef pgEvent = logicalEvent;
+	ViewStateref pgView = viewState;
+	PGDataRef pgModel = model;
+	StateId states[PG_NUM_BUTTONS] = {PLAY_GAME, CHOOSE_MOUSE, CHOOSE_CAT, PLAY_GAME, MAIN_MENU, QUIT};
+	/////// done forget to update pre choose cat and pre choose mouse in stop function!!!!!!!!
+	switch(pgEvent->type){
+		case(SELECT_BUTTON_NUM):
+			if (pgModel->isGamePaused || pgModel->isGameOver){
+				returnStateId = states[pgEvent->buttonNum];
+				if (pgEvent->buttonNum == 3){ // restart the game
+					pgModel->doRestartGame = 1;//restart the game somehow! think about top panel widgets!!!!!
+				}
+				if (pgEvent->buttonNum == 0 && pgModel->isGamePaused){
+					pgModel->isGamePaused = 0;
+					//setPauseButton(pgModel, pgView); // how do we update the view????? (blit up to window)
+				}
+			}
+			else if (pgEvent->buttonNum == 0){ // game is not paused/over and space was pressed
+				pgModel->isGamePaused = 0;
+				//setPauseButton(pgModel, pgView);// how do we update the view????? (blit up to window)
+			}
+//			else if (returnStateId == QUIT){ // we don't need isQuit if we save the data of return stateId in a var.
+//				isQuit = 1; !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1 and also in wb and main menu
+//			}
+			break;
+		case(SELECT_SQUARE):
+			makeGameMoveIfLegal(pgView, pgModel, pgEvent->gridPos); // will call call change selected grid square if needed
+			break;
+		case(GO_UP):
+			makeGameMoveByArrowIfLegal(pgView, pgModel, GO_UP);
+			break;
+		case(GO_DOWN):
+			makeGameMoveByArrowIfLegal(pgView, pgModel, GO_DOWN);
+			break;
+		case(GO_RIGHT):
+			makeGameMoveByArrowIfLegal(pgView, pgModel, GO_RIGHT);
+			break;
+		case(GO_LEFT):
+			makeGameMoveByArrowIfLegal(pgView, pgModel, GO_LEFT);
+			break;
+		case(NO_EVENT):
+			break;
+		default:
+			break;
+
+	}
+	if (returnStateId == PLAY_GAME && !isError)
+		updatePGViewByGameState(pgView, pgModel);
+	free(logicalEvent);
+	pgModel->returnStateId = returnStateId;
+	return returnStateId;
+}
+
 
 StateId errMsgPHE(void* model, void* viewState, void* logicalEvent){
 	StateId returnStateId = ERR_MSG;
@@ -989,7 +1102,7 @@ void* stopMenu(GUIref gui){ /* maybe this will be a general stop function */
 		if (guiViewState->UITree != NULL)
 			freeTree(guiViewState->UITree, freeWidget);
 	}
-	if (isError || isQuit){
+	if (isError || returnData->returnStateId == QUIT){
 		freeMenuData(returnData); // we need to write a function for that!
 		return NULL;
 	}
@@ -1023,7 +1136,7 @@ void* stopWorldBuilder(GUI * gui){
 	if (wbData != NULL){
 		//free(wbData); // maybe we need a function for that????
 	}
-	if (isError || isQuit){
+	if (isError || wbData->returnStateId == QUIT){
 		//free(returnData); // we need to write a function for that!
 		return NULL;
 	}
