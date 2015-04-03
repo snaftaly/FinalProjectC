@@ -249,7 +249,6 @@ int changeSelectedButton(Widget * oldButton, Widget * newButton);
 void setValuesButtonFromInit(int value, Widget* valuesButton);
 void increaseValuesButton(int* currValue, int maxValue, Widget* valuesButton);
 void decreaseValuesButton(int* currValue, int maxValue, Widget* valuesButton);
-MenuDataRef initMenuDataToDefault();
 int calcPanelX(int titleWidth);
 int calcPanelY(int numButtons);
 int calcPanelWidth(int titleWidth);
@@ -267,6 +266,16 @@ int calcMisItemMsgX(int messageWidth, int titleWidth);
 int calcMisItemMsgY();
 int calcMenuButtonX(int titleWidth);
 int calcErrMsgButtonY();
+int calcGameOverLabelX();
+int calcGameOverLabelY();
+int calcPauseButtonX();
+int calcPauseButtonY();
+int calcMoveLabelX(int isCatCurrPlayer);
+int calcTensLabelX(int isCatCurrPlayer);
+int calcUnitsLabelX(int isCatCurrPlayer);
+int calcStateLabelX();
+int calcStateLabelY();
+
 
 void setImageTransparent(Widget *image, int red, int green, int blue);
 void blitUpToWindow(Widget * widget);

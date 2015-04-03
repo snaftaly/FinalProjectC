@@ -13,37 +13,37 @@ GUI createGUIForState(StateId stateId){
 			returnGUI.start = startMainMenu;
 			returnGUI.viewTranslateEvent = mainMenuVTE;
 			returnGUI.presenterHandleEvent = mainMenuPHE;
-			returnGUI.stop = menuStop;
+			returnGUI.stop = stopMenu;
 			break;
 		case(CHOOSE_CAT):
 			returnGUI.start = startChooseAnimal;
 			returnGUI.viewTranslateEvent = chooseAnimalVTE;
 			returnGUI.presenterHandleEvent = chooseCatPHE;
-			returnGUI.stop = menuStop;
+			returnGUI.stop = stopMenu;
 			break;
 		case(CHOOSE_MOUSE):
 			returnGUI.start = startChooseAnimal;
 			returnGUI.viewTranslateEvent = chooseAnimalVTE;
 			returnGUI.presenterHandleEvent = chooseMousePHE;
-			returnGUI.stop = menuStop;
+			returnGUI.stop = stopMenu;
 			break;
 		case(CAT_SKILL):
 			returnGUI.start = startAnimalSkill;
 			returnGUI.viewTranslateEvent = complexMenuVTE;
 			returnGUI.presenterHandleEvent = catSkillPHE;
-			returnGUI.stop = menuStop;
+			returnGUI.stop = stopMenu;
 			break;
 		case(MOUSE_SKILL):
 			returnGUI.start = startAnimalSkill;
 			returnGUI.viewTranslateEvent = complexMenuVTE;
 			returnGUI.presenterHandleEvent = mouseSkillPHE;
-			returnGUI.stop = menuStop;
+			returnGUI.stop = stopMenu;
 			break;
 		case(LOAD_GAME):
 			returnGUI.start = startWorldMenu;
 			returnGUI.viewTranslateEvent = complexMenuVTE;
 			returnGUI.presenterHandleEvent = loadGamePHE;
-			returnGUI.stop = menuStop;
+			returnGUI.stop = stopMenu;
 			break;
 		case(WORLD_BUILDER):
 			returnGUI.start = startWorldBuilder;
@@ -55,24 +55,25 @@ GUI createGUIForState(StateId stateId){
 			returnGUI.start = startWorldMenu;
 			returnGUI.viewTranslateEvent = complexMenuVTE;
 			returnGUI.presenterHandleEvent = editGamePHE;
-			returnGUI.stop = menuStop;
+			returnGUI.stop = stopMenu;
 			break;
 		case(SAVE_WORLD):
 			returnGUI.start = startWorldMenu;
 			returnGUI.viewTranslateEvent = complexMenuVTE;
 			returnGUI.presenterHandleEvent = saveWorldPHE;
-			returnGUI.stop = menuStop;
+			returnGUI.stop = stopMenu;
 			break;
-			/*
 		case(PLAY_GAME):
-			returnGUI.start = startLoadGame;
-			returnGUI.stop = stopLoadGame;
-			break;*/
+			returnGUI.start = startPlayGame;
+//			returnGUI.viewTranslateEvent = playGameVTE;
+//			returnGUI.presenterHandleEvent = playGamePHE;
+//			returnGUI.stop = stopPlayGame;
+			break;
 		case(ERR_MSG):
 			returnGUI.start = startErrMsg;
 			returnGUI.viewTranslateEvent = errMsgVTE;
 			returnGUI.presenterHandleEvent = errMsgPHE;
-			returnGUI.stop = menuStop;
+			returnGUI.stop = stopMenu;
 			break;
 		default:
 			break;
@@ -101,8 +102,6 @@ ViewStateref initializeGUIViewState(){
 }
 
 
-
-
 void startPlayGame(GUIref gui, void* initData){
 	initPlayGameModel(gui, initData);
 	if(isError)
@@ -111,27 +110,34 @@ void startPlayGame(GUIref gui, void* initData){
 	char imgPath[] = "images/playGame_temp.bmp";
 
 	// initialize viewState
-	ViewStateref pgViewState = initializeGUIViewState(); //maybe we will need a different function!
+	ViewStateref pgViewState = initializeGUIViewState();
 	if (pgViewState == NULL){
 		return;
 	}
 	gui->viewState = pgViewState;
-	pgModel->isGameOver = isGameOver(pgModel);
+
+	//check if game is over
+	pgModel->isGameOver = checkGameOver(pgModel);
 
 
-	// create image surface
+	// create image surface for gui
 	SDL_Surface * pgImage = SDL_LoadBMP(imgPath);
 	if (pgImage == NULL){
 		sdlErrorPrint("failed to load image");
 		return;
 	}
 	pgViewState->image = pgImage;
+
+	//create grid items array
 	createGridItemsImgArr(pgViewState);
 	if (isError)
 		return;
+
+	//set the layout of play game gui
 	setThreePartLayout(pgViewState, pgModel->gameGridData);
 	if (isError)
 		return;
+
 	// create buttons array
 	Widget ** buttons = (Widget **)malloc(PG_NUM_BUTTONS*sizeof(Widget *));
 	if (buttons == NULL){
@@ -139,6 +145,7 @@ void startPlayGame(GUIref gui, void* initData){
 		return;
 	}
 	pgViewState->menuButtons = buttons;
+
 	// create labels array
 	Widget ** labels = (Widget **)malloc(PG_NUM_LABELS*sizeof(Widget *));
 	if (labels == NULL){
@@ -146,6 +153,7 @@ void startPlayGame(GUIref gui, void* initData){
 		return;
 	}
 	pgViewState->labelArr = labels;
+
 	//handle top panel presentation
 	if (pgModel->isGameOver)
 		setTopPanelGameOver(pgModel, pgViewState);
@@ -156,16 +164,18 @@ void startPlayGame(GUIref gui, void* initData){
 
 	//add buttons to side panel:
 	int buttonImgX = 0, buttonImgY = 3*PAUSE_BUTTON_H;
-	int buttonImgDisX = PANEL_BUTTON_W, buttonImgDisY = 3*PAUSE_BUTTON_H;//change this values
+	int buttonImgDisX = PANEL_BUTTON_W, buttonImgDisY = 3*PAUSE_BUTTON_H;
 	addButtonsToSidePanel(pgViewState, buttonImgX, buttonImgY, buttonImgDisX, buttonImgDisY ,1,
 			PG_NUM_BUTTONS);
 	if (isError)//check if we need this
 		return;
 
+	//set selected position to current player
 	gridItemPosition selectedPos = pgModel->isCatCurrPlayer ? pgModel->catPos : pgModel->mousePos;
 	selectGridPos(pgViewState->gridPanel, pgViewState->gridItemsImgArr, selectedPos);
 	if (isError)
 		return;
+
 	// draw GUI according to UItree
 	drawGui(gui);
 }
@@ -179,6 +189,14 @@ void initPlayGameModel(GUIref gui, void* initData){
 		perrorPrint("malloc");
 	}
 	gui->model = pgData;
+	if (menuData->loadFromFile){
+		pgData->gameGridData = initGameDataByFile(menuData->loadGameWorld, &pgData->numTurnsLeft,
+				&pgData->isCatCurrPlayer);
+		if (isError)
+			return;
+	}
+	else
+		pgData->gameGridData = menuData->gameGridData;
 	pgData->gameGridData = menuData->gameGridData;
 	pgData->loadGameWorld = menuData->loadGameWorld;
 	pgData->isCatCurrPlayer = menuData->isCatFirst;
@@ -197,7 +215,7 @@ void initPlayGameModel(GUIref gui, void* initData){
 }
 
 void setTopPanelGameOver(PGDataRef pgModel, ViewStateref pgViewState){
-	freeTree(pgViewState->topPanelNode, freeWidget());
+	freeTree(pgViewState->topPanelNode, freeWidget);
 	Widget *topPanel = create_panel(0, 0, WIN_W, TOP_PANEL_H,PANEL_RED,PANEL_GREEN,PANEL_BLUE);
 	if (topPanel == NULL){
 		return;
@@ -208,9 +226,9 @@ void setTopPanelGameOver(PGDataRef pgModel, ViewStateref pgViewState){
 		return;
 	}
 	pgViewState->topPanelNode = topPanelNode;
-	Widget * gameOverLabel = create_image(calcGameOverX(), calcGameOverY(), GAME_OVER_LABEL_W, GAME_OVER_LABEL_H,
-			pgViewState->image, PAUSE_BUTTON_W, pgModel->gameOverType*GAME_OVER_LABEL_H);
-	ListRef gameOverLabelNode = addChildNode(topPanelNode, gameOverLabelNode);
+	Widget * gameOverLabel = create_image(calcGameOverLabelX(), calcGameOverLabelY(), GAME_OVER_LABEL_W, GAME_OVER_LABEL_H,
+			pgViewState->image, 2*PANEL_BUTTON_W+2*DIGIT_LABEL_W, 4*STATE_LABEL_H+pgModel->gameOverType*GAME_OVER_LABEL_H);
+	ListRef gameOverLabelNode = addChildNode(topPanelNode, gameOverLabel);
 	if (gameOverLabelNode == NULL){
 		freeWidget(gameOverLabel);
 		return;
@@ -218,6 +236,55 @@ void setTopPanelGameOver(PGDataRef pgModel, ViewStateref pgViewState){
 }
 
 void setTopPanelPlayGame(PGDataRef pgModel, ViewStateref pgViewState){
+	//set first row labels
+	Widget * playerMoveLabel = create_image(calcMoveLabelX(pgModel->isCatCurrPlayer), PANEL_WIDGET_Y_GAP, GAME_INFO_LABEL_W,
+			GAME_INFO_LABEL_H, pgViewState->image, 2*PANEL_BUTTON_W+2*DIGIT_LABEL_W, 4*STATE_LABEL_H+3*GAME_OVER_LABEL_H);
+	if (playerMoveLabel == NULL)
+		return;
+	pgViewState->labelArr[0] = playerMoveLabel;
+	ListRef moveLabelNode = addChildNode(pgViewState->topPanelNode, playerMoveLabel);
+	if (moveLabelNode == NULL){
+		freeWidget(playerMoveLabel);
+		return;
+	}
+	setPlayerMoveLabel(pgModel, pgViewState);
+
+	Widget * turnsTensLabel = create_image(calcTensLabelX(pgModel->isCatCurrPlayer), PANEL_WIDGET_Y_GAP,
+			DIGIT_LABEL_W,GAME_INFO_LABEL_H, pgViewState->image, 2*PANEL_BUTTON_W, 3*PAUSE_BUTTON_H);
+	if (turnsTensLabel == NULL)
+		return;
+	pgViewState->labelArr[1] = turnsTensLabel;
+	ListRef turnsTensLabelNode = addChildNode(pgViewState->topPanelNode, turnsTensLabel);
+	if (turnsTensLabelNode == NULL){
+		freeWidget(turnsTensLabel);
+		return;
+	}
+	Widget * turnsUnitsLabel = create_image(calcUnitsLabelX(pgModel->isCatCurrPlayer), PANEL_WIDGET_Y_GAP, DIGIT_LABEL_W,
+			GAME_INFO_LABEL_H, pgViewState->image, 2*PANEL_BUTTON_W+DIGIT_LABEL_W, 3*PAUSE_BUTTON_H);
+	if (turnsUnitsLabel == NULL)
+		return;
+	pgViewState->labelArr[2] = turnsUnitsLabel;
+	ListRef turnsUnitsLabelNode = addChildNode(pgViewState->topPanelNode, turnsUnitsLabel);
+	if (turnsUnitsLabelNode == NULL){
+		freeWidget(turnsUnitsLabel);
+		return;
+	}
+	setNumTurnsLabels(pgModel, pgViewState);
+
+	//set the second row label
+	Widget * playerStateLabel = create_image(calcStateLabelX(), calcStateLabelY(), STATE_LABEL_W,
+			STATE_LABEL_H, pgViewState->image, PAUSE_BUTTON_W, 0);
+	if (playerStateLabel == NULL)
+		return;
+	pgViewState->labelArr[3] = playerStateLabel;
+	ListRef stateLabelNode = addChildNode(pgViewState->topPanelNode, playerStateLabel);
+	if (stateLabelNode == NULL){
+		freeWidget(playerStateLabel);
+		return;
+	}
+	setPlayerStateLabel(pgModel, pgViewState);
+
+	//set the pause button
 	Widget * pauseButton = create_button(calcPauseButtonX(), calcPauseButtonY(), PAUSE_BUTTON_W,
 			PAUSE_BUTTON_H, pgViewState->image, 0, 0, 0, 0, 0);
 	if (pauseButton == NULL)
@@ -229,94 +296,7 @@ void setTopPanelPlayGame(PGDataRef pgModel, ViewStateref pgViewState){
 		return;
 	}
 	setPauseButton(pgModel, pgViewState);
-
-	Widget * playerStateLabel = create_image(calcStateLabelX(), calcStateLabelY(), STATE_LABEL_W,
-			STATE_LABEL_H, pgViewState->image, PAUSE_BUTTON_W, 3*GAME_OVER_LABEL_H);
-	if (playerStateLabel == NULL)
-		return;
-	pgViewState->labelArr[0] = playerStateLabel;
-	ListRef stateLabelNode = addChildNode(pgViewState->topPanelNode, playerStateLabel);
-	if (stateLabelNode == NULL){
-		freeWidget(playerStateLabel);
-		return;
-	}
-	setPlayerStateLabel(pgModel, pgViewState);
-
-
-	Widget * playerMoveLabel = create_image(calcMoveLabelX(pgModel->isCatCurrPlayer), PANEL_WIDGET_Y_GAP, GAME_INFO_LABEL_W,
-			GAME_INFO_LABEL_H, pgViewState->image, PAUSE_BUTTON_W + GAME_OVER_LABEL_W, 0);
-	if (playerStateLabel == NULL)
-		return;
-	pgViewState->labelArr[1] = playerMoveLabel;
-	ListRef moveLabelNode = addChildNode(pgViewState->topPanelNode, playerMoveLabel);
-	if (moveLabelNode == NULL){
-		freeWidget(playerMoveLabel);
-		return;
-	}
-	setPlayerMoveLabel(pgModel, pgViewState);
-
-	Widget * turnsTensLabel = create_image(calcTensLabelX(pgModel->isCatCurrPlayer), PANEL_WIDGET_Y_GAP,
-			DIGIT_LABEL_W,GAME_INFO_LABEL_H, pgViewState->image, PAUSE_BUTTON_W + GAME_OVER_LABEL_W, 2*GAME_INFO_LABEL_H);
-	if (turnsTensLabel == NULL)
-		return;
-	pgViewState->labelArr[2] = turnsTensLabel;
-	ListRef turnsTensLabelNode = addChildNode(pgViewState->topPanelNode, turnsTensLabel);
-	if (turnsTensLabelNode == NULL){
-		freeWidget(turnsTensLabel);
-		return;
-	}
-	Widget * turnsUnitsLabel = create_image(calcUnitsLabelX(pgModel->isCatCurrPlayer), PANEL_WIDGET_Y_GAP, DIGIT_LABEL_W,
-			GAME_INFO_LABEL_H, pgViewState->image, PAUSE_BUTTON_W + GAME_OVER_LABEL_W + DIGIT_LABEL_W, 2*GAME_INFO_LABEL_H);
-	if (turnsUnitsLabel == NULL)
-		return;
-	pgViewState->labelArr[3] = turnsUnitsLabel;
-	ListRef turnsUnitsLabelNode = addChildNode(pgViewState->topPanelNode, turnsUnitsLabel);
-	if (turnsUnitsLabelNode == NULL){
-		freeWidget(turnsUnitsLabel);
-		return;
-	}
-	setNumTurnsLabels(pgModel, pgViewState);
 }
-
-void setNumTurnsLabels(PGDataRef pgModel, ViewStateref pgViewState){
-	Widget * turnsUnitsLabel = pgViewState->labelArr[3];
-	Widget * turnsTensLabel = pgViewState->labelArr[2];
-	int turnsTensDigit = pgModel->numTurnsLeft/10;
-	int turnsUnitsDigit = pgModel->numTurnsLeft%10;
-	int yStartPoint = 2*GAME_INFO_LABEL_H;
-	turnsUnitsLabel->img_rect.y = yStartPoint + turnsUnitsDigit*GAME_INFO_LABEL_H;
-	turnsTensLabel->img_rect.y = yStartPoint + turnsTensDigit*GAME_INFO_LABEL_H;
-}
-
-
-
-void setPlayerMoveLabel(PGDataRef pgModel, ViewStateref pgViewState){
-	Widget * moveLabel = pgViewState->labelArr[1];
-	if (pgModel->isCatCurrPlayer)
-		moveLabel->img_rect.y = 0;
-	else
-		moveLabel->img_rect.y = GAME_INFO_LABEL_H;
-}
-
-
-void setPlayerStateLabel(PGDataRef pgModel, ViewStateref pgViewState){
-	int yStartPoint = 3*GAME_OVER_LABEL_H;
-	Widget * label = pgViewState->labelArr[0];
-	if (isCurrPlayerHuman(pgModel)){
-		if (pgModel->isGamePaused)
-			label->img_rect.y = yStartPoint + STATE_LABEL_H;
-		else
-			label->img_rect.y = yStartPoint;
-	}
-	else{ //cuurent player is machine
-		if (pgModel->isGamePaused)
-			label->img_rect.y = yStartPoint + 3*STATE_LABEL_H;
-		else
-			label->img_rect.y = yStartPoint + 2*STATE_LABEL_H;
-	}
-}
-
-
 
 
 void setPauseButton(PGDataRef pgModel, ViewStateref pgViewState){
@@ -335,8 +315,47 @@ void setPauseButton(PGDataRef pgModel, ViewStateref pgViewState){
 			pauseButton->button_selected_rect.y = 0;
 		}
 	}
-
 }
+
+
+void setNumTurnsLabels(PGDataRef pgModel, ViewStateref pgViewState){
+	Widget * turnsTensLabel = pgViewState->labelArr[1];
+	Widget * turnsUnitsLabel = pgViewState->labelArr[2];
+	int turnsTensDigit = pgModel->numTurnsLeft/10;
+	int turnsUnitsDigit = pgModel->numTurnsLeft%10;
+	int yStartPoint = 3*PAUSE_BUTTON_H;
+	turnsUnitsLabel->img_rect.y = yStartPoint + turnsUnitsDigit*GAME_INFO_LABEL_H;
+	turnsTensLabel->img_rect.y = yStartPoint + turnsTensDigit*GAME_INFO_LABEL_H;
+}
+
+void setPlayerMoveLabel(PGDataRef pgModel, ViewStateref pgViewState){
+	Widget * moveLabel = pgViewState->labelArr[0];
+	int yStartPoint = 4*STATE_LABEL_H+3*GAME_OVER_LABEL_H;
+	if (pgModel->isCatCurrPlayer)
+		moveLabel->img_rect.y = yStartPoint;
+	else
+		moveLabel->img_rect.y = 4*STATE_LABEL_H+3*GAME_OVER_LABEL_H + GAME_INFO_LABEL_H;
+}
+
+
+void setPlayerStateLabel(PGDataRef pgModel, ViewStateref pgViewState){
+	int yStartPoint = 3*GAME_OVER_LABEL_H;
+	Widget * label = pgViewState->labelArr[3];
+	if (isCurrPlayerHuman(pgModel)){
+		if (pgModel->isGamePaused)
+			label->img_rect.y = yStartPoint + STATE_LABEL_H;
+		else
+			label->img_rect.y = yStartPoint;
+	}
+	else{ //cuurent player is machine
+		if (pgModel->isGamePaused)
+			label->img_rect.y = yStartPoint + 3*STATE_LABEL_H;
+		else
+			label->img_rect.y = yStartPoint + 2*STATE_LABEL_H;
+	}
+}
+
+
 
 int isCurrPlayerHuman(PGDataRef pgModel){
 	if ((pgModel->isCatCurrPlayer && pgModel->isCatHuman) ||
@@ -447,7 +466,7 @@ void setThreePartLayout(ViewStateref viewState, char ** gameGridData){
 	createGridByData(gridPanel, gameGridData, viewState->gridItemsImgArr);
 }
 
-int isGameOver(PGDataRef pgModel){
+int checkGameOver(PGDataRef pgModel){
 	if (isAdjPos(pgModel->catPos, pgModel->mousePos)){
 		pgModel->gameOverType = CAT_WINS;
 		return 1;
@@ -540,8 +559,8 @@ void startWorldBuilder(GUIref gui, void* initData){
 		freeWidget(gridPanel);
 		return;
 	}
-	Widget *label = create_image(calcWBtitleX(WB_TITLE_W), WB_WIDGET_Y_GAP, WB_TITLE_W, WB_TITLE_H,
-			wbImage, WB_BUTTON_W, wbModel->editedWorld*WB_TITLE_H);
+	Widget *label = create_image(calcWBtitleX(WB_TITLE_W), PANEL_WIDGET_Y_GAP, WB_TITLE_W, WB_TITLE_H,
+			wbImage, PANEL_BUTTON_W, wbModel->editedWorld*WB_TITLE_H);
 	if (label == NULL){
 		return;
 	}
@@ -555,7 +574,7 @@ void startWorldBuilder(GUIref gui, void* initData){
 	int topButtonX = calcTopButtonX(), topButtonY = calcTopButtonY(), buttonImgX = 0, buttonImgY = 0;
 	// Add buttons to buttons array and to UI tree
 	for (int i = 0; i < WB_TOP_PANEL_NUM_BUTTONS; i++){
-		buttons[i] = create_button(topButtonX, topButtonY, WB_BUTTON_W, WB_BUTTON_H,
+		buttons[i] = create_button(topButtonX, topButtonY, PANEL_BUTTON_W, PANEL_BUTTON_H,
 				wbImage, buttonImgX, buttonImgY, buttonImgX, buttonImgY, 0);//write function for creating a non markable button
 		if (buttons[i] == NULL){
 			return;
@@ -565,15 +584,15 @@ void startWorldBuilder(GUIref gui, void* initData){
 			freeWidget(buttons[i]);
 			return;
 		}
-		buttonImgY += WB_BUTTON_H;
-		topButtonX += WB_BUTTON_W + WB_BUTTON_X_GAP;
+		buttonImgY += PANEL_BUTTON_H;
+		topButtonX += PANEL_BUTTON_W + WB_BUTTON_X_GAP;
 	}
 
 	//add buttons to side panel:
 	int sideButtonX = calcSideButtonX(), sideButtonY = calcSideButtonY();
 	// Add buttons to buttons array and to UI tree
 	for (int i = WB_TOP_PANEL_NUM_BUTTONS; i < WB_NUM_BUTTONS; i++){
-		buttons[i] = create_button(sideButtonX, sideButtonY, WB_BUTTON_W, WB_BUTTON_H,
+		buttons[i] = create_button(sideButtonX, sideButtonY, PANEL_BUTTON_W, PANEL_BUTTON_H,
 				wbImage, buttonImgX, buttonImgY, buttonImgX, buttonImgY, 0);//write function for creating a non markable button
 		if (buttons[i] == NULL){
 			return;
@@ -583,8 +602,8 @@ void startWorldBuilder(GUIref gui, void* initData){
 			freeWidget(buttons[i]);
 			return;
 		}
-		buttonImgY += WB_BUTTON_H;
-		sideButtonY += WB_BUTTON_H + WB_WIDGET_Y_GAP;
+		buttonImgY += PANEL_BUTTON_H;
+		sideButtonY += PANEL_BUTTON_H + PANEL_WIDGET_Y_GAP;
 	}
 
 	//initialize gridItemsImages Array:
@@ -594,7 +613,7 @@ void startWorldBuilder(GUIref gui, void* initData){
 		return;
 	}
 	wbViewState->gridItemsImgArr = gridItemImages;
-	int gridItemImgX = WB_BUTTON_W + WB_TITLE_W;
+	int gridItemImgX = PANEL_BUTTON_W + WB_TITLE_W;
 	int gridItemImgY = 0;
 	for (int i = 0; i < NUM_GRID_ITEMS; i++){
 		gridItemImages[i] = create_image(0, 0, GRID_SQUARE_SIZE, GRID_SQUARE_SIZE,
@@ -915,6 +934,9 @@ StateId worldBuilderPHE(void* model, void* viewState, void* logicalEvent){
 			else if (returnStateId == WORLD_BUILDER){
 				putGridItemInPos(wbModel, wbView->gridPanel, wbView->gridItemsImgArr, wbModel->currPos, wbEvent->buttonNum);
 			}
+			else if (returnStateId == QUIT){
+				isQuit = 1;
+			}
 			break;
 		case(SELECT_SQUARE):
 			changeSelectedGridSquare(wbView->gridPanel, wbView->gridItemsImgArr,&wbModel->currPos, wbEvent->gridPos);
@@ -1143,7 +1165,7 @@ StateId generalMenuPHE(void* model, void* viewState, void* logicalEvent, StateId
 }
 
 
-void* menuStop(GUIref gui){ /* maybe this will be a general stop function */
+void* stopMenu(GUIref gui){ /* maybe this will be a general stop function */
 	MenuDataRef returnData = gui->model;
 	ViewStateref guiViewState = gui->viewState;
 	gui->model = NULL;
@@ -1159,7 +1181,7 @@ void* menuStop(GUIref gui){ /* maybe this will be a general stop function */
 			freeTree(guiViewState->UITree, freeWidget);
 	}
 	if (isError || isQuit){
-		free(returnData); // we need to write a function for that!
+		freeMenuData(returnData); // we need to write a function for that!
 		return NULL;
 	}
 
@@ -1579,7 +1601,8 @@ StateId mainMenuPHE(void* model, void* viewState, void* logicalEvent){
 	// and maybe it should be in start main menu!
 	if (returnStateId == CHOOSE_CAT){ //new game is pressed
 		mainMenuModel->preChooseCat = MAIN_MENU;
-		mainMenuModel->gameGridData = initGameDataByFile(MIN_VALUE, &mainMenuModel->numTurns, &mainMenuModel->isCatFirst);
+		mainMenuModel->loadGameWorld = 1;
+		mainMenuModel->loadFromFile = 1;
 	}
 	else if (returnStateId == WORLD_BUILDER){
 		mainMenuModel->preWorldBuilder = MAIN_MENU;
@@ -1642,8 +1665,7 @@ StateId loadGamePHE(void* model, void* viewState, void* logicalEvent){
 		returnStateId, &loadGameModel->loadGameButton, &loadGameModel->loadGameWorld, MAX_WORLD);
 	if (returnStateId == CHOOSE_CAT){ //done was pressed
 		loadGameModel->preChooseCat = LOAD_GAME;
-		loadGameModel->gameGridData = initGameDataByFile(loadGameModel->loadGameWorld, &loadGameModel->numTurns,
-				&loadGameModel->isCatFirst);
+		loadGameModel->loadFromFile = 1;
 	}
 	return returnStateId;
 }
@@ -1712,8 +1734,6 @@ StateId chooseCatPHE(void* model, void* viewState, void* logicalEvent){
 	}
 	else if (returnStateId == CAT_SKILL)
 		chooseCatModel->currValueTemp = chooseCatModel->catSkill;
-	else if (returnStateId == MAIN_MENU || returnStateId == LOAD_GAME)
-		freeGridData(chooseCatModel->gameGridData);
 	return returnStateId;
 }
 
@@ -1848,6 +1868,43 @@ char ** initGameDataByFile(int worldNum, int * numTurns, int * isCatFirst){
 	return grid;
 }
 
+
+MenuDataRef initMenuDataToDefault(){
+	MenuDataRef menuData = malloc(sizeof(MenuData));
+	if (menuData == NULL){
+		perrorPrint("calloc");
+		return NULL;
+	}
+
+	menuData->mainMenuButton = 0;
+	menuData->chooseCatButton = 0;
+	menuData->chooseMouseButton = 0;
+	menuData->catSkillButton = 0;
+	menuData->mouseSkillButton = 0;
+	menuData->loadGameButton = 0;
+	menuData->editGameButton = 0;
+	menuData->saveWorldButton = 0;
+	menuData->errMsgButton = 0;
+
+
+	menuData->catSkill = DEFAULT_SKILL;
+	menuData->mouseSkill = DEFAULT_SKILL;
+
+	menuData->editedWorld = MIN_VALUE;
+	menuData->loadGameWorld = MIN_VALUE;
+	//menuData->saveOnWorld = MIN_VALUE; maybe we can delete this!
+
+	menuData->currValueTemp = 0;
+
+	menuData->gameGridData = NULL;
+	menuData->isCatFirst = 0;
+
+	menuData->preWorldBuilder = MAIN_MENU;
+	menuData->loadFromFile = 0;
+	/* what else ???? */
+
+	return menuData;
+}
 void setEmptyGrid(char ** grid){
 	for (int i = 0; i< ROW_NUM; i++){
 		for (int j = 0; j< COL_NUM; j++)
@@ -1889,4 +1946,11 @@ void freeGridData(char ** gridData){
 			free(gridData[i]);
 	}
 	free(gridData);
+}
+
+void freeMenuData(MenuDataRef menuData){
+	if (menuData != NULL){
+		freeGridData(menuData->gameGridData);
+		free(menuData);
+	}
 }

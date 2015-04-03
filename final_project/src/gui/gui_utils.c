@@ -143,43 +143,6 @@ void decreaseValuesButton(int * currValue, int maxValue, Widget * valuesButton){
 	}
 }
 
-MenuDataRef initMenuDataToDefault(){
-	MenuDataRef menuData = malloc(sizeof(MenuData));
-	if (menuData == NULL){
-		perrorPrint("calloc");
-		return NULL;
-	}
-
-	menuData->mainMenuButton = 0;
-	menuData->chooseCatButton = 0;
-	menuData->chooseMouseButton = 0;
-	menuData->catSkillButton = 0;
-	menuData->mouseSkillButton = 0;
-	menuData->loadGameButton = 0;
-	menuData->editGameButton = 0;
-	menuData->saveWorldButton = 0;
-	menuData->errMsgButton = 0;
-
-
-	menuData->catSkill = DEFAULT_SKILL;
-	menuData->mouseSkill = DEFAULT_SKILL;
-
-	menuData->editedWorld = MIN_VALUE;
-	menuData->loadGameWorld = MIN_VALUE;
-	//menuData->saveOnWorld = MIN_VALUE; maybe we can delete this!
-
-	menuData->currValueTemp = 0;
-
-	menuData->gameGridData = NULL;
-	menuData->isCatFirst = 0;
-
-	menuData->preWorldBuilder = MAIN_MENU;
-	menuData->loadFromFile = 0;
-	/* what else ???? */
-
-	return menuData;
-}
-
 int calcPanelX(int titleWidth){
 	return (WIN_W - calcPanelWidth(titleWidth))/2;
 }
@@ -205,19 +168,19 @@ int calcMenuButtonY(){ /* maybe change to a constant */
 }
 
 int calcTopButtonX(){
-	return (WIN_W - (3*WB_BUTTON_W + 2*WB_BUTTON_X_GAP))/2;
+	return (WIN_W - (3*PANEL_BUTTON_W + 2*WB_BUTTON_X_GAP))/2;
 }
 
 int calcTopButtonY(){
-	return WB_TITLE_H + 2*WB_WIDGET_Y_GAP;
+	return WB_TITLE_H + 2*PANEL_WIDGET_Y_GAP;
 }
 
 int calcSideButtonX(){
-	return (SIDE_PANEL_W - WB_BUTTON_W)/2;
+	return (SIDE_PANEL_W - PANEL_BUTTON_W)/2;
 }
 
 int calcSideButtonY(){
-	return (SIDE_PANEL_H - (5*WB_BUTTON_H + 4*WB_WIDGET_Y_GAP))/2;
+	return (SIDE_PANEL_H - (5*PANEL_BUTTON_H + 4*PANEL_WIDGET_Y_GAP))/2;
 }
 
 int calcWBtitleX(int title_W){
@@ -244,11 +207,11 @@ int calcErrMsgButtonY(){
 	return calcMisItemMsgY() + MENU_TITLE_Y_GAP + MENU_TITLE_H;
 }
 
-int calcGameOverX(){
+int calcGameOverLabelX(){
 	return (WIN_W - GAME_OVER_LABEL_W)/2;
 }
 
-int calcGameOverY(){
+int calcGameOverLabelY(){
 	return (TOP_PANEL_H - GAME_OVER_LABEL_H)/2;
 }
 
@@ -260,9 +223,28 @@ int calcPauseButtonY(){
 	return 3*PANEL_WIDGET_Y_GAP + 2*GAME_INFO_LABEL_H;
 }
 
+int calcMoveLabelX(int isCatCurrPlayer){
+	if (isCatCurrPlayer)
+		return (WIN_W-(GAME_INFO_LABEL_W-CAT_MOUSE_DIF/2+2*DIGIT_LABEL_W))/2;
+	else
+		return (WIN_W-(GAME_INFO_LABEL_W+2*DIGIT_LABEL_W))/2;
+}
 
+int calcTensLabelX(int isCatCurrPlayer){
+	return calcMoveLabelX(isCatCurrPlayer)+GAME_INFO_LABEL_W;
+}
 
+int calcUnitsLabelX(int isCatCurrPlayer){
+	return calcTensLabelX(isCatCurrPlayer)+DIGIT_LABEL_W;
+}
 
+int calcStateLabelX(){
+	return (WIN_W-STATE_LABEL_W)/2;
+}
+
+int calcStateLabelY(){
+	return GAME_INFO_LABEL_H+2*PANEL_WIDGET_Y_GAP;
+}
 
 void setImageTransparent(Widget *image, int red, int green, int blue){
 	if (SDL_SetColorKey(image->surface, SDL_SRCCOLORKEY, SDL_MapRGB(image->surface->format, red, green, blue)) !=0){

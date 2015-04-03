@@ -14,7 +14,10 @@ GUI createGUIForState(StateId stateId);
 void drawGui(GUIref gui);
 void initializeMenuModel(GUIref gui, void* initData);
 void initWorldBuilderModel(GUIref gui, void* initData);
+void initPlayGameModel(GUIref gui, void* initData);
 ViewStateref initializeGUIViewState();
+MenuDataRef initMenuDataToDefault();
+
 void startGeneralMenu(GUIref gui, void * initData, char * imgPath, int titleImgX, int titleImgY, int titleWidth, int numButtons, int selectedButton, int firstButtonNumOpts, int value);
 void startMainMenu(GUIref gui, void* initData);
 void startChooseAnimal(GUIref gui, void* initData);
@@ -22,6 +25,7 @@ void startAnimalSkill(GUIref gui, void* initData);
 void startWorldMenu(GUIref gui, void* initData);
 void startWorldBuilder(GUIref gui, void* initData);
 void startErrMsg(GUIref gui, void* initData);
+void startPlayGame(GUIref gui, void* initData);
 
 
 /* VTE fucntions: */
@@ -47,8 +51,10 @@ StateId worldBuilderPHE(void* model, void* viewState, void* logicalEvent);
 StateId errMsgPHE(void* model, void* viewState, void* logicalEvent);
 
 /* stop functions */
-void* menuStop(GUIref gui); /* maybe this will be a general stop function */
+void* stopMenu(GUIref gui); /* maybe this will be a general stop function */
 void* stopWorldBuilder(GUI * gui);
+
+
 
 char ** initGameDataByFile(int worldNum, int * numTurns, int * isCatFirst);
 void setEmptyGrid(char ** grid);
@@ -74,7 +80,27 @@ void updateItemsPostions(gridItemPosition * mousePos,gridItemPosition * catPos,g
 		char ** gameGridData);
 void saveGridDataToFile(int worldNum, int isCatFirst, char ** gridData);
 int isSamePos(gridItemPosition pos1, gridItemPosition pos2);
+int isAdjPos(gridItemPosition pos1, gridItemPosition pos2);
 int isGridInvalid(WBDataRef wbModel);
+int checkGameOver(PGDataRef pgModel);
+int isCurrPlayerHuman(PGDataRef pgModel);
+
+//thre part gui layout functions:
+void addButtonsToSidePanel(ViewStateref viewState, int buttonImgX, int buttonImgY,
+		int buttonImgDisX, int buttonImgDisY, int fromButtonNum, int toButtonNum);
+void setThreePartLayout(ViewStateref viewState, char ** gameGridData);
+void createGridItemsImgArr(ViewStateref viewState);
+
+//play game top panel setup functions:
+void setTopPanelGameOver(PGDataRef pgModel, ViewStateref pgViewState);
+void setTopPanelPlayGame(PGDataRef pgModel, ViewStateref pgViewState);
+void setPauseButton(PGDataRef pgModel, ViewStateref pgViewState);
+void setNumTurnsLabels(PGDataRef pgModel, ViewStateref pgViewState);
+void setPlayerMoveLabel(PGDataRef pgModel, ViewStateref pgViewState);
+void setPlayerStateLabel(PGDataRef pgModel, ViewStateref pgViewState);
+
+
+
 
 
 
@@ -84,8 +110,10 @@ int isGridInvalid(WBDataRef wbModel);
 
 
 void freeViewState(ViewStateref guiViewState);
+void freeMenuData(MenuDataRef menuData);
 void freeGridItems(Widget ** gridItemsImages);
 void freeGridData(char ** gridData);
+
 
 
 
