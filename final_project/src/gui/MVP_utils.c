@@ -3,86 +3,11 @@
 #include "MVP_utils.h"
 #include "../main/ErrorHandling.h"
 
-GUI createGUIForState(StateId stateId){
-	GUI returnGUI;
-	returnGUI.stateId = stateId;
-	returnGUI.model = NULL;
-	returnGUI.viewState = NULL;
-	switch(stateId){
-		case(MAIN_MENU):
-			returnGUI.start = startMainMenu;
-			returnGUI.viewTranslateEvent = mainMenuVTE;
-			returnGUI.presenterHandleEvent = mainMenuPHE;
-			returnGUI.stop = stopMenu;
-			break;
-		case(CHOOSE_CAT):
-			returnGUI.start = startChooseAnimal;
-			returnGUI.viewTranslateEvent = chooseAnimalVTE;
-			returnGUI.presenterHandleEvent = chooseCatPHE;
-			returnGUI.stop = stopMenu;
-			break;
-		case(CHOOSE_MOUSE):
-			returnGUI.start = startChooseAnimal;
-			returnGUI.viewTranslateEvent = chooseAnimalVTE;
-			returnGUI.presenterHandleEvent = chooseMousePHE;
-			returnGUI.stop = stopMenu;
-			break;
-		case(CAT_SKILL):
-			returnGUI.start = startAnimalSkill;
-			returnGUI.viewTranslateEvent = complexMenuVTE;
-			returnGUI.presenterHandleEvent = catSkillPHE;
-			returnGUI.stop = stopMenu;
-			break;
-		case(MOUSE_SKILL):
-			returnGUI.start = startAnimalSkill;
-			returnGUI.viewTranslateEvent = complexMenuVTE;
-			returnGUI.presenterHandleEvent = mouseSkillPHE;
-			returnGUI.stop = stopMenu;
-			break;
-		case(LOAD_GAME):
-			returnGUI.start = startWorldMenu;
-			returnGUI.viewTranslateEvent = complexMenuVTE;
-			returnGUI.presenterHandleEvent = loadGamePHE;
-			returnGUI.stop = stopMenu;
-			break;
-		case(WORLD_BUILDER):
-			returnGUI.start = startWorldBuilder;
-			returnGUI.viewTranslateEvent = worldBuilderVTE;
-			returnGUI.presenterHandleEvent = worldBuilderPHE;
-			returnGUI.stop = stopWorldBuilder;
-			break;
-		case(EDIT_GAME):
-			returnGUI.start = startWorldMenu;
-			returnGUI.viewTranslateEvent = complexMenuVTE;
-			returnGUI.presenterHandleEvent = editGamePHE;
-			returnGUI.stop = stopMenu;
-			break;
-		case(SAVE_WORLD):
-			returnGUI.start = startWorldMenu;
-			returnGUI.viewTranslateEvent = complexMenuVTE;
-			returnGUI.presenterHandleEvent = saveWorldPHE;
-			returnGUI.stop = stopMenu;
-			break;
-		case(PLAY_GAME):
-			returnGUI.start = startPlayGame;
-//			returnGUI.viewTranslateEvent = playGameVTE;
-//			returnGUI.presenterHandleEvent = playGamePHE;
-//			returnGUI.stop = stopPlayGame;
-			break;
-		case(ERR_MSG):
-			returnGUI.start = startErrMsg;
-			returnGUI.viewTranslateEvent = errMsgVTE;
-			returnGUI.presenterHandleEvent = errMsgPHE;
-			returnGUI.stop = stopMenu;
-			break;
-		default:
-			break;
-	}
-	return returnGUI;
-}
 
 /* helper functions for MVP */
-ViewStateref initializeGUIViewState(){
+
+// init data functions:
+ViewStateref initGUIViewState(){
 	/* allocate memory for create viewState */
 	ViewStateref viewState = (ViewStateref)malloc(sizeof(ViewState));
 	if (viewState == NULL){
@@ -101,85 +26,44 @@ ViewStateref initializeGUIViewState(){
 	return viewState;
 }
 
-
-void startPlayGame(GUIref gui, void* initData){
-	initPlayGameModel(gui, initData);
-	if(isError)
-		return;
-	PGDataRef pgModel = gui->model;
-	char imgPath[] = "images/playGame_temp.bmp";
-
-	// initialize viewState
-	ViewStateref pgViewState = initializeGUIViewState();
-	if (pgViewState == NULL){
-		return;
+void initMenuModel(GUIref gui, void* initData){
+	if (initData == NULL){
+		gui->model = initMenuDataToDefault();
 	}
-	gui->viewState = pgViewState;
-
-	//check if game is over
-	pgModel->isGameOver = checkGameOver(pgModel);
-
-
-	// create image surface for gui
-	SDL_Surface * pgImage = SDL_LoadBMP(imgPath);
-	if (pgImage == NULL){
-		sdlErrorPrint("failed to load image");
-		return;
+	else{
+		gui->model = initData;
 	}
-	pgViewState->image = pgImage;
-
-	//create grid items array
-	createGridItemsImgArr(pgViewState);
-	if (isError)
-		return;
-
-	//set the layout of play game gui
-	setThreePartLayout(pgViewState, pgModel->gameGridData);
-	if (isError)
-		return;
-
-	// create buttons array
-	Widget ** buttons = (Widget **)malloc(PG_NUM_BUTTONS*sizeof(Widget *));
-	if (buttons == NULL){
-		perrorPrint("malloc");
-		return;
-	}
-	pgViewState->menuButtons = buttons;
-
-	// create labels array
-	Widget ** labels = (Widget **)malloc(PG_NUM_LABELS*sizeof(Widget *));
-	if (labels == NULL){
-		perrorPrint("malloc");
-		return;
-	}
-	pgViewState->labelArr = labels;
-
-	//handle top panel presentation
-	if (pgModel->isGameOver)
-		setTopPanelGameOver(pgModel, pgViewState);
-	else
-		setTopPanelPlayGame(pgModel, pgViewState);
-	if (isError)
-		return;
-
-	//add buttons to side panel:
-	int buttonImgX = 0, buttonImgY = 3*PAUSE_BUTTON_H;
-	int buttonImgDisX = PANEL_BUTTON_W, buttonImgDisY = 3*PAUSE_BUTTON_H;
-	addButtonsToSidePanel(pgViewState, buttonImgX, buttonImgY, buttonImgDisX, buttonImgDisY ,1,
-			PG_NUM_BUTTONS);
-	if (isError)//check if we need this
-		return;
-
-	//set selected position to current player
-	gridItemPosition selectedPos = pgModel->isCatCurrPlayer ? pgModel->catPos : pgModel->mousePos;
-	selectGridPos(pgViewState->gridPanel, pgViewState->gridItemsImgArr, selectedPos);
-	if (isError)
-		return;
-
-	// draw GUI according to UItree
-	drawGui(gui);
 }
 
+void initWorldBuilderModel(GUIref gui, void* initData){
+	MenuDataRef menuData = initData;
+
+	WBDataRef wbData = malloc(sizeof(WBData));
+	if (wbData == NULL){
+		perrorPrint("malloc");
+	}
+	gui->model = wbData;
+	wbData->gameGridData = NULL;
+	wbData->editedWorld = menuData->editedWorld;
+	wbData->currValueTemp = menuData->currValueTemp; // maybe?????
+
+	gridItemPosition currPos = {0, 0};
+
+	if ((menuData->preWorldBuilder == SAVE_WORLD && menuData->loadFromFile == 0) || menuData->preWorldBuilder == ERR_MSG){ //we pressed back in SAVE_WORLD or were in errMsg
+		wbData->gameGridData = menuData->gameGridData;
+		wbData->currPos = menuData->wbCurrPos;
+		wbData->numTurns = menuData->numTurns;
+		wbData->isCatFirst = menuData->isCatFirst; //check this!!!
+	}
+	else{ // preWorldBuilder == MAIN_MENU || (preWorldBuilder == EDIT_GAME || preWorldBuilder = SAVE_WORLD) && loadFromFile=1
+		wbData->gameGridData = initGameDataByFile(wbData->editedWorld, &wbData->numTurns, &wbData->isCatFirst);
+		wbData->currPos = currPos;
+	}
+
+	updateItemsPostions(&wbData->mousePos,&wbData->catPos,&wbData->cheesePos, wbData->gameGridData);
+
+	free(initData);
+}
 
 void initPlayGameModel(GUIref gui, void* initData){
 	MenuDataRef menuData = initData;
@@ -356,7 +240,6 @@ void setPlayerStateLabel(PGDataRef pgModel, ViewStateref pgViewState){
 }
 
 
-
 int isCurrPlayerHuman(PGDataRef pgModel){
 	if ((pgModel->isCatCurrPlayer && pgModel->isCatHuman) ||
 			(!pgModel->isCatCurrPlayer && pgModel->isMouseHuman))
@@ -387,7 +270,7 @@ void addButtonsToSidePanel(ViewStateref viewState, int buttonImgX, int buttonImg
 }
 
 void createGridItemsImgArr(ViewStateref viewState){
-	SDL_Surface * gridItemsImg = SDL_LoadBMP("images/gridItem_temp.bmp");
+	SDL_Surface * gridItemsImg = SDL_LoadBMP("images/gridItems_temp.bmp");
 	if (gridItemsImg == NULL){
 		sdlErrorPrint("failed to load image");
 		return;
@@ -489,190 +372,6 @@ int isAdjPos(gridItemPosition pos1, gridItemPosition pos2){
 	return 0;
 }
 
-void startWorldBuilder(GUIref gui, void* initData){
-	initWorldBuilderModel(gui, initData);
-	if(isError)
-		return;
-	WBDataRef wbModel = gui->model;
-	char imgPath[] = "images/worldBuilder_temp.bmp";
-
-	// initialize viewState
-	ViewStateref wbViewState = initializeGUIViewState(); //maybe we will need a different function!
-	if (wbViewState == NULL){
-		return;
-	}
-	gui->viewState = wbViewState;
-
-	// create image surface
-	SDL_Surface * wbImage = SDL_LoadBMP(imgPath);
-	if (wbImage == NULL){
-		sdlErrorPrint("failed to load image");
-		return;
-	}
-	wbViewState->image = wbImage;
-
-	// create buttons array
-	Widget ** buttons = (Widget **)malloc(WB_NUM_BUTTONS*sizeof(Widget *));
-	if (buttons == NULL){
-		perrorPrint("malloc");
-		return;
-	}
-	wbViewState->menuButtons = buttons;
-
-	// create the UItree
-	Widget *win = create_window(WIN_W,WIN_H, 0, 0, 0);
-	if (win == NULL){
-		return;
-	}
-	ListRef winNode = newList(win);
-	wbViewState->UITree = winNode;
-	if (winNode == NULL){
-		freeWidget(win);
-		return;
-	}
-
-	Widget *topPanel = create_panel(0, 0, WIN_W, TOP_PANEL_H,PANEL_RED,PANEL_GREEN,PANEL_BLUE);
-	if (topPanel == NULL){
-		return;
-	}
-	ListRef topPanelNode = addChildNode(winNode, topPanel);
-	if (topPanelNode == NULL){
-		freeWidget(topPanel);
-		return;
-	}
-	Widget *sidePanel = create_panel(0, 210, SIDE_PANEL_W, SIDE_PANEL_H,PANEL_RED,PANEL_GREEN,PANEL_BLUE);
-		if (sidePanel == NULL){
-			return;
-		}
-	ListRef sidePanelNode = addChildNode(winNode, sidePanel);
-	if (sidePanelNode == NULL){
-		freeWidget(sidePanel);
-		return;
-	}
-	Widget *gridPanel = create_panel(210, 210, GRID_SIZE, GRID_SIZE, PANEL_RED, PANEL_GREEN, PANEL_BLUE);
-	if (gridPanel == NULL){
-		return;
-	}
-	wbViewState->gridPanel = gridPanel;//put panel in viewstate
-	ListRef gridPanelNode = addChildNode(winNode, gridPanel);
-	if (gridPanelNode == NULL){
-		freeWidget(gridPanel);
-		return;
-	}
-	Widget *label = create_image(calcWBtitleX(WB_TITLE_W), PANEL_WIDGET_Y_GAP, WB_TITLE_W, WB_TITLE_H,
-			wbImage, PANEL_BUTTON_W, wbModel->editedWorld*WB_TITLE_H);
-	if (label == NULL){
-		return;
-	}
-	ListRef labelNode = addChildNode(topPanelNode, label);
-	if (labelNode == NULL){
-		freeWidget(label);
-		return;
-	}
-
-	//add buttons to top panel:
-	int topButtonX = calcTopButtonX(), topButtonY = calcTopButtonY(), buttonImgX = 0, buttonImgY = 0;
-	// Add buttons to buttons array and to UI tree
-	for (int i = 0; i < WB_TOP_PANEL_NUM_BUTTONS; i++){
-		buttons[i] = create_button(topButtonX, topButtonY, PANEL_BUTTON_W, PANEL_BUTTON_H,
-				wbImage, buttonImgX, buttonImgY, buttonImgX, buttonImgY, 0);//write function for creating a non markable button
-		if (buttons[i] == NULL){
-			return;
-		}
-		ListRef newButtonNode = addChildNode(topPanelNode, buttons[i]);
-		if (newButtonNode == NULL){
-			freeWidget(buttons[i]);
-			return;
-		}
-		buttonImgY += PANEL_BUTTON_H;
-		topButtonX += PANEL_BUTTON_W + WB_BUTTON_X_GAP;
-	}
-
-	//add buttons to side panel:
-	int sideButtonX = calcSideButtonX(), sideButtonY = calcSideButtonY();
-	// Add buttons to buttons array and to UI tree
-	for (int i = WB_TOP_PANEL_NUM_BUTTONS; i < WB_NUM_BUTTONS; i++){
-		buttons[i] = create_button(sideButtonX, sideButtonY, PANEL_BUTTON_W, PANEL_BUTTON_H,
-				wbImage, buttonImgX, buttonImgY, buttonImgX, buttonImgY, 0);//write function for creating a non markable button
-		if (buttons[i] == NULL){
-			return;
-		}
-		ListRef newButtonNode = addChildNode(sidePanelNode, buttons[i]);
-		if (newButtonNode == NULL){
-			freeWidget(buttons[i]);
-			return;
-		}
-		buttonImgY += PANEL_BUTTON_H;
-		sideButtonY += PANEL_BUTTON_H + PANEL_WIDGET_Y_GAP;
-	}
-
-	//initialize gridItemsImages Array:
-	Widget ** gridItemImages = malloc(NUM_GRID_ITEMS*sizeof(Widget *));
-	if (buttons == NULL){
-		perrorPrint("malloc");
-		return;
-	}
-	wbViewState->gridItemsImgArr = gridItemImages;
-	int gridItemImgX = PANEL_BUTTON_W + WB_TITLE_W;
-	int gridItemImgY = 0;
-	for (int i = 0; i < NUM_GRID_ITEMS; i++){
-		gridItemImages[i] = create_image(0, 0, GRID_SQUARE_SIZE, GRID_SQUARE_SIZE,
-				wbImage, gridItemImgX, gridItemImgY);
-		if (gridItemImages[i] == NULL){
-			return;
-		}
-		gridItemImgY += GRID_SQUARE_SIZE;
-	}
-	setImageTransparent(gridItemImages[SELECT], TR_RED, TR_GREEN, TR_BLUE);//CREATE THIS FUNCTION!!!!!!!
-	if (isError)
-		return;
-	setImageTransparent(gridItemImages[DESELECT], TR_RED, TR_GREEN, TR_BLUE);
-	if (isError)
-		return;
-	createGridByData(gridPanel, wbModel->gameGridData, gridItemImages);
-	selectGridPos(gridPanel, gridItemImages, wbModel->currPos);
-	if (isError)
-		return;
-	// draw GUI according to UItree
-	drawGui(gui);
-}
-
-
-void* stopWorldBuilder(GUI * gui){
-
-	ViewStateref guiViewState = gui->viewState;
-	WBDataRef wbData = gui->model;
-	gui->model = NULL;
-	gui->viewState = NULL;
-
-	MenuDataRef returnData = initMenuDataToDefault();
-	if (isError)
-		return NULL;
-	//put things in return Data
-	//for save world & error message:
-	returnData->gameGridData = wbData->gameGridData;
-	returnData->editedWorld = wbData->editedWorld;
-	returnData->isCatFirst = wbData->isCatFirst;
-	returnData-> numTurns = wbData->numTurns;
-	returnData->wbCurrPos = wbData->currPos;
-	returnData->currValueTemp = wbData->editedWorld ? wbData->editedWorld : MIN_VALUE;
-	returnData->missingItems = wbData->missingItems;
-
-	if (guiViewState != NULL){
-		freeViewState(guiViewState);
-	}
-	if (wbData != NULL){
-		//free(wbData); // maybe we need a function for that????
-	}
-	if (isError || isQuit){
-		//free(returnData); // we need to write a function for that!
-		return NULL;
-	}
-
-	return returnData;
-}
-
-
 void freeViewState(ViewStateref guiViewState){
 	if (guiViewState->menuButtons != NULL)
 		free(guiViewState->menuButtons);
@@ -736,7 +435,6 @@ void selectGridPos(Widget *gridPanel, Widget ** gridSelectImages, gridItemPositi
 	blitItemToGrid(gridPanel, gridSelectImages[SELECT], currPos.row, currPos.col);
 }
 
-//maybe??????
 void deselectGridPos(Widget *gridPanel, Widget ** gridSelectImages, gridItemPosition currPos){
 	blitItemToGrid(gridPanel, gridSelectImages[DESELECT], currPos.row, currPos.col);
 }
@@ -749,41 +447,6 @@ void blitItemToGrid(Widget *gridPanel, Widget * itemImage, int row, int col){
 			sdlErrorPrint("failed to blit image");
 			return;
 	}
-}
-
-
-
-/* general MVP functions - used by several GUIs */
-void* simpleMenuVTE(void* viewState, SDL_Event* event, int numOfButtons){
-	logicalEventRef returnEvent = malloc(sizeof(logicalEvent));
-	if (returnEvent == NULL){
-		perrorPrint("malloc");
-		return NULL;
-	}
-	ViewStateref menuViewState = viewState;
-	switch (event->type) {
-		case (SDL_KEYUP):
-			if (event->key.keysym.sym == SDLK_TAB){
-				returnEvent->type = MARK_NEXT_BUTTON;
-			}
-			if (event->key.keysym.sym == SDLK_RETURN || event->key.keysym.sym == SDLK_KP_ENTER){
-				returnEvent->type = SELECT_CURR_BUTTON;
-			}
-			break;
-		case (SDL_MOUSEBUTTONUP):
-			for (int i = 0; i< numOfButtons; i++){
-				Widget * currButton = menuViewState->menuButtons[i];
-				if (isClickEventOnButton(event, currButton, REGULAR_BUTTON)){
-					returnEvent->type = SELECT_BUTTON_NUM;
-					returnEvent->buttonNum = i;
-					break;
-				}
-			}
-			break;
-		default:
-			returnEvent->type = NO_EVENT;
-	}
-	return returnEvent;
 }
 
 int getWBButtonNum(SDLKey key){
@@ -810,159 +473,11 @@ int getWBButtonNum(SDLKey key){
 	return -1; //check !!!!
 }
 
-void* complexMenuVTE(void* viewState, SDL_Event* event){
-	logicalEventRef returnEvent = malloc(sizeof(logicalEvent));
-	int numOfButtons = COMMON_MENU_NUM_BUTTONS;
-	if (returnEvent == NULL){
-		perrorPrint("malloc");
-		return NULL;
-	}
-	ViewStateref menuViewState = viewState;
-	returnEvent->type = NO_EVENT;
-	switch (event->type) {
-		case (SDL_KEYUP):
-			if (event->key.keysym.sym == SDLK_TAB){
-				returnEvent->type = MARK_NEXT_BUTTON;
-			}
-			else if (event->key.keysym.sym == SDLK_RETURN || event->key.keysym.sym == SDLK_KP_ENTER){
-				if (menuViewState->currButton != FIRST_BUTTON)
-					returnEvent->type = SELECT_CURR_BUTTON;
-			}
-			else if (event->key.keysym.sym == SDLK_UP){
-				if (menuViewState->currButton == FIRST_BUTTON)
-					returnEvent->type = INCREASE_VALUE;
-			}
-			else if (event->key.keysym.sym == SDLK_DOWN){
-				if (menuViewState->currButton == FIRST_BUTTON)
-					returnEvent->type = DECREASE_VALUE;
-			}
-			break;
-		case (SDL_MOUSEBUTTONUP):
-			for (int i = 0; i< numOfButtons; i++){
-				Widget * currButton = menuViewState->menuButtons[i];
-				if (i == FIRST_BUTTON){
-					if(isClickEventOnButton(event, currButton, UP_ARROW_BUTTON)){
-						returnEvent->type = INCREASE_VALUE;
-						break;
-					}
-					if(isClickEventOnButton(event, currButton, DOWN_ARROW_BUTTON)){
-						returnEvent->type = DECREASE_VALUE;
-						break;
-					}
-					if (isClickEventOnButton(event, currButton, REGULAR_BUTTON)){
-						returnEvent->type = MARK_VALUES_BUTTON;
-						returnEvent->buttonNum = i;
-						break;
-					}
-				}
-				if (isClickEventOnButton(event, currButton, REGULAR_BUTTON)){
-					returnEvent->type = SELECT_BUTTON_NUM;
-					returnEvent->buttonNum = i;
-					break;
-				}
-			}
-			break;
-	}
-	return returnEvent;
-}
 
-void* worldBuilderVTE(void* viewState, SDL_Event* event){
-	logicalEventRef returnEvent = malloc(sizeof(logicalEvent));
-	if (returnEvent == NULL){
-		perrorPrint("malloc");
-		return NULL;
-	}
-	returnEvent->type = NO_EVENT;
-	ViewStateref wbViewState = viewState;
-	SDLKey key;
-	switch (event->type) {
-		case (SDL_KEYUP):
-			key = event->key.keysym.sym;
-			if (key == SDLK_s || key == SDLK_F1 || key == SDLK_ESCAPE ||
-					key == SDLK_m || key == SDLK_c || key == SDLK_p || key == SDLK_w || key == SDLK_SPACE){
-				returnEvent->type = SELECT_BUTTON_NUM;
-				returnEvent->buttonNum = getWBButtonNum(key);
-			}
-			else if (key == SDLK_UP)
-				returnEvent->type = GO_UP;
-			else if (key ==  SDLK_DOWN)
-				returnEvent->type = GO_DOWN;
-			else if (key ==  SDLK_RIGHT)
-				returnEvent->type = GO_RIGHT;
-			else if (key ==  SDLK_LEFT)
-				returnEvent->type = GO_LEFT;
-			break;
 
-		case (SDL_MOUSEBUTTONUP):
-			if (event->button.x < WIN_W - GRID_SIZE || event->button.y < WIN_H - GRID_SIZE){
-				for (int i = 0; i< WB_NUM_BUTTONS; i++){
-					Widget * currButton = wbViewState->menuButtons[i];
-					if (isClickEventOnButton(event, currButton, REGULAR_BUTTON)){
-						returnEvent->type = SELECT_BUTTON_NUM;
-						returnEvent->buttonNum = i;
-						return returnEvent;
-					}
-				}
-			}
-			else{ // click is inside the grid
-				returnEvent->type = SELECT_SQUARE;
-				//MayBe write a function for that !!!!!
-				returnEvent->gridPos.col = (event->button.x-(WIN_W - GRID_SIZE))/(GRID_SQUARE_SIZE+GRID_GAP_SIZE);
-				returnEvent->gridPos.row = (event->button.y-(WIN_W - GRID_SIZE))/(GRID_SQUARE_SIZE+GRID_GAP_SIZE);
-			}
-			break;
-		default:
-			returnEvent->type = NO_EVENT;
-	}
-	return returnEvent;
-}
 
-StateId worldBuilderPHE(void* model, void* viewState, void* logicalEvent){
-	StateId returnStateId = WORLD_BUILDER;
-	if (logicalEvent == NULL || viewState == NULL || model == NULL)
-		return returnStateId;
-	logicalEventRef wbEvent = logicalEvent;
-	ViewStateref wbView = viewState;
-	WBDataRef wbModel = model;
-	StateId states[WB_NUM_BUTTONS] = {SAVE_WORLD, MAIN_MENU, QUIT, WORLD_BUILDER, WORLD_BUILDER, WORLD_BUILDER,
-			WORLD_BUILDER,WORLD_BUILDER};
-	switch(wbEvent->type){
-		case(SELECT_BUTTON_NUM):
-			returnStateId = states[wbEvent->buttonNum];
-			if(returnStateId == SAVE_WORLD && isGridInvalid(wbModel))
-				returnStateId = ERR_MSG;
-			else if (returnStateId == WORLD_BUILDER){
-				putGridItemInPos(wbModel, wbView->gridPanel, wbView->gridItemsImgArr, wbModel->currPos, wbEvent->buttonNum);
-			}
-			else if (returnStateId == QUIT){
-				isQuit = 1;
-			}
-			break;
-		case(SELECT_SQUARE):
-			changeSelectedGridSquare(wbView->gridPanel, wbView->gridItemsImgArr,&wbModel->currPos, wbEvent->gridPos);
-			break;
 
-		case(GO_UP):
-			changeSelectedPosByArrow(wbView->gridPanel, wbView->gridItemsImgArr, &wbModel->currPos, GO_UP);  //Write this function!!!
-			break;
-		case(GO_DOWN):
-			changeSelectedPosByArrow(wbView->gridPanel, wbView->gridItemsImgArr, &wbModel->currPos, GO_DOWN);
-			break;
-		case(GO_RIGHT):
-			changeSelectedPosByArrow(wbView->gridPanel, wbView->gridItemsImgArr, &wbModel->currPos, GO_RIGHT);
-			break;
-		case(GO_LEFT):
-			changeSelectedPosByArrow(wbView->gridPanel, wbView->gridItemsImgArr, &wbModel->currPos, GO_LEFT);
-			break;
-		case(NO_EVENT):
-			break;
-		default:
-			break;
 
-	}
-	free(logicalEvent);
-	return returnStateId;
-}
 
 int isGridInvalid(WBDataRef wbModel){
 	gridItemPosition invalidPos = {-1,-1};
@@ -1109,85 +624,6 @@ void changeSelectedGridSquare(Widget * gridPanel, Widget ** gridItemsImages, gri
 	blitUpToWindow(gridPanel);
 }
 
-StateId generalMenuPHE(void* model, void* viewState, void* logicalEvent, StateId states[], int numOfButtons,
-		StateId stateId, int* currButton, int* currValue, int maxValue){
-	StateId returnStateId = stateId;
-	if (logicalEvent == NULL || viewState == NULL)
-		return returnStateId;
-	logicalEventRef menuEvent = logicalEvent;
-	ViewStateref menuView = viewState;
-	switch(menuEvent->type){
-		case(SELECT_CURR_BUTTON):
-			returnStateId = states[*currButton];
-			menuView->currButton = *currButton;
-			break;
-		case(MARK_NEXT_BUTTON):
-			changeSelectedButton(menuView->menuButtons[*currButton],
-					menuView->menuButtons[(*currButton+1)%numOfButtons]);
-			*currButton = (*currButton + 1)%numOfButtons;
-			menuView->currButton = *currButton;
-			break;
-		case(SELECT_BUTTON_NUM):
-			*currButton = menuEvent->buttonNum;
-			returnStateId = states[menuEvent->buttonNum];
-			menuView->currButton = *currButton;
-			break;
-		case(MARK_VALUES_BUTTON):
-			changeSelectedButton(menuView->menuButtons[*currButton],
-					menuView->menuButtons[FIRST_BUTTON]);
-			*currButton = FIRST_BUTTON;
-			menuView->currButton = *currButton;
-			break;
-		case(INCREASE_VALUE):
-			increaseValuesButton(currValue, maxValue, menuView->menuButtons[FIRST_BUTTON]);
-			changeSelectedButton(menuView->menuButtons[*currButton],
-				menuView->menuButtons[FIRST_BUTTON]);
-			*currButton = FIRST_BUTTON;
-			menuView->currButton = *currButton;
-			break;
-		case(DECREASE_VALUE):
-			decreaseValuesButton(currValue, MIN_VALUE, menuView->menuButtons[FIRST_BUTTON]);
-			changeSelectedButton(menuView->menuButtons[*currButton],
-				menuView->menuButtons[FIRST_BUTTON]);
-			*currButton = FIRST_BUTTON;
-			menuView->currButton = *currButton;
-			break;
-		case(NO_EVENT):
-			break;
-		default:
-			break;
-	}
-	if (*currButton == numOfButtons-1 && returnStateId != stateId)
-		*currButton = FIRST_BUTTON;
-	free(logicalEvent);
-	return returnStateId;
-
-}
-
-
-void* stopMenu(GUIref gui){ /* maybe this will be a general stop function */
-	MenuDataRef returnData = gui->model;
-	ViewStateref guiViewState = gui->viewState;
-	gui->model = NULL;
-	gui->viewState = NULL;
-
-	if (guiViewState != NULL){
-		// we need to write a function for that
-		if (guiViewState->menuButtons != NULL)
-			free(guiViewState->menuButtons);
-		if (guiViewState->image != NULL)
-			SDL_FreeSurface(guiViewState->image);
-		if (guiViewState->UITree != NULL)
-			freeTree(guiViewState->UITree, freeWidget);
-	}
-	if (isError || isQuit){
-		freeMenuData(returnData); // we need to write a function for that!
-		return NULL;
-	}
-
-	return returnData;
-}
-
 void drawGui(GUIref gui){
 	ViewStateref viewState = gui->viewState;
 	treeDFS(viewState->UITree, calcAbsWidgetXY, addChildWidgetsToParent);
@@ -1198,135 +634,7 @@ void drawGui(GUIref gui){
 	}
 }
 
-/* maybe we don't need to pass initdata !!!!!!!!!!!!! */
-void startGeneralMenu(GUIref gui, void * initData, char * imgPath, int titleImgX, int titleImgY, int titleWidth,
-		int numButtons, int selectedButton, int firstButtonNumOpts, int value){
-	/* initialize viewState */
-	ViewStateref menuViewState = initializeGUIViewState();
-	if (menuViewState == NULL){
-		return;
-	}
-	gui->viewState = menuViewState;
 
-	/* create image surface */
-	SDL_Surface * menuImage = SDL_LoadBMP(imgPath);
-	if (menuImage == NULL){
-		sdlErrorPrint("failed to load image");
-		return;
-	}
-	menuViewState->image = menuImage;
-
-	/* create buttons array */
-	Widget ** buttons = (Widget **)malloc(numButtons*sizeof(Widget *));
-	if (buttons == NULL){
-		perrorPrint("malloc");
-		return;
-	}
-	menuViewState->menuButtons = buttons;
-
-	/* create the UItree */
-	Widget *win = create_window(WIN_W,WIN_H, 0, 0, 0);
-	if (win == NULL){
-		return;
-	}
-	ListRef win_node = newList(win);
-	menuViewState->UITree = win_node;
-	if (win_node == NULL){
-		freeWidget(win);
-		return;
-	}
-	Widget *panel = create_panel(calcPanelX(titleWidth), calcPanelY(numButtons),
-			calcPanelWidth(titleWidth),calcPanelHeight(numButtons),PANEL_RED,PANEL_GREEN,PANEL_BLUE);
-	if (panel == NULL){
-		return;
-	}
-	ListRef panel_node = addChildNode(win_node, panel);
-	if (panel_node == NULL){
-		freeWidget(panel);
-		return;
-	}
-	Widget *label = create_image(MENU_TITLE_X_GAP, MENU_TITLE_Y_GAP, titleWidth, MENU_TITLE_H,
-			menuImage, titleImgX, titleImgY);
-	if (label == NULL){
-		return;
-	}
-	ListRef label_node = addChildNode(panel_node, label);
-	if (label_node == NULL){
-		freeWidget(label);
-		return;
-	}
-	/* Add buttons to buttons array and to UI tree */
-	int button_x = calcMenuButtonX(titleWidth), button_y = calcMenuButtonY(), isSelected_x = MENU_BUTTON_W, isSelected_y = 0, isNselected_x = 0, isNselected_y=0;
-	for (int i = 0; i < numButtons; i++){
-		buttons[i] = create_button(button_x,button_y, MENU_BUTTON_W, MENU_BUTTON_H,
-				menuImage, isSelected_x, isSelected_y, isNselected_x, isNselected_y, 0);
-		if (buttons[i] == NULL){
-			return;
-		}
-		ListRef newButtonNode = addChildNode(panel_node, buttons[i]);
-		if (newButtonNode == NULL){
-			freeWidget(buttons[i]);
-			return;
-		}
-		if (i == FIRST_BUTTON){
-			isSelected_y += firstButtonNumOpts*MENU_BUTTON_H;
-			isNselected_y += firstButtonNumOpts*MENU_BUTTON_H;
-		}
-		else{
-			isSelected_y += MENU_BUTTON_H;
-			isNselected_y += MENU_BUTTON_H;
-		}
-		button_y += MENU_BUTTON_H+MENU_BUTTON_GAP;
-	}
-
-	/* update the view buttons */
-	if(firstButtonNumOpts > 1){ /* update the values button */
-		setValuesButtonFromInit(value, buttons[0]);
-	}
-	menuViewState->currButton = selectedButton;
-	setButtonSelected(menuViewState->menuButtons[selectedButton]);
-	/* draw GUI according to UItree */
-	drawGui(gui);
-}
-
-void initializeMenuModel(GUIref gui, void* initData){
-	if (initData == NULL){
-		gui->model = initMenuDataToDefault(); /* write this function */
-	}
-	else{
-		gui->model = initData;
-	}
-}
-
-void initWorldBuilderModel(GUIref gui, void* initData){
-	MenuDataRef menuData = initData;
-
-	WBDataRef wbData = malloc(sizeof(WBData));
-	if (wbData == NULL){
-		perrorPrint("malloc");
-	}
-	gui->model = wbData;
-	wbData->gameGridData = NULL;
-	wbData->editedWorld = menuData->editedWorld;
-	wbData->currValueTemp = menuData->currValueTemp; // maybe?????
-
-	gridItemPosition currPos = {0, 0};
-
-	if ((menuData->preWorldBuilder == SAVE_WORLD && menuData->loadFromFile == 0) || menuData->preWorldBuilder == ERR_MSG){ //we pressed back in SAVE_WORLD or were in errMsg
-		wbData->gameGridData = menuData->gameGridData;
-		wbData->currPos = menuData->wbCurrPos;
-		wbData->numTurns = menuData->numTurns;
-		wbData->isCatFirst = menuData->isCatFirst; //check this!!!
-	}
-	else{ // preWorldBuilder == MAIN_MENU || (preWorldBuilder == EDIT_GAME || preWorldBuilder = SAVE_WORLD) && loadFromFile=1
-		wbData->gameGridData = initGameDataByFile(wbData->editedWorld, &wbData->numTurns, &wbData->isCatFirst);
-		wbData->currPos = currPos;
-	}
-
-	updateItemsPostions(&wbData->mousePos,&wbData->catPos,&wbData->cheesePos, wbData->gameGridData);
-
-	free(initData);
-}
 
 void updateItemsPostions(gridItemPosition * mousePosRef,gridItemPosition * catPosRef, gridItemPosition * cheesePosRef,
 		char ** gameGridData){
@@ -1357,400 +665,38 @@ void updateItemsPostions(gridItemPosition * mousePosRef,gridItemPosition * catPo
 }
 
 
-void startMainMenu(GUIref gui, void* initData){
-	initializeMenuModel(gui, initData);
-	if(isError)
-		return;
-	char imgPath[] = "images/MainMenu_temp.bmp";
-	MenuDataRef data = gui->model;
-	int currentButton = data->mainMenuButton;
-	/* start the main menu gui */
-	startGeneralMenu(gui, initData, imgPath,
-			MENU_BUTTON_W*2, 0, MENU_TITLE_W, MAIN_MENU_NUM_BUTTONS, currentButton, 1, 0);
-}
-
-
-/* Main Menu specific MVP functions */
-void startErrMsg(GUIref gui, void* initData){
-	initializeMenuModel(gui, initData);
-	if(isError)
-		return;
-	MenuDataRef data = gui->model;
-
-	char imgPath[] = "images/ErrMsg_temp.bmp";
-
-	ViewStateref menuViewState = initializeGUIViewState();
-	if (menuViewState == NULL){
-		return;
-	}
-	gui->viewState = menuViewState;
-
-	/* create image surface */
-	SDL_Surface * menuImage = SDL_LoadBMP(imgPath);
-	if (menuImage == NULL){
-		sdlErrorPrint("failed to load image");
-		return;
-	}
-	menuViewState->image = menuImage;
-
-	/* create buttons array */
-	Widget ** buttons = (Widget **)malloc(ERR_MSG_NUM_BUTTONS*sizeof(Widget *));
-	if (buttons == NULL){
-		perrorPrint("malloc");
-		return;
-	}
-	menuViewState->menuButtons = buttons;
-
-	/* create the UItree */
-	Widget *win = create_window(WIN_W,WIN_H, 0, 0, 0);
-	if (win == NULL){
-		return;
-	}
-	ListRef win_node = newList(win);
-	menuViewState->UITree = win_node;
-	if (win_node == NULL){
-		freeWidget(win);
-		return;
-	}
-	Widget *panel = create_panel(calcPanelX(ERR_MSG_TITLE_W), calcErrPanelY(),
-			calcPanelWidth(ERR_MSG_TITLE_W),calcErrPanelHeight(),PANEL_RED,PANEL_GREEN,PANEL_BLUE);
-	if (panel == NULL){
-		return;
-	}
-	ListRef panel_node = addChildNode(win_node, panel);
-	if (panel_node == NULL){
-		freeWidget(panel);
-		return;
-	}
-	Widget *label = create_image(MENU_TITLE_X_GAP, MENU_TITLE_Y_GAP, ERR_MSG_TITLE_W, MENU_TITLE_H,
-			menuImage, 0, 0);
-	if (label == NULL){
-		return;
-	}
-	ListRef label_node = addChildNode(panel_node, label);
-	if (label_node == NULL){
-		freeWidget(label);
-		return;
-	}
-	Widget * missingItemMsg = create_image(calcMisItemMsgX(MISSING_ITEM_MSG_W, ERR_MSG_TITLE_W), calcMisItemMsgY(),
-			MISSING_ITEM_MSG_W, MENU_TITLE_H, menuImage, 0, data->missingItems*MENU_TITLE_H);
-	if (missingItemMsg == NULL){
-		return;
-	}
-	ListRef Msg_node = addChildNode(panel_node, missingItemMsg);
-	if (Msg_node == NULL){
-		freeWidget(label);
-		return;
-	}
-
-	/* Add buttons to buttons array and to UI tree */
-	int button_x = calcMenuButtonX(ERR_MSG_TITLE_W), button_y = calcErrMsgButtonY(), isSelected_x = ERR_MSG_TITLE_W, isSelected_y = 0;
-	buttons[0] = create_button(button_x,button_y, MENU_BUTTON_W, MENU_BUTTON_H,
-			menuImage, isSelected_x, isSelected_y, isSelected_x, isSelected_x, 0);
-	if (buttons[0] == NULL){
-		return;
-	}
-	ListRef newButtonNode = addChildNode(panel_node, buttons[0]);
-	if (newButtonNode == NULL){
-		freeWidget(buttons[0]);
-		return;
-	}
-	setButtonSelected(menuViewState->menuButtons[0]);
-	/* draw GUI according to UItree */
-	drawGui(gui);
-}
-
-void* errMsgVTE(void* viewState, SDL_Event* event){
-	logicalEventRef returnEvent = malloc(sizeof(logicalEvent));
-	if (returnEvent == NULL){
-		perrorPrint("malloc");
-		return NULL;
-	}
-	ViewStateref menuViewState = viewState;
-	Widget * currButton = menuViewState->menuButtons[0];
-	returnEvent->type = NO_EVENT;
-
-	switch (event->type) {
-		case (SDL_KEYUP):
-			if (event->key.keysym.sym == SDLK_RETURN || event->key.keysym.sym == SDLK_KP_ENTER){
-				returnEvent->type = SELECT_CURR_BUTTON;
-			}
-			break;
-		case (SDL_MOUSEBUTTONUP):
-			if (isClickEventOnButton(event, currButton, REGULAR_BUTTON)){
-				returnEvent->type = SELECT_BUTTON_NUM;
-				returnEvent->buttonNum = 0;
-			}
-			break;
-		default:
-			returnEvent->type = NO_EVENT;
-	}
-
-	return returnEvent;
-}
-
-StateId errMsgPHE(void* model, void* viewState, void* logicalEvent){
-	StateId returnStateId = ERR_MSG;
-	if (model == NULL)
-		return returnStateId;
-	MenuDataRef errMsgModel = model;
-	StateId errMsgStates[MAIN_MENU_NUM_BUTTONS] = {WORLD_BUILDER};
-	returnStateId = generalMenuPHE(model, viewState, logicalEvent, errMsgStates, ERR_MSG_NUM_BUTTONS,
-			returnStateId, &errMsgModel->errMsgButton, NULL, 0);
-	if (returnStateId == WORLD_BUILDER)
-		errMsgModel->preWorldBuilder = ERR_MSG;
-	return returnStateId;
-}
 
 
 
-void startChooseAnimal(GUIref gui, void* initData){
-	initializeMenuModel(gui, initData);
-	if(isError)
-		return;
-	char imgPath[] = "images/chooseAnimal_temp.bmp";
-	MenuDataRef data = gui->model;
-	int currentButton,titleImgY;
-	switch(gui->stateId){
-		case(CHOOSE_CAT):
-			currentButton = data->chooseCatButton;
-			titleImgY = 0;
-			break;
-		case(CHOOSE_MOUSE):
-			currentButton = data->chooseMouseButton;
-			titleImgY = MENU_TITLE_H;
-			break;
-		default:
-			break;
-	}
-	startGeneralMenu(gui, initData, imgPath,
-			MENU_BUTTON_W*2, titleImgY, MENU_TITLE_W, COMMON_MENU_NUM_BUTTONS, currentButton, 1, 0);
-}
-
-void startAnimalSkill(GUIref gui, void* initData){
-	initializeMenuModel(gui, initData);
-	if(isError)
-		return;
-	char imgPath[] = "images/animalSkill_temp.bmp";
-	MenuDataRef data = gui->model;
-	int currentButton, currentValue, titleImgY;
-	switch(gui->stateId){
-		case(CAT_SKILL):
-			currentButton = data->catSkillButton;
-			currentValue = data->catSkill;
-			titleImgY = 0;
-			break;
-		case(MOUSE_SKILL):
-			currentButton = data->mouseSkillButton;
-			currentValue = data->mouseSkill;
-			titleImgY = MENU_TITLE_H;
-			break;
-		default:
-			break;
-	}
-	startGeneralMenu(gui, initData, imgPath,
-			MENU_BUTTON_W*2, titleImgY, MENU_TITLE_W, COMMON_MENU_NUM_BUTTONS,currentButton, MAX_SKILL_VALUE, currentValue);
-}
-
-void startWorldMenu(GUIref gui, void* initData){
-	initializeMenuModel(gui, initData);
-	if(isError)
-		return;
-	char imgPath[] = "images/worldMenu_temp.bmp";
-	MenuDataRef data = gui->model;
-
-	int currentButton, currentValue, titleImgY;
-	switch(gui->stateId){
-		case(EDIT_GAME):
-			currentButton = data->editGameButton;
-			currentValue = data->editedWorld;
-			titleImgY = 0;
-			break;
-		case(LOAD_GAME):
-			currentButton = data->loadGameButton;
-			currentValue = data->loadGameWorld;
-			titleImgY = MENU_TITLE_H;
-			break;
-		case(SAVE_WORLD):
-			currentButton = data->saveWorldButton;
-			currentValue = data->editedWorld ? data->editedWorld: 1; //if edited world is 0 this will show 1
-			titleImgY = 2*MENU_TITLE_H;
-			break;
-		default:
-			break;
-	}
-	startGeneralMenu(gui, initData, imgPath,
-			MENU_BUTTON_W*2, titleImgY, MENU_TITLE_W, COMMON_MENU_NUM_BUTTONS,currentButton, MAX_WORLD, currentValue);
-}
 
 
-void* mainMenuVTE(void* viewState, SDL_Event* event){
-	logicalEventRef returnEvent = simpleMenuVTE(viewState, event, MAIN_MENU_NUM_BUTTONS);
-	return returnEvent;
-}
-
-StateId mainMenuPHE(void* model, void* viewState, void* logicalEvent){
-	StateId returnStateId = MAIN_MENU;
-	if (model == NULL)
-		return returnStateId;
-	MenuDataRef mainMenuModel = model;
-	StateId mainMenuStates[MAIN_MENU_NUM_BUTTONS] = {CHOOSE_CAT, LOAD_GAME, WORLD_BUILDER, EDIT_GAME, QUIT};
-	returnStateId = generalMenuPHE(model, viewState, logicalEvent, mainMenuStates, MAIN_MENU_NUM_BUTTONS, returnStateId,
-			&mainMenuModel->mainMenuButton, NULL, 0);
-	// maybe create a function the will reset all the data when going to main menu
-	// and maybe it should be in start main menu!
-	if (returnStateId == CHOOSE_CAT){ //new game is pressed
-		mainMenuModel->preChooseCat = MAIN_MENU;
-		mainMenuModel->loadGameWorld = 1;
-		mainMenuModel->loadFromFile = 1;
-	}
-	else if (returnStateId == WORLD_BUILDER){
-		mainMenuModel->preWorldBuilder = MAIN_MENU;
-		mainMenuModel->editedWorld = 0; // we can delete this line!!!
-	}
-	else if (returnStateId == LOAD_GAME)
-		mainMenuModel->loadGameWorld = DEFAULT_WORLD;
-	else if (returnStateId == EDIT_GAME)
-		mainMenuModel->editedWorld = DEFAULT_WORLD;
-	return returnStateId;
-}
-
-StateId catSkillPHE(void* model, void* viewState, void* logicalEvent){
-	StateId returnStateId = CAT_SKILL;
-	if (model == NULL)
-		return returnStateId;
-	MenuDataRef catSkillModel = model;
-	StateId catSkillStates[COMMON_MENU_NUM_BUTTONS] = {CAT_SKILL, CHOOSE_MOUSE, CHOOSE_CAT};
-	if (catSkillModel->preChooseCat == PLAY_GAME){
-		catSkillStates[1]=PLAY_GAME;
-	}
-	returnStateId = generalMenuPHE(model, viewState, logicalEvent, catSkillStates, COMMON_MENU_NUM_BUTTONS,
-		returnStateId, &catSkillModel->catSkillButton, &catSkillModel->currValueTemp, MAX_SKILL_VALUE);
-	if (returnStateId == PLAY_GAME || returnStateId == CHOOSE_MOUSE){ // Done button was pressed
-		catSkillModel->isCatHuman = 0;
-		catSkillModel->catSkill = catSkillModel->currValueTemp;
-		if (returnStateId == CHOOSE_MOUSE){
-			catSkillModel->preChooseMouse = CAT_SKILL;
-		}
-	}
-	if (returnStateId == CHOOSE_CAT && catSkillModel->preChooseCat == MAIN_MENU)
-		catSkillModel->catSkill = DEFAULT_SKILL;
-	return returnStateId;
-}
-
-StateId mouseSkillPHE(void* model, void* viewState, void* logicalEvent){
-	StateId returnStateId = MOUSE_SKILL;
-	if (model == NULL)
-		return returnStateId;
-	MenuDataRef mouseSkillModel = model;
-	StateId mouseSkillStates[COMMON_MENU_NUM_BUTTONS] = {MOUSE_SKILL, PLAY_GAME, CHOOSE_MOUSE};
-	returnStateId = generalMenuPHE(model, viewState, logicalEvent, mouseSkillStates, COMMON_MENU_NUM_BUTTONS,
-		returnStateId, &mouseSkillModel->mouseSkillButton, &mouseSkillModel->currValueTemp, MAX_SKILL_VALUE);
-	if (returnStateId == PLAY_GAME){ // Done button was pressed
-		mouseSkillModel->isMouseHuman = 0;
-		mouseSkillModel->mouseSkill = mouseSkillModel->currValueTemp;
-	}
-	if (returnStateId == CHOOSE_MOUSE && mouseSkillModel->preChooseMouse == CAT_SKILL)
-		mouseSkillModel->mouseSkill = DEFAULT_SKILL;
-	return returnStateId;
-}
-
-StateId loadGamePHE(void* model, void* viewState, void* logicalEvent){
-	StateId returnStateId = LOAD_GAME;
-	if (model == NULL)
-		return returnStateId;
-	MenuDataRef loadGameModel = model;
-	StateId loadGameStates[COMMON_MENU_NUM_BUTTONS] = {LOAD_GAME, CHOOSE_CAT, MAIN_MENU};
-	returnStateId = generalMenuPHE(model, viewState, logicalEvent, loadGameStates, COMMON_MENU_NUM_BUTTONS,
-		returnStateId, &loadGameModel->loadGameButton, &loadGameModel->loadGameWorld, MAX_WORLD);
-	if (returnStateId == CHOOSE_CAT){ //done was pressed
-		loadGameModel->preChooseCat = LOAD_GAME;
-		loadGameModel->loadFromFile = 1;
-	}
-	return returnStateId;
-}
-
-StateId editGamePHE(void* model, void* viewState, void* logicalEvent){
-	StateId returnStateId = EDIT_GAME;
-	if (model == NULL)
-		return returnStateId;
-	MenuDataRef editGameModel = model;
-	StateId editGameStates[COMMON_MENU_NUM_BUTTONS] = {EDIT_GAME, WORLD_BUILDER, MAIN_MENU};
-	returnStateId = generalMenuPHE(model, viewState, logicalEvent, editGameStates, COMMON_MENU_NUM_BUTTONS,
-		returnStateId, &editGameModel->editGameButton, &editGameModel->editedWorld, MAX_WORLD);
-	if (returnStateId == WORLD_BUILDER){
-		editGameModel->preWorldBuilder = EDIT_GAME;
-		editGameModel->loadFromFile = 1;
-	}
-	return returnStateId;
-}
-
-StateId saveWorldPHE(void* model, void* viewState, void* logicalEvent){
-	StateId returnStateId = SAVE_WORLD;
-	if (model == NULL)
-		return returnStateId;
-	MenuDataRef saveWorldModel = model;
-	StateId saveWorldStates[COMMON_MENU_NUM_BUTTONS] = {SAVE_WORLD, WORLD_BUILDER, WORLD_BUILDER};
-	returnStateId = generalMenuPHE(model, viewState, logicalEvent, saveWorldStates, COMMON_MENU_NUM_BUTTONS,
-		returnStateId, &saveWorldModel->saveWorldButton, &saveWorldModel->currValueTemp, MAX_WORLD);
-	if (returnStateId == WORLD_BUILDER){ //done or back were pressed
-		saveWorldModel->preWorldBuilder = SAVE_WORLD; // do we need this?
-		if (saveWorldModel->saveWorldButton == 1){ //done was pressed
-			saveWorldModel->loadFromFile = 1;// tell wb to use file to load the grid
-			saveWorldModel->editedWorld = saveWorldModel->currValueTemp;
-			saveGridDataToFile(saveWorldModel->editedWorld, saveWorldModel->isCatFirst, saveWorldModel->gameGridData);
-			//free grid data
-			freeGridData(saveWorldModel->gameGridData);
-			saveWorldModel->gameGridData = NULL;
-		}
-		else if (saveWorldModel->saveWorldButton == 2) //back was pressed
-			saveWorldModel->loadFromFile = 0;// tell wb to use char ** to load the grid
-	}
-	return returnStateId;
-}
 
 
-/* Choose Cat/ Choose Mouse specific MVP functions */
-void* chooseAnimalVTE(void* viewState, SDL_Event* event){
-	logicalEventRef returnEvent = simpleMenuVTE(viewState, event, COMMON_MENU_NUM_BUTTONS);
-	return returnEvent;
-}
 
 
-StateId chooseCatPHE(void* model, void* viewState, void* logicalEvent){
-	StateId returnStateId = CHOOSE_CAT;
-	if (model == NULL)
-		return returnStateId;
-	MenuDataRef chooseCatModel = model;
-	StateId chooseCatStates[COMMON_MENU_NUM_BUTTONS] = {CHOOSE_MOUSE, CAT_SKILL, chooseCatModel->preChooseCat};
-	if (chooseCatModel->preChooseCat == PLAY_GAME){
-		chooseCatStates[0]=PLAY_GAME;
-	}
-	returnStateId = generalMenuPHE(model, viewState, logicalEvent, chooseCatStates, COMMON_MENU_NUM_BUTTONS,
-			returnStateId, &chooseCatModel->chooseCatButton, NULL, 0);
-	if (returnStateId == CHOOSE_MOUSE){
-		chooseCatModel->isCatHuman = 1;
-		chooseCatModel->preChooseMouse = CHOOSE_CAT;
-	}
-	else if (returnStateId == CAT_SKILL)
-		chooseCatModel->currValueTemp = chooseCatModel->catSkill;
-	return returnStateId;
-}
 
-StateId chooseMousePHE(void* model, void* viewState, void* logicalEvent){
-	StateId returnStateId = CHOOSE_MOUSE;
-	if (model == NULL)
-		return returnStateId;
-	MenuDataRef chooseMouseModel = model;
-	StateId chooseMouseStates[COMMON_MENU_NUM_BUTTONS] = {PLAY_GAME, MOUSE_SKILL, chooseMouseModel->preChooseMouse};
-	returnStateId = generalMenuPHE(model, viewState, logicalEvent, chooseMouseStates, COMMON_MENU_NUM_BUTTONS,
-			returnStateId, &chooseMouseModel->chooseMouseButton, NULL, 0);
-	if (returnStateId == PLAY_GAME)
-		chooseMouseModel->isMouseHuman = 1;
-	else if (returnStateId == MOUSE_SKILL)
-		chooseMouseModel->currValueTemp = chooseMouseModel->mouseSkill;
-	return returnStateId;
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 void saveGridDataToFile(int worldNum, int isCatFirst, char ** gridData){
 	char filename[WORLD_FILE_NAME_LEN];
@@ -1811,7 +757,7 @@ char ** initGameDataByFile(int worldNum, int * numTurns, int * isCatFirst){
 	char firstAnimal[6];
 	if (worldNum == 0){
 		setEmptyGrid(grid);
-	}// write this function!
+	}
 	else{
 		//open the file:
 		char filename[WORLD_FILE_NAME_LEN];

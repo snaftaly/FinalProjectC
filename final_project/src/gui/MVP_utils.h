@@ -12,10 +12,10 @@ GUI createGUIForState(StateId stateId);
 /** MVP functions: **/
 /* start functions */
 void drawGui(GUIref gui);
-void initializeMenuModel(GUIref gui, void* initData);
+void initMenuModel(GUIref gui, void* initData);
 void initWorldBuilderModel(GUIref gui, void* initData);
 void initPlayGameModel(GUIref gui, void* initData);
-ViewStateref initializeGUIViewState();
+ViewStateref initGUIViewState();
 MenuDataRef initMenuDataToDefault();
 
 void startGeneralMenu(GUIref gui, void * initData, char * imgPath, int titleImgX, int titleImgY, int titleWidth, int numButtons, int selectedButton, int firstButtonNumOpts, int value);
@@ -84,6 +84,7 @@ int isAdjPos(gridItemPosition pos1, gridItemPosition pos2);
 int isGridInvalid(WBDataRef wbModel);
 int checkGameOver(PGDataRef pgModel);
 int isCurrPlayerHuman(PGDataRef pgModel);
+int getWBButtonNum(SDLKey key);
 
 //thre part gui layout functions:
 void addButtonsToSidePanel(ViewStateref viewState, int buttonImgX, int buttonImgY,

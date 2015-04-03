@@ -5,13 +5,16 @@ SDL_C=`sdl-config --cflags`
 all: CatAndMouse
 
 clean:
-	-rm CatAndMouse.o MVP_utils.o gui_utils.o ListUtils.o widget_utils.o ErrorHandling.o CatAndMouse
+	-rm CatAndMouse.o MVP.o MVP_utils.o gui_utils.o ListUtils.o widget_utils.o ErrorHandling.o CatAndMouse
 
-CatAndMouse: CatAndMouse.o MVP_utils.o gui_utils.o ListUtils.o widget_utils.o ErrorHandling.o
+CatAndMouse: CatAndMouse.o MVP.o MVP_utils.o gui_utils.o ListUtils.o widget_utils.o ErrorHandling.o
 	gcc -o $@ $^ $(CFLAGS) $(SDL_L)
 
 CatAndMouse.o: src/main/CatAndMouse.c src/gui/MVP_utils.h src/gui/gui_utils.h src/gui/widget_utils.h src/main/ListUtils.h src/main/ListUtilsExt.h src/main/ErrorHandling.h
 	gcc -c src/main/CatAndMouse.c $(CFLAGS) $(SDL_C)
+
+MVP.o: src/gui/MVP.c src/gui/gui_utils.h src/gui/widget_utils.h src/main/ListUtils.h src/main/ListUtilsExt.h src/main/ErrorHandling.h
+	gcc -c src/gui/MVP.c $(CFLAGS) $(SDL_C)
 
 MVP_utils.o: src/gui/MVP_utils.c src/gui/gui_utils.h src/gui/widget_utils.h src/main/ListUtils.h src/main/ListUtilsExt.h src/main/ErrorHandling.h
 	gcc -c src/gui/MVP_utils.c $(CFLAGS) $(SDL_C)

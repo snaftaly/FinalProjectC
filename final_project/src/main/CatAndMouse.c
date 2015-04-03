@@ -72,6 +72,7 @@ int main(int argc, char * argv[]){
 	guis[EDIT_GAME] = createGUIForState(EDIT_GAME);
 	guis[WORLD_BUILDER] = createGUIForState(WORLD_BUILDER);
 	guis[SAVE_WORLD] = createGUIForState(SAVE_WORLD);
+	guis[PLAY_GAME] = createGUIForState(PLAY_GAME);
 	guis[ERR_MSG] = createGUIForState(ERR_MSG);
 
 
