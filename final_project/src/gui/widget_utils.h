@@ -61,6 +61,9 @@ Widget * create_button(Sint16 x, Sint16 y, Uint16 width, Uint16 height, SDL_Surf
 		Sint16 imgSx, Sint16 imgSy, Sint16 imgNSx, Sint16 imgNSy, int isSelected);
 void setButtonSelected(Widget *);
 void setButtonNotSelected(Widget *);
+void setButtonDisabled(Widget * button);
+void setButtonEnabled(Widget * button);
+
 void freeWidget(void *);
 
 #endif /* WIDGET_UTILS_H_ */

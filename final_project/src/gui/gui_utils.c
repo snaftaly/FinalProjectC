@@ -1,6 +1,14 @@
 /* includes */
 #include "gui_utils.h"
 
+void drawGui(ViewStateref viewState){ //changes to gui view state from GUIref
+	treeDFS(viewState->UITree, calcAbsWidgetXY, addChildWidgetsToParent);
+	Widget * window = viewState->UITree->data;
+	if (SDL_Flip(window->surface) != 0) {
+		sdlErrorPrint("failed to flip buffer");
+		return;
+	}
+}
 
 int addChildWidgetsToParent(ListRef parent){
 	ListRef currChild = parent->child;
@@ -18,26 +26,27 @@ int addChildWidgetsToParent(ListRef parent){
 	return 0;
 }
 
+//change return value to null!!
 int blitChildToParentWidget(Widget * childWidget, Widget * parentWidget){
 	switch (childWidget->type){
 		case(PANEL):
 			if (SDL_BlitSurface(childWidget->surface, NULL,
 					parentWidget->surface, &childWidget->location_rect) != 0){
-				fprintf(stderr, "ERROR: failed to blit panel: %s\n", SDL_GetError());
+				sdlErrorPrint("failed to blit panel");
 				return -1;
 			}
 			break;
 		case(BUTTON):
 			if (SDL_BlitSurface(childWidget->surface, &childWidget->img_rect,
 					parentWidget->surface, &childWidget->location_rect) != 0){
-				fprintf(stderr, "ERROR: failed to blit button: %s\n", SDL_GetError());
+				sdlErrorPrint("failed to blit button");
 				return -1;
 			}
 			break;
 		case(IMAGE):
 			if (SDL_BlitSurface(childWidget->surface, &childWidget->img_rect,
 					parentWidget->surface, &childWidget->location_rect) != 0){
-				fprintf(stderr, "ERROR: failed to blit image/label: %s\n", SDL_GetError());
+				sdlErrorPrint("failed to blit image/label");
 				return -1;
 			}
 			break;
@@ -109,7 +118,7 @@ int changeSelectedButton(Widget * oldButton, Widget * newButton){
 	return 0;
 }
 
-void blitUpToWindow(Widget * widget){
+void blitUpToWindow(void * widget){ // changed to void * !!!!!!!!!!!!!!!!!!////
 	Widget * currWidget = widget;
 	while(currWidget->parentWidget != NULL){
 		if (blitChildToParentWidget(currWidget, currWidget->parentWidget) == -1)

@@ -7,7 +7,6 @@
 #include "widget_utils.h"
 
 #define STATES_COUNT 2
-#define POLLING_DELAY 10
 #define MAIN_MENU_NUM_BUTTONS 5
 #define COMMON_MENU_NUM_BUTTONS 3
 #define ERR_MSG_NUM_BUTTONS 1
@@ -16,7 +15,7 @@
 #define WB_SIDE_PANEL_NUM_BUTTONS 5
 #define PG_TOP_PANEL_NUM_BUTTONS 1
 #define PG_NUM_BUTTONS 6
-#define NUM_GRID_ITEMS 7
+#define NUM_GRID_ITEMS 8
 #define FIRST_BUTTON 0
 #define REGULAR_BUTTON 0
 #define UP_ARROW_BUTTON 1
@@ -96,7 +95,8 @@ typedef enum{
 	WALL,
 	EMPTY,
 	SELECT,
-	DESELECT
+	DESELECT,
+	WARN
 } gridItem;
 
 typedef enum{
@@ -194,7 +194,7 @@ typedef struct MenuData{
 	char ** gameGridData;
 	int missingItems;
 
-	StateId returnStateId;
+	StateId retStateId;
 
 } MenuData;
 
@@ -247,7 +247,9 @@ typedef struct PGData{
 typedef struct PGData * PGDataRef;
 
 
+
 /* functions declarations */
+void drawGui(ViewStateref);
 int addChildWidgetsToParent(ListRef);
 int blitChildToParentWidget(Widget * childWidget, Widget * parentWidget);
 int calcAbsWidgetXY(ListRef node);
@@ -286,7 +288,7 @@ int calcStateLabelY();
 
 
 void setImageTransparent(Widget *image, int red, int green, int blue);
-void blitUpToWindow(Widget * widget);
+void blitUpToWindow(void * widget);
 
 
 

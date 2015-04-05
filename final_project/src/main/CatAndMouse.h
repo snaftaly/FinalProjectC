@@ -18,4 +18,7 @@
 #define ROW_NUM 7
 #define COL_NUM 7
 
+#define POLLING_DELAY 10
+#define WARN_DELAY 200
+
 #endif /* CATANDMOUSE_H_ */

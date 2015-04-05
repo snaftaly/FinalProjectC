@@ -88,6 +88,14 @@ void setButtonNotSelected(Widget * button){
 	button->img_rect = button->button_non_selected_rect;
 }
 
+void setButtonDisabled(Widget * button){
+	setButtonSelected(button);
+}
+
+void setButtonEnabled(Widget * button){
+	setButtonNotSelected(button);
+}
+
 void freeWidget(void * widget_ptr){
 	Widget * widget = widget_ptr;
 	if (widget != NULL){

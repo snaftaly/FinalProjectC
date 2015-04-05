@@ -11,7 +11,6 @@ GUI createGUIForState(StateId stateId);
 
 /** MVP functions: **/
 /* start functions */
-void drawGui(GUIref gui);
 void initMenuModel(GUIref gui, void* initData);
 void initWorldBuilderModel(GUIref gui, void* initData);
 void initPlayGameModel(GUIref gui, void* initData);
@@ -35,6 +34,7 @@ void* chooseAnimalVTE(void* viewState, SDL_Event* event);
 void* complexMenuVTE(void* viewState, SDL_Event* event);
 void* worldBuilderVTE(void* viewState, SDL_Event* event);
 void* errMsgVTE(void* viewState, SDL_Event* event);
+void* playGameVTE(void* viewState, SDL_Event* event);
 
 /* PHE functions */
 StateId generalMenuPHE(void* model, void* viewState, void* logicalEvent, StateId states[], int numOfButtons,
@@ -49,11 +49,12 @@ StateId editGamePHE(void* model, void* viewState, void* logicalEvent);
 StateId saveWorldPHE(void* model, void* viewState, void* logicalEvent);
 StateId worldBuilderPHE(void* model, void* viewState, void* logicalEvent);
 StateId errMsgPHE(void* model, void* viewState, void* logicalEvent);
+StateId playGamePHE(void* model, void* viewState, void* logicalEvent);
 
 /* stop functions */
 void* stopMenu(GUIref gui); /* maybe this will be a general stop function */
 void* stopWorldBuilder(GUI * gui);
-
+void* stopPlayGame(GUI * gui);
 
 
 char ** initGameDataByFile(int worldNum, int * numTurns, int * isCatFirst);
@@ -88,24 +89,28 @@ int getWBButtonNum(SDLKey key);
 
 //thre part gui layout functions:
 void addButtonsToSidePanel(ViewStateref viewState, int buttonImgX, int buttonImgY,
-		int buttonImgDisX, int buttonImgDisY, int fromButtonNum, int toButtonNum);
+		int buttonImgDisX, int buttonImgDisY, int fromButtonNum, int toButtonNum, int isDisabled);
 void setThreePartLayout(ViewStateref viewState, char ** gameGridData);
 void createGridItemsImgArr(ViewStateref viewState);
 
 //play game top panel setup functions:
 void setTopPanelGameOver(PGDataRef pgModel, ViewStateref pgViewState);
 void setTopPanelPlayGame(PGDataRef pgModel, ViewStateref pgViewState);
+void updateTopPanelPlayGame(ViewStateref pgViewState, PGDataRef pgModel);
 void setPauseButton(PGDataRef pgModel, ViewStateref pgViewState);
 void setNumTurnsLabels(PGDataRef pgModel, ViewStateref pgViewState);
 void setPlayerMoveLabel(PGDataRef pgModel, ViewStateref pgViewState);
 void setPlayerStateLabel(PGDataRef pgModel, ViewStateref pgViewState);
-
-
-
-
-
-
-
+void enablePGSidePanelButtons(ViewStateref pgViewState);
+void disablePGSidePanelButtons(ViewStateref pgViewState);
+void pauseGame(ViewStateref pgViewState, PGDataRef pgModel);
+void resumeGame(ViewStateref pgViewState, PGDataRef pgModel);
+void restartGame(ViewStateref pgViewState, PGDataRef pgModel);
+void warnIllegalMove(ViewStateref pgViewState, gridItemPosition eventPos, gridItemPosition currPlayerPos);
+void changePosDirection(gridItemPosition * currPos, logicalEventType direction);
+void makeGameMoveByArrowIfLegal(ViewStateref pgView, PGDataRef pgModel, logicalEventType direction);
+void makeGameMoveIfLegal(ViewStateref pgViewState, PGDataRef pgModel, gridItemPosition eventPos);
+int isGridPosFree(gridItemPosition gridPos, char ** gridData);
 
 
 
