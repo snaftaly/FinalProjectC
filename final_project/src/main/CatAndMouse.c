@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "../gui/MVP_utils.h"
 #include "ErrorHandling.h"
+#include "machinePlayer_utils.h"
 
 /* global variables: */
 int isError = 0;
@@ -36,7 +37,7 @@ int main(int argc, char * argv[]){
 
 	while (!isError && nextStateId != QUIT) {
 		if (activeGUI.stateId == PLAY_GAME){ //maybe this condition is not exactly what we need?
-			//updateMachineMoveIfNeeded(activeGUI);
+			updateMachineMoveIfNeeded(activeGUI);
 		}
 		SDL_Event event;
 		while (SDL_PollEvent(&event) != 0) {

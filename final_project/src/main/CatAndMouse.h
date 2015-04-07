@@ -11,6 +11,10 @@
 #define WORLD_FILE_NAME_PREFIX "world_"
 #define WORLD_FILE_NAME_TYPE "txt"
 #define EMPTY_CELL_CHAR '#'
+#define CAT_CHAR 'C'
+#define MOUSE_CHAR 'M'
+#define CHEESE_CHAR 'P'
+#define WALL_CHAR 'W'
 
 #define MIN_VALUE 1
 #define MAX_SKILL_VALUE 9

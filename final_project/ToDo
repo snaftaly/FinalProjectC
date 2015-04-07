@@ -13,6 +13,8 @@ about returning to main menu. main menu needs to know about quit.
 handle that!!!
 
 - maybe check game over will set is game over to 1
+
+- in wp phe and pg phe and in all functions that deal with the positions - create an enum of directions and use it!
   
 
 - we need to check that whereever we call a function that can cause isError=1, then after it we check that isError is 1 and 

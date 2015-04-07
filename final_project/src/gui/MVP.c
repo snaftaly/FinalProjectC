@@ -951,7 +951,6 @@ StateId worldBuilderPHE(void* model, void* viewState, void* logicalEvent){
 		case(SELECT_SQUARE):
 			changeSelectedGridSquare(wbView->gridPanel, wbView->gridItemsImgArr,&wbModel->currPos, wbEvent->gridPos);
 			break;
-
 		case(GO_UP):
 			changeSelectedPosByArrow(wbView->gridPanel, wbView->gridItemsImgArr, &wbModel->currPos, GO_UP);
 			break;

@@ -864,6 +864,7 @@ void makeGameMoveIfLegal(ViewStateref pgViewState, PGDataRef pgModel, gridItemPo
 	if (!pgModel->isGamePaused && !pgModel->isGameOver){  // isCurrPlayerHuman(pgModel)
 		gridItemPosition * currPlayerPos = getCurrPlayerPos(pgModel);
 		gridItem currPlayerType = pgModel->isCatCurrPlayer ? CAT : MOUSE;
+
 		if (isAdjPos(*currPlayerPos, eventPos) && isGridPosFree(eventPos, pgModel->gameGridData)){
 			moveItemToPos(currPlayerType, pgViewState->gridItemsImgArr, pgViewState->gridPanel,
 				pgModel->gameGridData, eventPos, currPlayerPos);
@@ -893,45 +894,50 @@ void makeGameMoveIfLegal(ViewStateref pgViewState, PGDataRef pgModel, gridItemPo
 
 void makeGameMoveByArrowIfLegal(ViewStateref pgView, PGDataRef pgModel, logicalEventType direction){
 	gridItemPosition currPlayerPos = pgModel->isCatCurrPlayer ? pgModel->catPos : pgModel->mousePos;
-	gridItemPosition newPlayerPos = {currPlayerPos.row, currPlayerPos.col};
-	changePosDirection(&newPlayerPos, direction);
-	if (!isSamePos(newPlayerPos, currPlayerPos))
-		makeGameMoveIfLegal(pgView, pgModel, newPlayerPos);
+	gridItemPosition eventPos = getPosByDirection(currPlayerPos, direction);
+	makeGameMoveIfLegal(pgView, pgModel, eventPos);
 }
 
 gridItemPosition * getCurrPlayerPos(PGDataRef pgModel){
 	return pgModel->isCatCurrPlayer ? &pgModel->catPos : &pgModel->mousePos;
 }
 
-void changePosDirection(gridItemPosition * currPos, logicalEventType direction){
+//void changePosDirection(gridItemPosition * currPos, logicalEventType direction){
+//	gridItemPosition newPos = getPosByDirection(*currPos, direction);
+//	if(!isSamePos(*currPos, newPos)){
+//		currPos->row = newPos.row;
+//		currPos->col = newPos.col;
+//	}
+//}
+
+gridItemPosition getPosByDirection(gridItemPosition currPos, logicalEventType direction){
 	switch(direction){
 		case(GO_UP):
-			if (currPos->row > 0)
-				currPos->row -= 1;
-			else
-				return;
+			if (currPos.row > 0)
+				currPos.row -= 1;
 			break;
 		case(GO_DOWN):
-			if (currPos->row < ROW_NUM-1)
-				currPos->row += 1;
-			else
-				return;
+			if (currPos.row < ROW_NUM-1)
+				currPos.row += 1;
 			break;
 		case(GO_LEFT):
-			if (currPos->col > 0)
-				currPos->col -= 1;
-			else
-				return;
+			if (currPos.col > 0)
+				currPos.col -= 1;
 			break;
 		case(GO_RIGHT):
-			if (currPos->col < COL_NUM-1)
-				currPos->col += 1;
-			else
-				return;
+			if (currPos.col < COL_NUM-1)
+				currPos.col += 1;
 			break;
 		default:
-			return;
+			return currPos;
 	}
+	return currPos;
+}
+
+int isMoveValid(char ** gridData, gridItemPosition currPlayerPos, gridItemPosition movePos){
+	if (isAdjPos(currPlayerPos, movePos) && isGridPosFree(movePos, gridData))
+		return 1;
+	return 0;
 }
 
 void warnIllegalMove(ViewStateref pgViewState, gridItemPosition eventPos, gridItemPosition currPlayerPos){
