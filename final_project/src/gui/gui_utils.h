@@ -23,17 +23,7 @@
 #define PG_NUM_LABELS 4
 
 
-#define WINDOW_RED 100
-#define WINDOW_GREEN 100
-#define WINDOW_BLUE 100
 
-#define PANEL_RED 100
-#define PANEL_GREEN 100
-#define PANEL_BLUE 100
-
-#define TR_RED  0
-#define TR_GREEN 255
-#define TR_BLUE 0
 
 #define MENU_BUTTON_W 150
 #define MENU_BUTTON_H 34
@@ -287,7 +277,6 @@ int calcStateLabelX();
 int calcStateLabelY();
 
 
-void setImageTransparent(Widget *image, int red, int green, int blue);
 void blitUpToWindow(void * widget);
 
 

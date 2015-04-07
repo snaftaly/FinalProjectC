@@ -81,12 +81,13 @@ void initPlayGameModel(GUIref gui, void* initData){
 		if (isError)
 			return;
 	}
-	else
+	else{
 		pgData->gameGridData = menuData->gameGridData;
+		pgData->isCatCurrPlayer = menuData->isCatFirst;
+		pgData->numTurnsLeft = menuData->numTurns;
+	}
 
-	pgData->loadGameWorld = menuData->loadGameWorld;
-	pgData->isCatCurrPlayer = menuData->isCatFirst;
-	pgData->numTurnsLeft = menuData->numTurns;
+	pgData->loadGameWorld = menuData->loadGameWorld; // maybe we don't need to know this in pg!!!!
 	pgData->isCatHuman = menuData->isCatHuman;
 	pgData->catSkill = menuData->catSkill;
 	pgData->isMouseHuman = menuData->isMouseHuman;
@@ -102,20 +103,13 @@ void initPlayGameModel(GUIref gui, void* initData){
 }
 
 void setTopPanelGameOver(PGDataRef pgModel, ViewStateref pgViewState){
-	//freeTree(pgViewState->topPanelNode, freeWidget); //problem!!!
-	Widget * topPanel = create_panel(0, 0, WIN_W, TOP_PANEL_H,PANEL_RED,PANEL_GREEN,PANEL_BLUE);
-	if (topPanel == NULL){
+	freeDecendents(pgViewState->topPanelNode, freeWidget); //problem!!!
+	clearPanel(pgViewState->topPanelNode->data);
+	if(isError)
 		return;
-	}
-	ListRef topPanelNode = addChildNode(pgViewState->UITree, topPanel);
-	if (topPanelNode == NULL){
-		freeWidget(topPanel);
-		return;
-	}
-	pgViewState->topPanelNode = topPanelNode;
 	Widget * gameOverLabel = create_image(calcGameOverLabelX(), calcGameOverLabelY(), GAME_OVER_LABEL_W, GAME_OVER_LABEL_H,
 			pgViewState->image, 2*PANEL_BUTTON_W+2*DIGIT_LABEL_W, 4*STATE_LABEL_H+pgModel->gameOverType*GAME_OVER_LABEL_H);
-	ListRef gameOverLabelNode = addChildNode(topPanelNode, gameOverLabel);
+	ListRef gameOverLabelNode = addChildNode(pgViewState->topPanelNode, gameOverLabel);
 	if (gameOverLabelNode == NULL){
 		freeWidget(gameOverLabel);
 		return;
@@ -124,8 +118,9 @@ void setTopPanelGameOver(PGDataRef pgModel, ViewStateref pgViewState){
 }
 
 void setTopPanelPlayGame(PGDataRef pgModel, ViewStateref pgViewState){
-	//freeTree(pgViewState->topPanelNode, freeWidget);
-	//set first row labels
+	freeDecendents(pgViewState->topPanelNode, freeWidget);
+	clearPanel(pgViewState->topPanelNode->data);
+	//set first row labels - player and num turns:
 	Widget * playerMoveLabel = create_image(calcMoveLabelX(pgModel->isCatCurrPlayer), PANEL_WIDGET_Y_GAP, GAME_INFO_LABEL_W,
 			GAME_INFO_LABEL_H, pgViewState->image, 2*PANEL_BUTTON_W+2*DIGIT_LABEL_W, 4*STATE_LABEL_H+3*GAME_OVER_LABEL_H);
 	if (playerMoveLabel == NULL)
@@ -136,8 +131,6 @@ void setTopPanelPlayGame(PGDataRef pgModel, ViewStateref pgViewState){
 		freeWidget(playerMoveLabel);
 		return;
 	}
-	//setPlayerMoveLabel(pgModel, pgViewState);
-
 	Widget * turnsTensLabel = create_image(calcTensLabelX(pgModel->isCatCurrPlayer), PANEL_WIDGET_Y_GAP,
 			DIGIT_LABEL_W,GAME_INFO_LABEL_H, pgViewState->image, 2*PANEL_BUTTON_W, 3*PAUSE_BUTTON_H);
 	if (turnsTensLabel == NULL)
@@ -158,7 +151,6 @@ void setTopPanelPlayGame(PGDataRef pgModel, ViewStateref pgViewState){
 		freeWidget(turnsUnitsLabel);
 		return;
 	}
-	//setNumTurnsLabels(pgModel, pgViewState);
 
 	//set the second row label
 	Widget * playerStateLabel = create_image(calcStateLabelX(), calcStateLabelY(), STATE_LABEL_W,
@@ -171,7 +163,6 @@ void setTopPanelPlayGame(PGDataRef pgModel, ViewStateref pgViewState){
 		freeWidget(playerStateLabel);
 		return;
 	}
-	//setPlayerStateLabel(pgModel, pgViewState);
 
 	//set the pause button
 	Widget * pauseButton = create_button(calcPauseButtonX(), calcPauseButtonY(), PAUSE_BUTTON_W,
@@ -184,7 +175,6 @@ void setTopPanelPlayGame(PGDataRef pgModel, ViewStateref pgViewState){
 		freeWidget(pauseButton);
 		return;
 	}
-	//setPauseButton(pgModel, pgViewState);
 	updateTopPanelPlayGame(pgViewState, pgModel);
 }
 
@@ -213,6 +203,7 @@ void setPauseButton(PGDataRef pgModel, ViewStateref pgViewState){
 			pauseButton->button_selected_rect.y = 0;
 		}
 	}
+	pauseButton->img_rect = pauseButton->button_non_selected_rect;
 }
 
 
@@ -237,7 +228,7 @@ void setPlayerMoveLabel(PGDataRef pgModel, ViewStateref pgViewState){
 
 
 void setPlayerStateLabel(PGDataRef pgModel, ViewStateref pgViewState){
-	int yStartPoint = 3*GAME_OVER_LABEL_H;
+	int yStartPoint = 0;
 	Widget * label = pgViewState->labelArr[3];
 	if (isCurrPlayerHuman(pgModel)){
 		if (pgModel->isGamePaused)
@@ -870,27 +861,32 @@ void freeMenuData(MenuDataRef menuData){
 }
 
 void makeGameMoveIfLegal(ViewStateref pgViewState, PGDataRef pgModel, gridItemPosition eventPos){
-	if (isCurrPlayerHuman(pgModel) && (!pgModel->isGamePaused && !pgModel->isGameOver)){
-		gridItemPosition currPlayerPos = pgModel->isCatCurrPlayer ? pgModel->catPos : pgModel->mousePos;
+	if (!pgModel->isGamePaused && !pgModel->isGameOver){  // isCurrPlayerHuman(pgModel)
+		gridItemPosition * currPlayerPos = getCurrPlayerPos(pgModel);
 		gridItem currPlayerType = pgModel->isCatCurrPlayer ? CAT : MOUSE;
-		if (isAdjPos(currPlayerPos, eventPos) && isGridPosFree(eventPos, pgModel->gameGridData)){
-
+		if (isAdjPos(*currPlayerPos, eventPos) && isGridPosFree(eventPos, pgModel->gameGridData)){
 			moveItemToPos(currPlayerType, pgViewState->gridItemsImgArr, pgViewState->gridPanel,
-					pgModel->gameGridData, eventPos, &currPlayerPos);
+				pgModel->gameGridData, eventPos, currPlayerPos);
 			//update curr player and num turns left:
-			pgModel->isCatCurrPlayer = 1-pgModel->isCatCurrPlayer; //change current player
 			pgModel->numTurnsLeft -= 1; // go to next turn;
 			//check if game is over:
-			if (checkGameOver(pgModel)){
+			if (checkGameOver(pgModel)){ // write a function for that!!!
+				pgModel->isGameOver = 1;
 				setTopPanelGameOver(pgModel, pgViewState);
+				enablePGSidePanelButtons(pgViewState);
+				blitUpToWindow(pgViewState->sidePanelNode->data);
+				blitUpToWindow(pgViewState->topPanelNode->data);
 			}
-			else
+			else{
+				pgModel->isCatCurrPlayer = 1-pgModel->isCatCurrPlayer; //change current player
 				setTopPanelPlayGame(pgModel, pgViewState);
-			changeSelectedGridSquare(pgViewState->gridPanel, pgViewState->gridItemsImgArr, &eventPos, currPlayerPos);
-			blitUpToWindow(pgViewState->topPanelNode->data);
+				blitUpToWindow(pgViewState->topPanelNode->data);
+			}
+			changeSelectedGridSquare(pgViewState->gridPanel, pgViewState->gridItemsImgArr,
+					&eventPos, *getCurrPlayerPos(pgModel));
 		}
 		else{ //move is illegal
-			warnIllegalMove(pgViewState, eventPos, currPlayerPos);
+			warnIllegalMove(pgViewState, eventPos, *currPlayerPos);
 		}
 	}
 }
@@ -901,6 +897,10 @@ void makeGameMoveByArrowIfLegal(ViewStateref pgView, PGDataRef pgModel, logicalE
 	changePosDirection(&newPlayerPos, direction);
 	if (!isSamePos(newPlayerPos, currPlayerPos))
 		makeGameMoveIfLegal(pgView, pgModel, newPlayerPos);
+}
+
+gridItemPosition * getCurrPlayerPos(PGDataRef pgModel){
+	return pgModel->isCatCurrPlayer ? &pgModel->catPos : &pgModel->mousePos;
 }
 
 void changePosDirection(gridItemPosition * currPos, logicalEventType direction){
@@ -948,9 +948,17 @@ void warnIllegalMove(ViewStateref pgViewState, gridItemPosition eventPos, gridIt
 void restartGame(ViewStateref pgViewState, PGDataRef pgModel){
 	freeGridData(pgModel->gameGridData);
 	pgModel->gameGridData = initGameDataByFile(pgModel->loadGameWorld, &pgModel->numTurnsLeft, &pgModel->isCatCurrPlayer);
-	if (checkGameOver(pgModel))
+	updateItemsPostions(&pgModel->mousePos,&pgModel->catPos,&pgModel->cheesePos, pgModel->gameGridData);
+	createGridByData(pgViewState->gridPanel, pgModel->gameGridData, pgViewState->gridItemsImgArr);
+	selectGridPos(pgViewState->gridPanel, pgViewState->gridItemsImgArr, *getCurrPlayerPos(pgModel));
+	if (checkGameOver(pgModel)){
+		pgModel->isGameOver = 1;
 		setTopPanelGameOver(pgModel, pgViewState);
+		enablePGSidePanelButtons(pgViewState);
+	}
 	else{
+		pgModel->isGameOver = 0;
+		pgModel->isGamePaused = 0;
 		setTopPanelPlayGame(pgModel, pgViewState);
 		disablePGSidePanelButtons(pgViewState);
 	}
@@ -992,6 +1000,36 @@ int isGridPosFree(gridItemPosition gridPos, char ** gridData){
 	if (gridData[gridPos.row][gridPos.col] == EMPTY_CELL_CHAR)
 		return 1;
 	return 0;
+}
+
+void handleThreePartLayoutMouseSelect(SDL_Event * event, logicalEventRef returnEvent, Widget ** buttons, int numButtons){
+	if (event->button.x < WIN_W - GRID_SIZE || event->button.y < WIN_H - GRID_SIZE){
+		for (int i = 0; i< numButtons; i++){ //maybe create (or we have) a general function that does that!!!!
+			Widget * currButton = buttons[i];
+			if (isClickEventOnButton(event, currButton, REGULAR_BUTTON)){
+				returnEvent->type = SELECT_BUTTON_NUM;
+				returnEvent->buttonNum = i;
+				return;
+			}
+		}
+	}
+	else{ // click is inside the grid
+		returnEvent->type = SELECT_SQUARE;
+		//MayBe write a function for that !!!!!
+		returnEvent->gridPos.col = (event->button.x-(WIN_W - GRID_SIZE))/(GRID_SQUARE_SIZE+GRID_GAP_SIZE);
+		returnEvent->gridPos.row = (event->button.y-(WIN_W - GRID_SIZE))/(GRID_SQUARE_SIZE+GRID_GAP_SIZE);
+	}
+}
+
+void handleThreePartLayoutArrowKey(SDLKey key, logicalEventRef returnEvent){
+	if (key == SDLK_UP)
+		returnEvent->type = GO_UP;
+	else if (key ==  SDLK_DOWN)
+		returnEvent->type = GO_DOWN;
+	else if (key ==  SDLK_RIGHT)
+		returnEvent->type = GO_RIGHT;
+	else if (key ==  SDLK_LEFT)
+		returnEvent->type = GO_LEFT;
 }
 //void updatePGViewByGameState(ViewStateref pgViewState, PGDataRef pgModel){
 //	if (checkGameOver(pgModel)){

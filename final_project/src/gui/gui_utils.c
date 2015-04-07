@@ -225,7 +225,7 @@ int calcGameOverLabelY(){
 }
 
 int calcPauseButtonX(){
-	return (WIN_W - GAME_OVER_LABEL_W)/2;
+	return (WIN_W - PAUSE_BUTTON_W)/2;
 }
 
 int calcPauseButtonY(){
@@ -234,7 +234,7 @@ int calcPauseButtonY(){
 
 int calcMoveLabelX(int isCatCurrPlayer){
 	if (isCatCurrPlayer)
-		return (WIN_W-(GAME_INFO_LABEL_W-CAT_MOUSE_DIF/2+2*DIGIT_LABEL_W))/2;
+		return (WIN_W-(GAME_INFO_LABEL_W+CAT_MOUSE_DIF+2*DIGIT_LABEL_W))/2;
 	else
 		return (WIN_W-(GAME_INFO_LABEL_W+2*DIGIT_LABEL_W))/2;
 }
@@ -254,12 +254,4 @@ int calcStateLabelX(){
 int calcStateLabelY(){
 	return GAME_INFO_LABEL_H+2*PANEL_WIDGET_Y_GAP;
 }
-
-void setImageTransparent(Widget *image, int red, int green, int blue){
-	if (SDL_SetColorKey(image->surface, SDL_SRCCOLORKEY, SDL_MapRGB(image->surface->format, red, green, blue)) !=0){
-		sdlErrorPrint("failed setting image transparent");
-		isError = 1;
-	}
-}
-
 

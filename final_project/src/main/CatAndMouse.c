@@ -7,59 +7,12 @@ int isError = 0;
 int isQuit = 0;
 
 int main(int argc, char * argv[]){
-	/*grid = (char **)malloc(7*sizeof(char *));
-	if (grid == NULL){
-		perrorPrint("malloc");
-	}*/
-	/*grid = initGrid();
-	//initColumns(7, 7, grid);
-	setEmptyGrid(grid);*/
-
-	/*grid = initGameData(worldNum, &numTurns, &isCatFirst);
-
-
-
-	for (int i = 0; i<7; i++){
-		for (int j = 0; j<7; j++){
-			printf("%c", grid[i][j]);
-			if (j==6)
-				printf("\n");
-		}
-	}*/
-
-
 
 	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
 		printf("ERROR: unable to init SDL: %s\n", SDL_GetError());
 		return 1;
 	}
 	atexit(SDL_Quit);
-/*
-	WBDataRef wbData = malloc(sizeof(WBData));
-	if (wbData == NULL){
-		perrorPrint("malloc");
-	}
-	GUI worldBuilder =  createGUIForState(WORLD_BUILDER);
-	MenuDataRef initData= initMenuDataToDefault();
-
-	startWorldBuilder(&worldBuilder, initData);
-
-	SDL_Event e;
-	int quit = 0;
-
-	while (quit == 0){
-		while (SDL_PollEvent(&e)!= 0) {
-			switch (e.type) {
-				case (SDL_QUIT):
-					quit = 1;
-					break;
-				}
-		}
-		SDL_Delay(10);
-	}
-
-	//menuStop(&worldBuilder);
-*/
 
 // initialize GUI structs mapping by state ids:
 	GUI guis[11];

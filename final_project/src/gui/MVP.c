@@ -497,19 +497,15 @@ void startPlayGame(GUIref gui, void* initData){
 		return;
 
 	//handle top panel presentation
-	if (pgModel->isGameOver){
+	if (pgModel->isGameOver)
 		setTopPanelGameOver(pgModel, pgViewState);
-	}
-	else{
+	else
 		setTopPanelPlayGame(pgModel, pgViewState);
-	}
 	if (isError)
 		return;
 
-
 	//set selected position to current player
-	gridItemPosition selectedPos = pgModel->isCatCurrPlayer ? pgModel->catPos : pgModel->mousePos;
-	selectGridPos(pgViewState->gridPanel, pgViewState->gridItemsImgArr, selectedPos);
+	selectGridPos(pgViewState->gridPanel, pgViewState->gridItemsImgArr, *getCurrPlayerPos(pgModel));
 	if (isError)
 		return;
 
@@ -524,6 +520,7 @@ void* simpleMenuVTE(void* viewState, SDL_Event* event, int numOfButtons){
 		perrorPrint("malloc");
 		return NULL;
 	}
+	returnEvent->type = NO_EVENT;
 	ViewStateref menuViewState = viewState;
 	switch (event->type) {
 		case (SDL_KEYUP):
@@ -634,33 +631,11 @@ void* worldBuilderVTE(void* viewState, SDL_Event* event){
 				returnEvent->type = SELECT_BUTTON_NUM;
 				returnEvent->buttonNum = getWBButtonNum(key);
 			}
-			else if (key == SDLK_UP)
-				returnEvent->type = GO_UP;
-			else if (key ==  SDLK_DOWN)
-				returnEvent->type = GO_DOWN;
-			else if (key ==  SDLK_RIGHT)
-				returnEvent->type = GO_RIGHT;
-			else if (key ==  SDLK_LEFT)
-				returnEvent->type = GO_LEFT;
+			else
+				handleThreePartLayoutArrowKey(key, returnEvent);
 			break;
-
 		case (SDL_MOUSEBUTTONUP):
-			if (event->button.x < WIN_W - GRID_SIZE || event->button.y < WIN_H - GRID_SIZE){
-				for (int i = 0; i< WB_NUM_BUTTONS; i++){
-					Widget * currButton = wbViewState->menuButtons[i];
-					if (isClickEventOnButton(event, currButton, REGULAR_BUTTON)){
-						returnEvent->type = SELECT_BUTTON_NUM;
-						returnEvent->buttonNum = i;
-						return returnEvent;
-					}
-				}
-			}
-			else{ // click is inside the grid
-				returnEvent->type = SELECT_SQUARE;
-				//MayBe write a function for that !!!!!
-				returnEvent->gridPos.col = (event->button.x-(WIN_W - GRID_SIZE))/(GRID_SQUARE_SIZE+GRID_GAP_SIZE);
-				returnEvent->gridPos.row = (event->button.y-(WIN_W - GRID_SIZE))/(GRID_SQUARE_SIZE+GRID_GAP_SIZE);
-			}
+			handleThreePartLayoutMouseSelect(event, returnEvent, wbViewState->menuButtons, WB_NUM_BUTTONS);
 			break;
 		default:
 			returnEvent->type = NO_EVENT;
@@ -697,7 +672,7 @@ void* errMsgVTE(void* viewState, SDL_Event* event){
 	return returnEvent;
 }
 
-void* playGameVTE(void* viewState, SDL_Event* event){
+void* playGameVTE(void* viewState, SDL_Event * event){
 	logicalEventRef returnEvent = malloc(sizeof(logicalEvent));
 	if (returnEvent == NULL){
 		perrorPrint("malloc");
@@ -712,34 +687,13 @@ void* playGameVTE(void* viewState, SDL_Event* event){
 			if (key == SDLK_SPACE || key == SDLK_F1 || key == SDLK_F2 || key == SDLK_F3 || key == SDLK_F4 ||
 					key == SDLK_ESCAPE){
 				returnEvent->type = SELECT_BUTTON_NUM;
-				returnEvent->buttonNum = getWBButtonNum(key);
+				returnEvent->buttonNum = getPGButtonNum(key);
 			}
-			else if (key == SDLK_UP)
-				returnEvent->type = GO_UP;
-			else if (key ==  SDLK_DOWN)
-				returnEvent->type = GO_DOWN;
-			else if (key ==  SDLK_RIGHT)
-				returnEvent->type = GO_RIGHT;
-			else if (key ==  SDLK_LEFT)
-				returnEvent->type = GO_LEFT;
+			else
+				handleThreePartLayoutArrowKey(key, returnEvent);
 			break;
 		case (SDL_MOUSEBUTTONUP):
-			if (event->button.x < WIN_W - GRID_SIZE || event->button.y < WIN_H - GRID_SIZE){
-				for (int i = 0; i< PG_NUM_BUTTONS; i++){
-					Widget * currButton = pgViewState->menuButtons[i];
-					if (isClickEventOnButton(event, currButton, REGULAR_BUTTON)){
-						returnEvent->type = SELECT_BUTTON_NUM;
-						returnEvent->buttonNum = i;
-						return returnEvent;
-					}
-				}
-			}
-			else{ // click is inside the grid
-				returnEvent->type = SELECT_SQUARE;
-				//MayBe write a function for that !!!!!
-				returnEvent->gridPos.col = (event->button.x-(WIN_W - GRID_SIZE))/(GRID_SQUARE_SIZE+GRID_GAP_SIZE);
-				returnEvent->gridPos.row = (event->button.y-(WIN_W - GRID_SIZE))/(GRID_SQUARE_SIZE+GRID_GAP_SIZE);
-			}
+			handleThreePartLayoutMouseSelect(event, returnEvent, pgViewState->menuButtons, PG_NUM_BUTTONS);
 			break;
 		default:
 			returnEvent->type = NO_EVENT;
@@ -1115,7 +1069,7 @@ void* stopMenu(GUIref gui){ /* maybe this will be a general stop function */
 		if (guiViewState->UITree != NULL)
 			freeTree(guiViewState->UITree, freeWidget);
 	}
-	if (isError || returnData->retStateId == QUIT || returnData->retStateId == MAIN_MENU){
+	if (isError || returnData->retStateId == QUIT){
 		freeMenuData(returnData); // we need to write a function for that!
 		return NULL;
 	}

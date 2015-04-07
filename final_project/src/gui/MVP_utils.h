@@ -86,6 +86,7 @@ int isGridInvalid(WBDataRef wbModel);
 int checkGameOver(PGDataRef pgModel);
 int isCurrPlayerHuman(PGDataRef pgModel);
 int getWBButtonNum(SDLKey key);
+int getPGButtonNum(SDLKey key);
 
 //thre part gui layout functions:
 void addButtonsToSidePanel(ViewStateref viewState, int buttonImgX, int buttonImgY,
@@ -110,8 +111,10 @@ void warnIllegalMove(ViewStateref pgViewState, gridItemPosition eventPos, gridIt
 void changePosDirection(gridItemPosition * currPos, logicalEventType direction);
 void makeGameMoveByArrowIfLegal(ViewStateref pgView, PGDataRef pgModel, logicalEventType direction);
 void makeGameMoveIfLegal(ViewStateref pgViewState, PGDataRef pgModel, gridItemPosition eventPos);
+gridItemPosition * getCurrPlayerPos(PGDataRef pgModel);
 int isGridPosFree(gridItemPosition gridPos, char ** gridData);
-
+void handleThreePartLayoutMouseSelect(SDL_Event * event, logicalEventRef returnEvent, Widget ** buttons, int numButtons);
+void handleThreePartLayoutArrowKey(SDLKey key, logicalEventRef returnEvent);
 
 
 

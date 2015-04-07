@@ -19,8 +19,10 @@ struct List{
 
 /* function declarations */
 ListRef addChildNode(ListRef parent, void * data);
-void freeTree(ListRef root, FreeFunc freeData);
 int treeDFS(ListRef root, int (* treeNodePreFunction) (ListRef node),
 		int (* treeNodePostFunction) (ListRef node));
+void freeTree(ListRef root, FreeFunc freeData);
+void freeDecendents(ListRef root, FreeFunc freeData);
+
 
 #endif /* TREEUTILS_H_ */

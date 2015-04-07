@@ -25,10 +25,23 @@
 #define GAME_OVER_LABEL_H 100
 #define GAME_INFO_LABEL_H 40
 #define GAME_INFO_LABEL_W 180
-#define STATE_LABEL_W 400
+#define STATE_LABEL_W 500
 #define STATE_LABEL_H 40
 #define DIGIT_LABEL_W 30
 #define CAT_MOUSE_DIF 35
+
+#define WINDOW_RED 100
+#define WINDOW_GREEN 100
+#define WINDOW_BLUE 100
+
+#define PANEL_RED 100
+#define PANEL_GREEN 100
+#define PANEL_BLUE 100
+
+#define TR_RED  0
+#define TR_GREEN 255
+#define TR_BLUE 0
+
 
 
 typedef enum {
@@ -63,6 +76,8 @@ void setButtonSelected(Widget *);
 void setButtonNotSelected(Widget *);
 void setButtonDisabled(Widget * button);
 void setButtonEnabled(Widget * button);
+void setImageTransparent(Widget *image, int red, int green, int blue);
+void clearPanel(void * panel);
 
 void freeWidget(void *);
 

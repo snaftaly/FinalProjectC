@@ -96,6 +96,21 @@ void setButtonEnabled(Widget * button){
 	setButtonNotSelected(button);
 }
 
+void setImageTransparent(Widget *image, int red, int green, int blue){
+	if (SDL_SetColorKey(image->surface, SDL_SRCCOLORKEY, SDL_MapRGB(image->surface->format, red, green, blue)) !=0){
+		sdlErrorPrint("failed setting image transparent");
+		isError = 1;
+	}
+}
+
+void clearPanel(void * panel){
+	Widget * toClear = panel;
+	if (SDL_FillRect(toClear->surface,0,SDL_MapRGB(toClear->surface->format, PANEL_RED, PANEL_GREEN, PANEL_BLUE)) != 0) {
+		sdlErrorPrint("failed to fill rect with color");
+		return;
+	}
+}
+
 void freeWidget(void * widget_ptr){
 	Widget * widget = widget_ptr;
 	if (widget != NULL){

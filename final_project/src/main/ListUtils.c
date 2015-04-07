@@ -173,6 +173,14 @@ void freeTree(ListRef root, FreeFunc freeData){
 		 free(root);
 	}
 }
+
+void freeDecendents(ListRef root, FreeFunc freeData){
+	if (root != NULL){
+		ListRef child = root->child;
+		freeTree(child, freeData);
+		root->child = NULL;
+	}
+}
 /*
 int treeDFS(ListRef root, int (* treeNodeFunction) (ListRef node)){  return value ???
 	if (root == NULL)

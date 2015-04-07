@@ -1,5 +1,20 @@
 things to do:
 
+- in all vte's set returnEvent to NO_EVENT in the beginning.
+
+- the only guis that need to know the return stateId are mainMenu, pgm and wb. pg & wb need to know about quit and 
+about returning to main menu. main menu needs to know about quit. 
+
+- in the functions where we use #, c,p,m etc use the defines
+
+-check where we can use change curr player position, and use it!
+
+- if the game is paused and we go to reconfigure mouse/cat, when we get back to the game, should it be in paused state? YES!
+handle that!!!
+
+- maybe check game over will set is game over to 1
+  
+
 - we need to check that whereever we call a function that can cause isError=1, then after it we check that isError is 1 and 
 	do something about it.
 
