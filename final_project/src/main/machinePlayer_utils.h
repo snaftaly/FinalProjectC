@@ -21,11 +21,20 @@ typedef struct GameState{
 	int numTurnsLeft;
 	gridItemPosition catPos;
 	gridItemPosition mousePos;
+	gridItemPosition cheesePos;
 } GameState;
 
 typedef struct GameState * GameStateRef; /* a pointer to struct GameState */
 
 void updateMachineMoveIfNeeded(GUI activeGUI);
-
+ListRef getChildren(void * data);
+GameStateRef createChildState(GameStateRef parentState, gridItemPosition movePos,
+		gridItemPosition currPlayerPos);
+char ** createChildGrid(GameStateRef parentState, gridItemPosition movePos,
+		gridItemPosition currPlayerPos);
+char ** copyGrid(char ** fromGrid);
+gridItemPosition suggestMove(GameStateRef state, int maxDepth);
+int evaluate(void * state);
+void freeState(void * data);
 
 #endif //MACHINEUTILS_H_

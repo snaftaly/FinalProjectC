@@ -74,7 +74,7 @@ void moveItemToPos(gridItem itemType, Widget ** gridItemsImages, Widget * gridPa
 char getItemChar(gridItem item);
 void fixOverride(gridItem itemType, WBDataRef wbModel, gridItemPosition currPos);
 void changeSelectedPosByArrow(Widget * gridPanel, Widget ** gridItemsImages,
-		gridItemPosition * currPos, logicalEventType direction);
+		gridItemPosition * currPos, direction direction);
 void changeSelectedGridSquare(Widget * gridPanel, Widget ** gridItemsImages, gridItemPosition * currPos,
 		gridItemPosition newPos);
 void updateItemsPostions(gridItemPosition * mousePos,gridItemPosition * catPos,gridItemPosition * cheesePos,
@@ -83,7 +83,9 @@ void saveGridDataToFile(int worldNum, int isCatFirst, char ** gridData);
 int isSamePos(gridItemPosition pos1, gridItemPosition pos2);
 int isAdjPos(gridItemPosition pos1, gridItemPosition pos2);
 int isGridInvalid(WBDataRef wbModel);
-int checkGameOver(PGDataRef pgModel);
+gameOverType checkGameOverType(gridItemPosition catPos, gridItemPosition mousePos,
+		gridItemPosition cheesePos, int numTurnsLeft);
+int updateGameOver(PGDataRef pgModel);
 int isCurrPlayerHuman(PGDataRef pgModel);
 int getWBButtonNum(SDLKey key);
 int getPGButtonNum(SDLKey key);
@@ -109,13 +111,14 @@ void resumeGame(ViewStateref pgViewState, PGDataRef pgModel);
 void restartGame(ViewStateref pgViewState, PGDataRef pgModel);
 void warnIllegalMove(ViewStateref pgViewState, gridItemPosition eventPos, gridItemPosition currPlayerPos);
 void changePosDirection(gridItemPosition * currPos, logicalEventType direction);
-void makeGameMoveByArrowIfLegal(ViewStateref pgView, PGDataRef pgModel, logicalEventType direction);
+void makeGameMoveByArrowIfLegal(ViewStateref pgView, PGDataRef pgModel, direction direction);
 void makeGameMoveIfLegal(ViewStateref pgViewState, PGDataRef pgModel, gridItemPosition eventPos);
 gridItemPosition * getCurrPlayerPos(PGDataRef pgModel);
 int isGridPosFree(gridItemPosition gridPos, char ** gridData);
 void handleThreePartLayoutMouseSelect(SDL_Event * event, logicalEventRef returnEvent, Widget ** buttons, int numButtons);
 void handleThreePartLayoutArrowKey(SDLKey key, logicalEventRef returnEvent);
-
+gridItemPosition getPosByDirection(gridItemPosition currPos, direction direction);
+int isMoveValid(char ** gridData, gridItemPosition currPlayerPos, gridItemPosition movePos);
 
 
 void freeViewState(ViewStateref guiViewState);

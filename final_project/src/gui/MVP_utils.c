@@ -358,20 +358,27 @@ void setThreePartLayout(ViewStateref viewState, char ** gameGridData){
 	createGridByData(gridPanel, gameGridData, viewState->gridItemsImgArr);
 }
 
-int checkGameOver(PGDataRef pgModel){
-	if (isAdjPos(pgModel->catPos, pgModel->mousePos)){
-		pgModel->gameOverType = CAT_WINS;
-		return 1;
+
+int updateGameOver(PGDataRef pgModel){
+	gameOverType type = checkGameOverType(pgModel->catPos, pgModel->mousePos, pgModel->cheesePos, pgModel->numTurnsLeft);
+	pgModel->gameOverType = type;
+	if (type == GAME_NOT_OVER)
+		return 0;
+	return 1;
+}
+
+gameOverType checkGameOverType(gridItemPosition catPos, gridItemPosition mousePos,
+		gridItemPosition cheesePos, int numTurnsLeft){
+	if (isAdjPos(catPos, mousePos)){
+		return CAT_WINS;
 	}
-	if (isAdjPos(pgModel->cheesePos, pgModel->mousePos)){
-		pgModel->gameOverType = MOUSE_WINS;
-		return 1;
+	if (isAdjPos(cheesePos, mousePos)){
+		return MOUSE_WINS;
 	}
-	if (pgModel->numTurnsLeft==0){
-		pgModel->gameOverType = TIE;
-		return 1;
+	if (numTurnsLeft==0){
+		return TIE;
 	}
-	return 0;
+	return GAME_NOT_OVER;
 }
 
 int isAdjPos(gridItemPosition pos1, gridItemPosition pos2){
@@ -605,9 +612,8 @@ int isSamePos(gridItemPosition pos1, gridItemPosition pos2){
 }
 
 void changeSelectedPosByArrow(Widget * gridPanel, Widget ** gridItemsImages,
-		gridItemPosition * currPos, logicalEventType direction){
-	gridItemPosition newPos = {currPos->row, currPos->col};
-	changePosDirection(&newPos ,direction);
+		gridItemPosition * currPos, direction direction){
+	gridItemPosition newPos = getPosByDirection(*currPos, direction);
 	changeSelectedGridSquare(gridPanel, gridItemsImages, currPos, newPos);
 }
 
@@ -864,14 +870,13 @@ void makeGameMoveIfLegal(ViewStateref pgViewState, PGDataRef pgModel, gridItemPo
 	if (!pgModel->isGamePaused && !pgModel->isGameOver){  // isCurrPlayerHuman(pgModel)
 		gridItemPosition * currPlayerPos = getCurrPlayerPos(pgModel);
 		gridItem currPlayerType = pgModel->isCatCurrPlayer ? CAT : MOUSE;
-
-		if (isAdjPos(*currPlayerPos, eventPos) && isGridPosFree(eventPos, pgModel->gameGridData)){
+		if (isMoveValid(pgModel->gameGridData, *currPlayerPos, eventPos)){
 			moveItemToPos(currPlayerType, pgViewState->gridItemsImgArr, pgViewState->gridPanel,
 				pgModel->gameGridData, eventPos, currPlayerPos);
 			//update curr player and num turns left:
 			pgModel->numTurnsLeft -= 1; // go to next turn;
 			//check if game is over:
-			if (checkGameOver(pgModel)){ // write a function for that!!!
+			if (updateGameOver(pgModel)){ // write a function for that!!!
 				pgModel->isGameOver = 1;
 				setTopPanelGameOver(pgModel, pgViewState);
 				enablePGSidePanelButtons(pgViewState);
@@ -892,7 +897,7 @@ void makeGameMoveIfLegal(ViewStateref pgViewState, PGDataRef pgModel, gridItemPo
 	}
 }
 
-void makeGameMoveByArrowIfLegal(ViewStateref pgView, PGDataRef pgModel, logicalEventType direction){
+void makeGameMoveByArrowIfLegal(ViewStateref pgView, PGDataRef pgModel, direction direction){
 	gridItemPosition currPlayerPos = pgModel->isCatCurrPlayer ? pgModel->catPos : pgModel->mousePos;
 	gridItemPosition eventPos = getPosByDirection(currPlayerPos, direction);
 	makeGameMoveIfLegal(pgView, pgModel, eventPos);
@@ -910,21 +915,21 @@ gridItemPosition * getCurrPlayerPos(PGDataRef pgModel){
 //	}
 //}
 
-gridItemPosition getPosByDirection(gridItemPosition currPos, logicalEventType direction){
+gridItemPosition getPosByDirection(gridItemPosition currPos, direction direction){
 	switch(direction){
-		case(GO_UP):
+		case(UP):
 			if (currPos.row > 0)
 				currPos.row -= 1;
 			break;
-		case(GO_DOWN):
+		case(DOWN):
 			if (currPos.row < ROW_NUM-1)
 				currPos.row += 1;
 			break;
-		case(GO_LEFT):
+		case(LEFT):
 			if (currPos.col > 0)
 				currPos.col -= 1;
 			break;
-		case(GO_RIGHT):
+		case(RIGHT):
 			if (currPos.col < COL_NUM-1)
 				currPos.col += 1;
 			break;
@@ -957,7 +962,7 @@ void restartGame(ViewStateref pgViewState, PGDataRef pgModel){
 	updateItemsPostions(&pgModel->mousePos,&pgModel->catPos,&pgModel->cheesePos, pgModel->gameGridData);
 	createGridByData(pgViewState->gridPanel, pgModel->gameGridData, pgViewState->gridItemsImgArr);
 	selectGridPos(pgViewState->gridPanel, pgViewState->gridItemsImgArr, *getCurrPlayerPos(pgModel));
-	if (checkGameOver(pgModel)){
+	if (updateGameOver(pgModel)){
 		pgModel->isGameOver = 1;
 		setTopPanelGameOver(pgModel, pgViewState);
 		enablePGSidePanelButtons(pgViewState);
@@ -1037,10 +1042,3 @@ void handleThreePartLayoutArrowKey(SDLKey key, logicalEventRef returnEvent){
 	else if (key ==  SDLK_LEFT)
 		returnEvent->type = GO_LEFT;
 }
-//void updatePGViewByGameState(ViewStateref pgViewState, PGDataRef pgModel){
-//	if (checkGameOver(pgModel)){
-//		setTopPanelGameOver(pgModel, pgViewState);
-//		disableSidePanelButtons(pgViewState);
-//	}
-//}
-

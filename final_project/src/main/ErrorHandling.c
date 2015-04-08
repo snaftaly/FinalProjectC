@@ -29,3 +29,4 @@ void sdlErrorPrint(char * sdlProblem){
 	isError = 1;
 	fprintf(stderr, "ERROR: %s: %s\n", sdlProblem, SDL_GetError());
 }
+

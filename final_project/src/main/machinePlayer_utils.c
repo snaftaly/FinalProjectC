@@ -2,9 +2,36 @@
 #include "machinePlayer_utils.h"
 
 
-void updateMachineMoveIfNeeded(GUI activeGUI){
-//fill this functions
+void updateMachineMoveIfNeeded(GUI pgGUI){
+	PGDataRef pgModel = pgGUI.model;
+	if (isCurrPlayerHuman(pgModel))
+		return;
+	ViewStateref pgViewState = pgGUI.viewState;
+	GameStateRef currState = (GameStateRef)malloc(sizeof(GameState)); /* allocate memory for currState  */
+	if (currState == NULL){ /* malloc failed */
+		perrorPrint("malloc");
+		return;
+	}
+	int currPlayerSkill = pgModel->isCatCurrPlayer ? pgModel->catSkill : pgModel->mouseSkill;
+	currState->gridData = copyGrid(pgModel->gameGridData);
+	currState->catPos = pgModel->catPos;
+	currState->mousePos = pgModel->mousePos;
+	currState->cheesePos = pgModel->cheesePos;
+	currState->isCatCurrPlayer = pgModel->isCatCurrPlayer;
+	currState->numTurnsLeft = pgModel->numTurnsLeft;
+	gridItemPosition errorPos = {-1, -1};
+	gridItemPosition movePos = suggestMove(currState, currPlayerSkill);
+	if (isSamePos(movePos, errorPos)){ // there was an error while getting the suggested move
+		freeState(currState); /* free memory */
+		return;
+	}
+	SDL_Delay(1000);
+	makeGameMoveIfLegal(pgViewState, pgModel,movePos);
+	freeState(currState); /* free memory */
 }
+
+
+
 
 
 /*
@@ -27,7 +54,7 @@ ListRef getChildren(void * data){
 	ListRef tempList = childsList; /* use a tempList pointer to add the next child into */
 	gridItemPosition currPlayerPos = currState->isCatCurrPlayer? currState->catPos : currState->mousePos;
 	gridItemPosition movePos = {-1,-1};
-	logicalEventType directionArr[] = {GO_UP, GO_RIGHT, GO_DOWN, GO_LEFT};
+	direction directionArr[] = {UP, RIGHT, DOWN, LEFT};
 	for (int i = 0; i < NUM_DIRECTIONS; i++){
 		movePos = getPosByDirection(currPlayerPos, directionArr[i]);
 		if (isMoveValid(currState->gridData, currPlayerPos, movePos)){
@@ -78,12 +105,11 @@ GameStateRef createChildState(GameStateRef parentState, gridItemPosition movePos
  * create a child grid according to its parent state and to the column
  * its disc should be added.
  */
-char ** createChildGrid(GameState parentState, gridItemPosition movePos, gridItemPosition currPlayerPos){
-	char ** childGrid = initGrid(); /* create and initialize child board with zeros */
+char ** createChildGrid(GameStateRef parentState, gridItemPosition movePos, gridItemPosition currPlayerPos){
+	char ** childGrid = copyGrid(parentState->gridData); /* copy parent's grid content into child grid */
 	if (childGrid == NULL){ /* failed to initialize board */
 		return NULL;
 	}
-	copyGrid(parentState->gridData, childGrid); /* copy parent's board content into childBoard */
 	childGrid[currPlayerPos.row][currPlayerPos.col] = EMPTY_CELL_CHAR;
 	childGrid[movePos.row][movePos.col] = parentState-> isCatCurrPlayer ? CAT_CHAR : MOUSE_CHAR;
 	return childGrid;
@@ -91,43 +117,78 @@ char ** createChildGrid(GameState parentState, gridItemPosition movePos, gridIte
 
 /**
  * copyGrid function:
- * gets two integer matrices of size NUM_ROWS*NUM_COLS and copy the content
- * from one to another.
+ * gets a grid of size NUM_ROWS*NUM_COLS and copies the content
+ * to a newly created grid.
  */
-void copyGrid(char ** fromGrid, char ** toGrid){
+char ** copyGrid(char ** fromGrid){
+	char ** toGrid = initGrid(); /* create and initialize child board with zeros */
+	if (toGrid == NULL){ /* failed to initialize board */
+		return NULL;
+	}
 	for (int i = 0; i < ROW_NUM; i++){
 		for(int j = 0; j < COL_NUM; j++){
 			toGrid[i][j] = fromGrid[i][j];
 		}
 	}
+	return toGrid;
 }
 
 
 
 /**
  * suggestMove function:
- * First, get the index of the best child of the current state's
- * childList, then return the child real column according to the
+ * First, get the index of the best child of the current state's childList,
+ * then return the child real direction according to the
  * state's valid moves.
  */
-int suggestMove(GameStateRef state, int maxDepth){
-	struct MiniMaxResult res = getBestChild(state, maxDepth, getChildren, freeState, evaluate, state->isMaxPlayer);
+gridItemPosition suggestMove(GameStateRef state, int maxDepth){
+	struct MiniMaxResult res = getBestChild(state, maxDepth, getChildren, freeState, evaluate, state->isCatCurrPlayer);
 	if (res.index == -2){ /* getBestChild failed */
-		return -2; /*return error */
+		gridItemPosition errorPos = {-1, -1};
+		return errorPos; /*return error */
 	}
-	int ** board = state->board; /* get the game board of the current state */
+	direction directionArr[] = {UP, RIGHT, DOWN, LEFT};
+	gridItemPosition movePos = {-1,-1};
+	gridItemPosition currPlayerPos = state->isCatCurrPlayer? state->catPos : state->mousePos;
 	int j = -1;
 	int i;
-	for (i=0; i < NUMCOLS ; i++){ /* go over each column */
-		if (!isColumnFull(board,i)){ /* if the column is not full then it is a valid move */
+	for (i=0; i < NUM_DIRECTIONS ; i++){ /* go over each column */
+		movePos = getPosByDirection(currPlayerPos, directionArr[i]);
+		if (isMoveValid(state->gridData, currPlayerPos, movePos)){
 			j++;
 		}
-		if (j == res.index){ /* check if the number of valid moves passes is equal to best child index */
+		if (j == res.index){ /* check if the number of valid moves passed is equal to best child index */
 			break;
 		}
 	}
-	return i; /* i is the column that represents the place of the child index relative to the valid moves */
+	return movePos; /* movePos returned represents the move of the child index relative to the valid moves */
 }
+
+/**
+ * evaluate function:
+ * gets the current state as void * and takes only its board
+ * uses evalBoard function to evaluate the board evaluation
+ */
+int evaluate(void * state){
+	GameStateRef currState = state;
+	gameOverType gameOverType = checkGameOverType(currState->catPos, currState->mousePos,
+			currState->cheesePos, currState->numTurnsLeft);
+	if (gameOverType == CAT_WINS)
+		return MAX_EVALUATION;
+	if (gameOverType == CAT_WINS)
+		return MIN_EVALUATION;
+	int eval;
+	int CMrowDiff = abs(currState->catPos.row-currState->mousePos.row);
+	int CMcolDiff = abs(currState->catPos.col-currState->mousePos.col);
+	int MProwDiff = abs(currState->mousePos.row-currState->cheesePos.row);
+	int MPcolDiff = abs(currState->mousePos.col-currState->cheesePos.col);
+	if (currState->isCatCurrPlayer)
+		eval = ROW_NUM - CMrowDiff + COL_NUM - CMcolDiff;
+	else //mouse is currPlayer
+		eval =  -1*(CMrowDiff + CMcolDiff) -1*(ROW_NUM - MProwDiff + COL_NUM - MPcolDiff);
+	return eval;
+}
+
 
 /**
  * freeState function:
@@ -137,5 +198,5 @@ int suggestMove(GameStateRef state, int maxDepth){
 void freeState(void * data){
 	GameStateRef gameData = data;
 	freeGridData(gameData->gridData);
-	free(gameData);
+	free(data);
 }

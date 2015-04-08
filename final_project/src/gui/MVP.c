@@ -450,7 +450,7 @@ void startPlayGame(GUIref gui, void* initData){
 	gui->viewState = pgViewState;
 
 	//check if game is over
-	pgModel->isGameOver = checkGameOver(pgModel);
+	pgModel->isGameOver = updateGameOver(pgModel);
 
 
 	// create image surface for gui
@@ -952,16 +952,16 @@ StateId worldBuilderPHE(void* model, void* viewState, void* logicalEvent){
 			changeSelectedGridSquare(wbView->gridPanel, wbView->gridItemsImgArr,&wbModel->currPos, wbEvent->gridPos);
 			break;
 		case(GO_UP):
-			changeSelectedPosByArrow(wbView->gridPanel, wbView->gridItemsImgArr, &wbModel->currPos, GO_UP);
+			changeSelectedPosByArrow(wbView->gridPanel, wbView->gridItemsImgArr, &wbModel->currPos, UP);
 			break;
 		case(GO_DOWN):
-			changeSelectedPosByArrow(wbView->gridPanel, wbView->gridItemsImgArr, &wbModel->currPos, GO_DOWN);
+			changeSelectedPosByArrow(wbView->gridPanel, wbView->gridItemsImgArr, &wbModel->currPos, DOWN);
 			break;
 		case(GO_RIGHT):
-			changeSelectedPosByArrow(wbView->gridPanel, wbView->gridItemsImgArr, &wbModel->currPos, GO_RIGHT);
+			changeSelectedPosByArrow(wbView->gridPanel, wbView->gridItemsImgArr, &wbModel->currPos, RIGHT);
 			break;
 		case(GO_LEFT):
-			changeSelectedPosByArrow(wbView->gridPanel, wbView->gridItemsImgArr, &wbModel->currPos, GO_LEFT);
+			changeSelectedPosByArrow(wbView->gridPanel, wbView->gridItemsImgArr, &wbModel->currPos, LEFT);
 			break;
 		case(NO_EVENT):
 			break;
@@ -1010,16 +1010,16 @@ StateId playGamePHE(void* model, void* viewState, void* logicalEvent){
 			makeGameMoveIfLegal(pgViewState, pgModel, pgEvent->gridPos); // will call call change selected grid square if needed
 			break;
 		case(GO_UP):
-			makeGameMoveByArrowIfLegal(pgViewState, pgModel, GO_UP);
+			makeGameMoveByArrowIfLegal(pgViewState, pgModel, UP);
 			break;
 		case(GO_DOWN):
-			makeGameMoveByArrowIfLegal(pgViewState, pgModel, GO_DOWN);
+			makeGameMoveByArrowIfLegal(pgViewState, pgModel, DOWN);
 			break;
 		case(GO_RIGHT):
-			makeGameMoveByArrowIfLegal(pgViewState, pgModel, GO_RIGHT);
+			makeGameMoveByArrowIfLegal(pgViewState, pgModel, RIGHT);
 			break;
 		case(GO_LEFT):
-			makeGameMoveByArrowIfLegal(pgViewState, pgModel, GO_LEFT);
+			makeGameMoveByArrowIfLegal(pgViewState, pgModel, LEFT);
 			break;
 		case(NO_EVENT):
 			break;

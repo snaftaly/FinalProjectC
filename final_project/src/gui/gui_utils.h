@@ -79,6 +79,13 @@ typedef enum{
 } logicalEventType;
 
 typedef enum{
+	UP,
+	DOWN,
+	RIGHT,
+	LEFT
+} direction;
+
+typedef enum{
 	CAT,
 	MOUSE,
 	CHEESE,
@@ -92,7 +99,8 @@ typedef enum{
 typedef enum{
 	CAT_WINS,
 	MOUSE_WINS,
-	TIE
+	TIE,
+	GAME_NOT_OVER
 } gameOverType;
 
 /* The GUI structure. */

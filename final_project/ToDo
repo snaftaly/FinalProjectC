@@ -1,5 +1,7 @@
 things to do:
 
+-change the order of buttons in world menu bmp - done and back at the top and world nums after - change positions accordingly
+
 - in all vte's set returnEvent to NO_EVENT in the beginning.
 
 - the only guis that need to know the return stateId are mainMenu, pgm and wb. pg & wb need to know about quit and 
