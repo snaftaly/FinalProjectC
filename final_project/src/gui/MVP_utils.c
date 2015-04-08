@@ -62,7 +62,7 @@ void initWorldBuilderModel(GUIref gui, void* initData){
 		wbData->currPos = currPos;
 	}
 
-	updateItemsPostions(&wbData->mousePos,&wbData->catPos,&wbData->cheesePos, wbData->gameGridData);
+	updateItemsPositions(&wbData->mousePos,&wbData->catPos,&wbData->cheesePos, wbData->gameGridData);
 
 	free(initData);
 }
@@ -97,7 +97,7 @@ void initPlayGameModel(GUIref gui, void* initData){
 	pgData->isGamePaused = 0;
 	pgData->doRestartGame = 0;
 
-	updateItemsPostions(&pgData->mousePos,&pgData->catPos,&pgData->cheesePos, pgData->gameGridData);
+	updateItemsPositions(&pgData->mousePos,&pgData->catPos,&pgData->cheesePos, pgData->gameGridData);
 
 	free(initData);
 }
@@ -367,8 +367,10 @@ int updateGameOver(PGDataRef pgModel){
 	return 1;
 }
 
+
 gameOverType checkGameOverType(gridItemPosition catPos, gridItemPosition mousePos,
 		gridItemPosition cheesePos, int numTurnsLeft){
+
 	if (isAdjPos(catPos, mousePos)){
 		return CAT_WINS;
 	}
@@ -379,6 +381,11 @@ gameOverType checkGameOverType(gridItemPosition catPos, gridItemPosition mousePo
 		return TIE;
 	}
 	return GAME_NOT_OVER;
+}
+
+void printPos(gridItemPosition pos){
+	printf("col: %d", pos.col);
+	printf("row: %d \n", pos.row);
 }
 
 int isAdjPos(gridItemPosition pos1, gridItemPosition pos2){
@@ -634,7 +641,7 @@ void changeSelectedGridSquare(Widget * gridPanel, Widget ** gridItemsImages, gri
 
 
 
-void updateItemsPostions(gridItemPosition * mousePosRef,gridItemPosition * catPosRef, gridItemPosition * cheesePosRef,
+void updateItemsPositions(gridItemPosition * mousePosRef,gridItemPosition * catPosRef, gridItemPosition * cheesePosRef,
 		char ** gameGridData){
 
 	gridItemPosition catPos = {-1, -1};
@@ -958,8 +965,9 @@ void warnIllegalMove(ViewStateref pgViewState, gridItemPosition eventPos, gridIt
 
 void restartGame(ViewStateref pgViewState, PGDataRef pgModel){
 	freeGridData(pgModel->gameGridData);
-	pgModel->gameGridData = initGameDataByFile(pgModel->loadGameWorld, &pgModel->numTurnsLeft, &pgModel->isCatCurrPlayer);
-	updateItemsPostions(&pgModel->mousePos,&pgModel->catPos,&pgModel->cheesePos, pgModel->gameGridData);
+	pgModel->gameGridData = initGameDataByFile(pgModel->loadGameWorld, &pgModel->numTurnsLeft,
+			&pgModel->isCatCurrPlayer);
+	updateItemsPositions(&pgModel->mousePos,&pgModel->catPos,&pgModel->cheesePos, pgModel->gameGridData);
 	createGridByData(pgViewState->gridPanel, pgModel->gameGridData, pgViewState->gridItemsImgArr);
 	selectGridPos(pgViewState->gridPanel, pgViewState->gridItemsImgArr, *getCurrPlayerPos(pgModel));
 	if (updateGameOver(pgModel)){

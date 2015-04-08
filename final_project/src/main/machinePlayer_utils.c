@@ -4,7 +4,7 @@
 
 void updateMachineMoveIfNeeded(GUI pgGUI){
 	PGDataRef pgModel = pgGUI.model;
-	if (isCurrPlayerHuman(pgModel))
+	if (isCurrPlayerHuman(pgModel) || pgModel->isGameOver || pgModel->isGamePaused)
 		return;
 	ViewStateref pgViewState = pgGUI.viewState;
 	GameStateRef currState = (GameStateRef)malloc(sizeof(GameState)); /* allocate memory for currState  */
@@ -94,8 +94,9 @@ GameStateRef createChildState(GameStateRef parentState, gridItemPosition movePos
 	childState->gridData = childGrid;
 	childState->isCatCurrPlayer = 1-parentState->isCatCurrPlayer;
 	childState->numTurnsLeft = parentState->numTurnsLeft-1;
-	childState->catPos = parentState->isCatCurrPlayer ? movePos : childState->catPos;
-	childState->mousePos = parentState->isCatCurrPlayer ? childState->mousePos : movePos;
+	childState->catPos = parentState->isCatCurrPlayer ? movePos : parentState->catPos;
+	childState->mousePos = parentState->isCatCurrPlayer ? parentState->mousePos : movePos;
+	childState->cheesePos = parentState->cheesePos;
 
 	return childState;
 }
@@ -133,8 +134,6 @@ char ** copyGrid(char ** fromGrid){
 	return toGrid;
 }
 
-
-
 /**
  * suggestMove function:
  * First, get the index of the best child of the current state's childList,
@@ -149,10 +148,10 @@ gridItemPosition suggestMove(GameStateRef state, int maxDepth){
 	}
 	direction directionArr[] = {UP, RIGHT, DOWN, LEFT};
 	gridItemPosition movePos = {-1,-1};
-	gridItemPosition currPlayerPos = state->isCatCurrPlayer? state->catPos : state->mousePos;
+	gridItemPosition currPlayerPos = state->isCatCurrPlayer ? state->catPos : state->mousePos;
 	int j = -1;
 	int i;
-	for (i=0; i < NUM_DIRECTIONS ; i++){ /* go over each column */
+	for (i = 0; i < NUM_DIRECTIONS ; i++){ /* go over each column */
 		movePos = getPosByDirection(currPlayerPos, directionArr[i]);
 		if (isMoveValid(state->gridData, currPlayerPos, movePos)){
 			j++;
@@ -173,6 +172,7 @@ int evaluate(void * state){
 	GameStateRef currState = state;
 	gameOverType gameOverType = checkGameOverType(currState->catPos, currState->mousePos,
 			currState->cheesePos, currState->numTurnsLeft);
+
 	if (gameOverType == CAT_WINS)
 		return MAX_EVALUATION;
 	if (gameOverType == CAT_WINS)

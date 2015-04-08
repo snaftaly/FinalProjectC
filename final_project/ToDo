@@ -1,6 +1,20 @@
 things to do:
 
--change the order of buttons in world menu bmp - done and back at the top and world nums after - change positions accordingly
+- make sure we don't have unnecesary prints
+
+- fix choose cat/mouse when returning from play game if they are mahchines.
+
+- improve evaluation function
+
+- support console mode
+
+- before submittig - bring back to original world files.
+
+- make labels transparent
+
+- when returning to play game - if the game is paused, keep it paused. 
+
+- change the order of buttons in world menu bmp - done and back at the top and world nums after - change positions accordingly
 
 - in all vte's set returnEvent to NO_EVENT in the beginning.
 

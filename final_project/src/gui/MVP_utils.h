@@ -77,7 +77,7 @@ void changeSelectedPosByArrow(Widget * gridPanel, Widget ** gridItemsImages,
 		gridItemPosition * currPos, direction direction);
 void changeSelectedGridSquare(Widget * gridPanel, Widget ** gridItemsImages, gridItemPosition * currPos,
 		gridItemPosition newPos);
-void updateItemsPostions(gridItemPosition * mousePos,gridItemPosition * catPos,gridItemPosition * cheesePos,
+void updateItemsPositions(gridItemPosition * mousePos,gridItemPosition * catPos,gridItemPosition * cheesePos,
 		char ** gameGridData);
 void saveGridDataToFile(int worldNum, int isCatFirst, char ** gridData);
 int isSamePos(gridItemPosition pos1, gridItemPosition pos2);
@@ -126,6 +126,7 @@ void freeMenuData(MenuDataRef menuData);
 void freeGridItems(Widget ** gridItemsImages);
 void freeGridData(char ** gridData);
 
+void printPos(gridItemPosition pos); //delete this functions!!!!!!
 
 
 

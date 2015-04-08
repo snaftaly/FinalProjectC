@@ -990,21 +990,15 @@ StateId playGamePHE(void* model, void* viewState, void* logicalEvent){
 				returnStateId = states[pgEvent->buttonNum];
 				if (pgEvent->buttonNum == 3){ // restart the game
 					restartGame(pgViewState, pgModel);
-					//pgModel->doRestartGame = 1;//restart the game somehow! think about top panel widgets!!!!!
 				}
 				if (pgEvent->buttonNum == 0 && pgModel->isGamePaused){ //game is paused and space was pressed
 					resumeGame(pgViewState, pgModel);
-					//pgModel->isGamePaused = 0;
-					//setPauseButton(pgModel, pgView); // how do we update the view????? (blit up to window)
 				}
 			}
 			else if (pgEvent->buttonNum == 0){ // game is running and space was pressed
 				pauseGame(pgViewState, pgModel);
 				//setPauseButton(pgModel, pgViewState);// how do we update the view????? (blit up to window)
 			}
-//			else if (returnStateId == QUIT){ // we don't need isQuit if we save the data of return stateId in a var.
-//				isQuit = 1; !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1 and also in wb and main menu
-//			}
 			break;
 		case(SELECT_SQUARE):
 			makeGameMoveIfLegal(pgViewState, pgModel, pgEvent->gridPos); // will call call change selected grid square if needed
@@ -1027,8 +1021,6 @@ StateId playGamePHE(void* model, void* viewState, void* logicalEvent){
 			break;
 
 	}
-//	if (returnStateId == PLAY_GAME && !isError)
-//		updatePGViewByGameState(pgViewState, pgModel);
 	free(logicalEvent);
 	pgModel->returnStateId = returnStateId;
 	return returnStateId;

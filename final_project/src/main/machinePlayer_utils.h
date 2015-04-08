@@ -16,12 +16,12 @@
  * - current positions of cat and mouse
  */
 typedef struct GameState{
-	char ** gridData;
 	int isCatCurrPlayer;
 	int numTurnsLeft;
 	gridItemPosition catPos;
 	gridItemPosition mousePos;
 	gridItemPosition cheesePos;
+	char ** gridData;
 } GameState;
 
 typedef struct GameState * GameStateRef; /* a pointer to struct GameState */
