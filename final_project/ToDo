@@ -20,10 +20,9 @@ things to do:
 
 -check where we can use change curr player position, and use it!
 
-- if the game is paused and we go to reconfigure mouse/cat, when we get back to the game, should it be in paused state? YES!
-handle that!!!
 
-- maybe check game over will set is game over to 1
+
+
 
 - in wp phe and pg phe and in all functions that deal with the positions - create an enum of directions and use it! make sure
   
@@ -56,7 +55,9 @@ handle that!!!
 
 - check memory allocations and frees!
 
-- unserstand how to make the makfile use relative path in signs 
+- unserstand how to make the makfile use relative path in signs
+
+- makefile - understand how to work with folders and relative paths
  
 
 DONE
@@ -72,7 +73,10 @@ about returning to main menu. main menu needs to know about quit.
 
 - in the functions where we use #, c,p,m etc use the defines
 
+- if the game is paused and we go to reconfigure mouse/cat, when we get back to the game, should it be in paused state? YES!
+handle that!!!
 
+- maybe check game over will set is game over to 1
 MAYBE
 =====
 - change the order of buttons in world menu bmp (done and back) at the top and world nums after - change positions accordingly
