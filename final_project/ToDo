@@ -2,7 +2,7 @@ things to do:
 
 - make sure we don't have unnecesary prints
 
-- fix choose cat/mouse when returning from play game if they are mahchines.
+- delete unncessary comments!
 
 - improve evaluation function
 
@@ -12,16 +12,11 @@ things to do:
 
 - make labels transparent
 
-- when returning to play game - if the game is paused, keep it paused. 
+- go over the code and make sure that we handke errors correctly (ask if isError, free the data correctly etc.)
+ 
+- make sure we initialize all the relevant data in the initialize functions
 
-- change the order of buttons in world menu bmp - done and back at the top and world nums after - change positions accordingly
 
-- in all vte's set returnEvent to NO_EVENT in the beginning.
-
-- the only guis that need to know the return stateId are mainMenu, pgm and wb. pg & wb need to know about quit and 
-about returning to main menu. main menu needs to know about quit. 
-
-- in the functions where we use #, c,p,m etc use the defines
 
 -check where we can use change curr player position, and use it!
 
@@ -30,7 +25,7 @@ handle that!!!
 
 - maybe check game over will set is game over to 1
 
-- in wp phe and pg phe and in all functions that deal with the positions - create an enum of directions and use it!
+- in wp phe and pg phe and in all functions that deal with the positions - create an enum of directions and use it! make sure
   
 
 - we need to check that whereever we call a function that can cause isError=1, then after it we check that isError is 1 and 
@@ -64,3 +59,20 @@ handle that!!!
 - unserstand how to make the makfile use relative path in signs 
  
 
+DONE
+====
+- fix choose cat/mouse when returning from play game if they are mahchines.
+
+- when returning to play game - if the game is paused, keep it paused. 
+
+- in all vte's set returnEvent to NO_EVENT in the beginning.
+
+- the only guis that need to know the return stateId are mainMenu, pg and wb. pg & wb need to know about quit and 
+about returning to main menu. main menu needs to know about quit. 
+
+- in the functions where we use #, c,p,m etc use the defines
+
+
+MAYBE
+=====
+- change the order of buttons in world menu bmp (done and back) at the top and world nums after - change positions accordingly

@@ -92,10 +92,11 @@ void initPlayGameModel(GUIref gui, void* initData){
 	pgData->catSkill = menuData->catSkill;
 	pgData->isMouseHuman = menuData->isMouseHuman;
 	pgData->mouseSkill = menuData->mouseSkill;
+	pgData->isGamePaused = menuData->isGamePaused;
 
 	pgData->isGameOver = 0;
-	pgData->isGamePaused = 0;
 	pgData->doRestartGame = 0;
+
 
 	updateItemsPositions(&pgData->mousePos,&pgData->catPos,&pgData->cheesePos, pgData->gameGridData);
 
@@ -383,10 +384,10 @@ gameOverType checkGameOverType(gridItemPosition catPos, gridItemPosition mousePo
 	return GAME_NOT_OVER;
 }
 
-void printPos(gridItemPosition pos){
-	printf("col: %d", pos.col);
-	printf("row: %d \n", pos.row);
-}
+//void printPos(gridItemPosition pos){
+//	printf("col: %d", pos.col);
+//	printf("row: %d \n", pos.row);
+//}
 
 int isAdjPos(gridItemPosition pos1, gridItemPosition pos2){
 	if ((pos1.col == pos2.col && abs(pos1.row - pos2.row) == 1) ||
@@ -414,6 +415,12 @@ void freeViewState(ViewStateref guiViewState){
 }
 
 
+void freeVoidData(void * data){
+	if (data != NULL){
+		free(data); // maybe we need a function for that???? we don't want to free the char **
+	}
+}
+
 void freeGridItems(Widget ** gridItemsImages){
 	for (int i = 0; i < NUM_GRID_ITEMS; i++)
 		freeWidget(gridItemsImages[i]);
@@ -428,19 +435,19 @@ void createGridByData(Widget *gridPanel, char **gridData, Widget **gridItemImage
 	for (int i = 0; i < ROW_NUM; i++){
 		for (int j = 0; j < COL_NUM; j++){
 			switch(gridData[i][j]){
-				case('C'):
+				case(CAT_CHAR):
 					currItemImage = gridItemImages[CAT];
 					break;
-				case('M'):
+				case(MOUSE_CHAR):
 					currItemImage = gridItemImages[MOUSE];
 					break;
-				case('P'):
+				case(CHEESE_CHAR):
 					currItemImage = gridItemImages[CHEESE];
 					break;
-				case('W'):
+				case(WALL_CHAR):
 					currItemImage = gridItemImages[WALL];
 					break;
-				case('#'):
+				case(EMPTY_CELL_CHAR):
 					currItemImage = gridItemImages[EMPTY];
 					break;
 				default:
@@ -545,9 +552,9 @@ void addReusableItemToPos(gridItem itemType, char ** gridData, Widget * gridPane
 	Widget * itemImage = gridItemsImages[itemType];
 	blitItemToGrid(gridPanel, itemImage, currPos.row, currPos.col);
 	if (itemType == WALL)
-		gridData[currPos.row][currPos.col] = 'W';
+		gridData[currPos.row][currPos.col] = WALL_CHAR;
 	else
-		gridData[currPos.row][currPos.col] = '#';
+		gridData[currPos.row][currPos.col] = EMPTY_CELL_CHAR;
 }
 
 void putGridItemInPos(WBDataRef wbModel, Widget * gridPanel, Widget ** gridItemsImages,
@@ -597,7 +604,7 @@ void moveItemToPos(gridItem itemType, Widget ** gridItemsImages, Widget * gridPa
 }
 
 char getItemChar(gridItem item){
-	char itemsChars[5] = {'C', 'M', 'P', 'W', '#'};
+	char itemsChars[5] = {CAT_CHAR, MOUSE_CHAR, CHEESE_CHAR, WALL_CHAR, EMPTY_CELL_CHAR};
 	return itemsChars[item];
 }
 
@@ -653,15 +660,15 @@ void updateItemsPositions(gridItemPosition * mousePosRef,gridItemPosition * catP
 	for (int i = 0 ; i < ROW_NUM ;i++){
 		for (int j = 0; j < COL_NUM; j++){
 			char currItemChar = gameGridData[i][j];
-			if (currItemChar == 'M'){
+			if (currItemChar == MOUSE_CHAR){
 				mousePosRef->row = i;
 				mousePosRef->col = j;
 			}
-			else if (currItemChar == 'C'){
+			else if (currItemChar == CAT_CHAR){
 				catPosRef->row = i;
 				catPosRef->col = j;
 			}
-			else if (currItemChar == 'P'){
+			else if (currItemChar == CHEESE_CHAR){
 				cheesePosRef->row = i;
 				cheesePosRef->col = j;
 			}
@@ -732,24 +739,34 @@ char ** initGameDataByFile(int worldNum, int * numTurns, int * isCatFirst){
 	}
 	else{
 		//open the file:
-		char filename[WORLD_FILE_NAME_LEN];
-		if (sprintf(filename, "%s%s%d.%s", WORLD_FILE_PATH, WORLD_FILE_NAME_PREFIX, worldNum, WORLD_FILE_NAME_TYPE) < 0){
-			perrorPrint("sprintf");
-			return NULL;
+		FILE * worldFile = NULL;
+		if (worldNum == -1){ //read from standard input
+			worldFile = stdin;
 		}
-		FILE * worldFile = fopen(filename,"r");
-		if (worldFile == NULL){
-			perrorPrint("fopen");
-			return NULL;
+		else { // read from appropriate world file
+			char filename[WORLD_FILE_NAME_LEN];
+			if (sprintf(filename, "%s%s%d.%s", WORLD_FILE_PATH, WORLD_FILE_NAME_PREFIX, worldNum, WORLD_FILE_NAME_TYPE) < 0){
+				perrorPrint("sprintf");
+				freeGridData(grid);
+				return NULL;
+			}
+			worldFile = fopen(filename,"r");
+			if (worldFile == NULL){
+				perrorPrint("fopen");
+				freeGridData(grid);
+				return NULL;
+			}
 		}
 		//update numTurns
 		if (fscanf(worldFile, "%d", numTurns) < 0){
 			perrorPrint("fscanf");
+			freeGridData(grid);
 			return NULL;
 		}
 		//update isCatFirst
 		if (fscanf(worldFile, "%s", firstAnimal) < 0){
 			perrorPrint("fscanf");
+			freeGridData(grid);
 			return NULL;
 		}
 		if (strcmp(firstAnimal, "cat") == 0)
@@ -764,6 +781,7 @@ char ** initGameDataByFile(int worldNum, int * numTurns, int * isCatFirst){
 					while (1){
 						if ((fscanf(worldFile, "%c" , &nextChar)) < 0){
 							perrorPrint("fscanf");
+							freeGridData(grid);
 							return NULL;
 						}
 						if (nextChar != '\r' && nextChar != '\n')
@@ -774,6 +792,7 @@ char ** initGameDataByFile(int worldNum, int * numTurns, int * isCatFirst){
 				else{
 					if ((fscanf(worldFile, "%c" , &nextChar)) < 0){
 						perrorPrint("fscanf");
+						freeGridData(grid);
 						return NULL;
 					}
 					grid[i][j] = nextChar;
@@ -819,6 +838,7 @@ MenuDataRef initMenuDataToDefault(){
 
 	menuData->preWorldBuilder = MAIN_MENU;
 	menuData->loadFromFile = 0;
+	menuData->isGamePaused = 0;
 
 	/* what else ???? */
 

@@ -189,10 +189,12 @@ typedef struct MenuData{
 	int numTurns;
 	gridItemPosition wbCurrPos;
 	int loadFromFile;
-	char ** gameGridData;
 	int missingItems;
+	int isGamePaused;
 
 	StateId retStateId;
+
+	char ** gameGridData;
 
 } MenuData;
 
@@ -200,7 +202,7 @@ typedef struct MenuData * MenuDataRef;
 
 
 typedef struct WBData{
-	char ** gameGridData;
+
 	gridItemPosition catPos;
 	gridItemPosition mousePos;
 	gridItemPosition cheesePos;
@@ -213,12 +215,13 @@ typedef struct WBData{
 
 	StateId returnStateId;
 
+	char ** gameGridData;
+
 } WBData;
 
 typedef struct WBData * WBDataRef;
 
 typedef struct PGData{
-	char ** gameGridData;
 
 	gridItemPosition catPos;
 	gridItemPosition mousePos;
@@ -239,6 +242,8 @@ typedef struct PGData{
 	int mouseSkill;
 
 	StateId returnStateId;
+
+	char ** gameGridData;
 
 } PGData;
 

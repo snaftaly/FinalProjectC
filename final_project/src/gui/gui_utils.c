@@ -28,6 +28,8 @@ int addChildWidgetsToParent(ListRef parent){
 
 //change return value to null!!
 int blitChildToParentWidget(Widget * childWidget, Widget * parentWidget){
+	if (parentWidget == NULL)
+		return 0;
 	switch (childWidget->type){
 		case(PANEL):
 			if (SDL_BlitSurface(childWidget->surface, NULL,

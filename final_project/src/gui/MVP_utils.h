@@ -125,8 +125,9 @@ void freeViewState(ViewStateref guiViewState);
 void freeMenuData(MenuDataRef menuData);
 void freeGridItems(Widget ** gridItemsImages);
 void freeGridData(char ** gridData);
+void freeVoidData(void * data);
 
-void printPos(gridItemPosition pos); //delete this functions!!!!!!
+//void printPos(gridItemPosition pos); //delete this functions!!!!!!
 
 
 

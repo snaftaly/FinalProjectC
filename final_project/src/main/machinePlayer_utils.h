@@ -36,5 +36,6 @@ char ** copyGrid(char ** fromGrid);
 gridItemPosition suggestMove(GameStateRef state, int maxDepth);
 int evaluate(void * state);
 void freeState(void * data);
+void consoleMode();
 
 #endif //MACHINEUTILS_H_

@@ -200,3 +200,32 @@ void freeState(void * data){
 	freeGridData(gameData->gridData);
 	free(data);
 }
+
+
+
+
+void consoleMode(){
+	int isCatCurrPlayer, numTurnsLeft;
+	gridItemPosition catPos, mousePos, cheesePos;
+	char ** gridData = initGameDataByFile(-1, &numTurnsLeft, &isCatCurrPlayer);
+	if (gridData == NULL)
+		return;
+	updateItemsPositions(&mousePos,&catPos,&cheesePos, gridData);
+
+	GameStateRef currState = (GameStateRef)malloc(sizeof(GameState)); /* allocate memory for currState  */
+	if (currState == NULL){ /* malloc failed */
+		perrorPrint("malloc");
+		freeGridData(gridData);
+		return;
+	}
+	currState->gridData = gridData;
+	currState->catPos = catPos;
+	currState->mousePos = mousePos;
+	currState->cheesePos = cheesePos;
+	currState->isCatCurrPlayer = isCatCurrPlayer;
+	currState->numTurnsLeft = numTurnsLeft;
+	int eval = evaluate(currState);
+	printf("%d\n",eval);
+	// what should we do now????
+
+}
