@@ -67,8 +67,8 @@ int main(int argc, char * argv[]){
 				}
 				else {
 					void* nextGuiInitData = activeGUI.stop(&activeGUI);
-//					if (isError) //added!!!
-//						break;
+					if (isError) //added!!!
+						break;
 					activeGUI = guis[nextStateId];
 					activeGUI.start(&activeGUI, nextGuiInitData);
 				}

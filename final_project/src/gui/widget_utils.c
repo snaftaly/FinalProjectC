@@ -48,7 +48,7 @@ Widget * create_panel(int x, int y, int width, int height, int red, int green, i
 }
 
 Widget * create_image(int x, int y, int width, int height, SDL_Surface * img,
-		int imgx, int imgy){
+		int imgx, int imgy){ //, int setTransparent
 	Widget * new_image = createGeneralWidget(x, y, width, height, IMAGE);
 	if(new_image == NULL){
 		return NULL;
@@ -56,6 +56,8 @@ Widget * create_image(int x, int y, int width, int height, SDL_Surface * img,
 	new_image->surface = img;
 	SDL_Rect img_rect = {imgx, imgy, width ,height};
 	new_image->img_rect= img_rect;
+	//if (setTransparent)
+		//setImageTransparent(new_image, 255, 255, 255);
 	return new_image;
 }
 
