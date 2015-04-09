@@ -806,6 +806,8 @@ StateId chooseCatPHE(void* model, void* viewState, void* logicalEvent){
 		chooseCatModel->isCatHuman = 1;
 		chooseCatModel->preChooseMouse = CHOOSE_CAT;
 	}
+	else if (returnStateId == PLAY_GAME && chooseCatModel->chooseCatButton == 0)
+		chooseCatModel->isCatHuman = 1;
 	else if (returnStateId == CAT_SKILL)
 		chooseCatModel->currValueTemp = chooseCatModel->catSkill;
 	chooseCatModel->retStateId = returnStateId;
@@ -820,10 +822,9 @@ StateId chooseMousePHE(void* model, void* viewState, void* logicalEvent){
 	StateId chooseMouseStates[COMMON_MENU_NUM_BUTTONS] = {PLAY_GAME, MOUSE_SKILL, chooseMouseModel->preChooseMouse};
 	returnStateId = generalMenuPHE(model, viewState, logicalEvent, chooseMouseStates, COMMON_MENU_NUM_BUTTONS,
 			returnStateId, &chooseMouseModel->chooseMouseButton, NULL, 0);
-//	if (returnStateId == PLAY_GAME)
-//		chooseMouseModel->isMouseHuman = 1;
-//	else
-	if (returnStateId == MOUSE_SKILL)
+	if (returnStateId == PLAY_GAME && chooseMouseModel->chooseMouseButton == 0)
+		chooseMouseModel->isMouseHuman = 1;
+	else if (returnStateId == MOUSE_SKILL)
 		chooseMouseModel->currValueTemp = chooseMouseModel->mouseSkill;
 	chooseMouseModel->retStateId = returnStateId;
 	return returnStateId;
@@ -959,9 +960,6 @@ StateId worldBuilderPHE(void* model, void* viewState, void* logicalEvent){
 			else if (returnStateId == WORLD_BUILDER){
 				putGridItemInPos(wbModel, wbView->gridPanel, wbView->gridItemsImgArr, wbModel->currPos, wbEvent->buttonNum);
 			}
-			else if (returnStateId == QUIT){
-				isQuit = 1;
-			}
 			break;
 		case(SELECT_SQUARE):
 			changeSelectedGridSquare(wbView->gridPanel, wbView->gridItemsImgArr,&wbModel->currPos, wbEvent->gridPos);
@@ -1016,19 +1014,24 @@ StateId playGamePHE(void* model, void* viewState, void* logicalEvent){
 			}
 			break;
 		case(SELECT_SQUARE):
-			makeGameMoveIfLegal(pgViewState, pgModel, pgEvent->gridPos); // will call call change selected grid square if needed
+			if (isCurrPlayerHuman(pgModel))
+				makeGameMoveIfLegal(pgViewState, pgModel, pgEvent->gridPos); // will call call change selected grid square if needed
 			break;
 		case(GO_UP):
-			makeGameMoveByArrowIfLegal(pgViewState, pgModel, UP);
+			if (isCurrPlayerHuman(pgModel))
+				makeGameMoveByArrowIfLegal(pgViewState, pgModel, UP);
 			break;
 		case(GO_DOWN):
-			makeGameMoveByArrowIfLegal(pgViewState, pgModel, DOWN);
+			if (isCurrPlayerHuman(pgModel))
+				makeGameMoveByArrowIfLegal(pgViewState, pgModel, DOWN);
 			break;
 		case(GO_RIGHT):
-			makeGameMoveByArrowIfLegal(pgViewState, pgModel, RIGHT);
+			if (isCurrPlayerHuman(pgModel))
+				makeGameMoveByArrowIfLegal(pgViewState, pgModel, RIGHT);
 			break;
 		case(GO_LEFT):
-			makeGameMoveByArrowIfLegal(pgViewState, pgModel, LEFT);
+			if (isCurrPlayerHuman(pgModel))
+				makeGameMoveByArrowIfLegal(pgViewState, pgModel, LEFT);
 			break;
 		case(NO_EVENT):
 			break;
@@ -1053,7 +1056,7 @@ void* stopMenu(GUIref gui){ /* maybe this will be a general stop function */
 	freeViewState(guiViewState);
 
 	if (isError || returnData->retStateId == QUIT){
-		freeMenuData(returnData);
+		//freeMenuData(returnData);
 		return NULL;
 	}
 	return returnData;
@@ -1069,9 +1072,14 @@ void* stopWorldBuilder(GUI * gui){
 
 	freeViewState(guiViewState);
 
+	if (isError || wbData->returnStateId == QUIT || wbData->returnStateId == MAIN_MENU){
+		freeWBData(wbData, 1);
+		return NULL;
+	}
+
 	MenuDataRef returnData = initMenuDataToDefault();
 	if (isError){
-		freeVoidData(wbData);
+		freeWBData(wbData, 1);
 		return NULL;
 	}
 	//Assign values in return Data
@@ -1084,12 +1092,8 @@ void* stopWorldBuilder(GUI * gui){
 	returnData->currValueTemp = wbData->editedWorld ? wbData->editedWorld : MIN_VALUE;
 	returnData->missingItems = wbData->missingItems;
 
-	freeVoidData(wbData);
+	freeWBData(wbData, 0);
 
-	if (isError || wbData->returnStateId == QUIT || wbData->returnStateId == MAIN_MENU){
-		freeMenuData(returnData);
-		return NULL;
-	}
 	return returnData;
 }
 
@@ -1104,9 +1108,14 @@ void* stopPlayGame(GUI * gui){
 
 	freeViewState(guiViewState);
 
+	if (isError || pgData->returnStateId == QUIT || pgData->returnStateId == MAIN_MENU){
+		freePGData(pgData, 1);
+		return NULL;
+	}
+
 	MenuDataRef returnData = initMenuDataToDefault();
 	if (isError){
-		freeVoidData(pgData);
+		freePGData(pgData, 1);
 		return NULL;
 	}
 	//Assign values in return Data
@@ -1126,12 +1135,7 @@ void* stopPlayGame(GUI * gui){
 	returnData->chooseMouseButton = pgData->isMouseHuman ? 0 : 1;
 	returnData->isGamePaused = pgData->isGamePaused;
 
-	if (pgData != NULL){
-		freeVoidData(pgData);
-	}
-	if (isError || pgData->returnStateId == QUIT || pgData->returnStateId == MAIN_MENU){
-		freeMenuData(returnData);
-		return NULL;
-	}
+	freePGData(pgData, 0);
+
 	return returnData;
 }

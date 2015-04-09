@@ -122,10 +122,12 @@ int isMoveValid(char ** gridData, gridItemPosition currPlayerPos, gridItemPositi
 
 
 void freeViewState(ViewStateref guiViewState);
-void freeMenuData(MenuDataRef menuData);
 void freeGridItems(Widget ** gridItemsImages);
 void freeGridData(char ** gridData);
-void freeVoidData(void * data);
+void freeMenuData(MenuDataRef menuData);
+void freePGData(PGDataRef pgData, int doFreeGrid);
+void freeWBData(WBDataRef wbData, int doFreeGrid);
+
 
 //void printPos(gridItemPosition pos); //delete this functions!!!!!!
 

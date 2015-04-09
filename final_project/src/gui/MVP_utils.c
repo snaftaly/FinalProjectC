@@ -89,8 +89,8 @@ void initPlayGameModel(GUIref gui, void* initData){
 
 	pgData->loadGameWorld = menuData->loadGameWorld; // maybe we don't need to know this in pg!!!!
 	pgData->isCatHuman = menuData->isCatHuman;
-	pgData->catSkill = menuData->catSkill;
 	pgData->isMouseHuman = menuData->isMouseHuman;
+	pgData->catSkill = menuData->catSkill;
 	pgData->mouseSkill = menuData->mouseSkill;
 	pgData->isGamePaused = menuData->isGamePaused;
 
@@ -414,12 +414,22 @@ void freeViewState(ViewStateref guiViewState){
 	}
 }
 
-
-void freeVoidData(void * data){
-	if (data != NULL){
-		free(data); // maybe we need a function for that???? we don't want to free the char **
+void freeWBData(WBDataRef wbData, int doFreeGrid){
+	if (wbData != NULL){
+		if (doFreeGrid)
+			freeGridData(wbData->gameGridData);
+		free(wbData);
 	}
 }
+
+void freePGData(PGDataRef pgData, int doFreeGrid){
+	if (pgData != NULL){
+		if (doFreeGrid)
+			freeGridData(pgData->gameGridData);
+		free(pgData);
+	}
+}
+
 
 void freeGridItems(Widget ** gridItemsImages){
 	for (int i = 0; i < NUM_GRID_ITEMS; i++)
