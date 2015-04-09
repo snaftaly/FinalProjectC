@@ -189,6 +189,52 @@ int evaluate(void * state){
 	return eval;
 }
 
+int ** getDistanceWithBFS (gridItemPosition * itemPos, char ** gridData){  //need to deal with errors!!!!!!!!
+	int ** distances = initDistMatrix();
+	char ** copiedGrid = copyGrid(gridData);
+	setPosDistance(*itemPos, 0, distances);
+	ListRef queue = newList(itemPos);
+	setPosVisited(*itemPos, copiedGrid);
+	direction directionArray[] = {UP, DOWN, RIGHT, LEFT};
+	gridItemPosition adjPos;
+
+	while (queue != NULL){
+		gridItemPosition * currPos = headData(queue);
+		for (int i = 0; i < NUM_DIRECTIONS; i++){
+			adjPos = getPosByDirection(currPos, directionArray[i]);
+			if (!isAdjPos(*currPos, adjPos) && isPosReachable(adjPos, copiedGrid)){
+				setPosDistance(adjPos, getPosDistance(*currPos, distances) + 1, distances);
+				if (isGridPosFree(adjPos, copiedGrid)){
+					append(queue, &adjPos);
+				}
+				setPosVisited(adjPos, copiedGrid);
+			}
+		}
+		tail(queue);
+	}
+	destroyList(queue, free);
+	freeGridData(copiedGrid);
+	return distances;
+}
+
+
+int getPosDistance(gridItemPosition pos, int ** distances){
+	return distances[pos.row][pos.col];
+}
+
+void setPosDistance(gridItemPosition pos, int distance, int ** distances){
+	distances[pos.row][pos.col] = distance;
+}
+
+void setPosVisited(gridItemPosition pos, char ** gridData){
+	gridData[pos.row][pos.col] = VISITED_CHAR;
+}
+
+int isPosReachable(gridItemPosition pos, char ** gridData){
+	if (gridData[pos.row][pos.col] == WALL_CHAR || gridData[pos.row][pos.col] == VISITED_CHAR)
+		return 0;
+	return 1;
+}
 
 /**
  * freeState function:

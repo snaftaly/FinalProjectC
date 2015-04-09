@@ -15,6 +15,7 @@
 #define MOUSE_CHAR 'M'
 #define CHEESE_CHAR 'P'
 #define WALL_CHAR 'W'
+#define VISITED_CHAR 'V'
 
 #define MIN_VALUE 1
 #define MAX_SKILL_VALUE 9

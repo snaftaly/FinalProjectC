@@ -4,6 +4,8 @@ things to do:
 
 - delete unncessary comments!
 
+- need to deal with errors in BFS function
+
 - improve evaluation function
 
 - support console mode
