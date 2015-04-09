@@ -4,30 +4,23 @@ things to do:
 
 - delete unncessary comments!
 
-- need to deal with errors in BFS function
+- write the README file
+
+- make order in the files - split to modules etc.
 
 - improve evaluation function
 
-- support console mode
+- support console mode!
 
 - before submittig - bring back to original world files.
 
-- make labels transparent
+- make labels transparent ????
 
 - go over the code and make sure that we handke errors correctly (ask if isError, free the data correctly etc.)
  
 - make sure we initialize all the relevant data in the initialize functions
 
-
-
--check where we can use change curr player position, and use it!
-
-
-
-
-
-- in wp phe and pg phe and in all functions that deal with the positions - create an enum of directions and use it! make sure
-  
+- check where we can use change curr player position, and use it!
 
 - we need to check that whereever we call a function that can cause isError=1, then after it we check that isError is 1 and 
 	do something about it.
@@ -53,14 +46,12 @@ things to do:
 
 - write documantation to functions
 
--write in comments is Selected = isDisabled
+- write in comments is Selected = isDisabled
 
 - check memory allocations and frees!
 
-- unserstand how to make the makfile use relative path in signs
+- unserstand how to make the makfile use relative path and folders in signs
 
-- makefile - understand how to work with folders and relative paths
- 
 
 DONE
 ====
@@ -79,6 +70,11 @@ about returning to main menu. main menu needs to know about quit.
 handle that!!!
 
 - maybe check game over will set is game over to 1
+
+- need to deal with errors in BFS function
+
+- in wp phe and pg phe and in all functions that deal with the positions - create an enum of directions and use it! make sure
+
 MAYBE
 =====
 - change the order of buttons in world menu bmp (done and back) at the top and world nums after - change positions accordingly

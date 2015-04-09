@@ -60,7 +60,6 @@ void* stopPlayGame(GUI * gui);
 char ** initGameDataByFile(int worldNum, int * numTurns, int * isCatFirst);
 void setEmptyGrid(char ** grid);
 char ** initGrid();
-void initColumns(int rownum, int colnum, char ** grid);
 void selectGridPos(Widget *gridPanel, Widget ** gridSelectImages, gridItemPosition currPos);
 void deselectGridPos(Widget *gridPanel, Widget ** gridDeselectImages, gridItemPosition currPos);//maybe??????
 void createGridByData(Widget *gridPanel, char **gridData, Widget **gridItemImages);

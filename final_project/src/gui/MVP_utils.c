@@ -862,31 +862,24 @@ void setEmptyGrid(char ** grid){
 }
 
 char ** initGrid(){
-	char ** grid = (char **)malloc(COL_NUM*sizeof(char *));
+	char ** grid = (char **)malloc(ROW_NUM*sizeof(char *));
 	if (grid == NULL){
 		perrorPrint("malloc");
 		return NULL;
 	}
-	initColumns(ROW_NUM, COL_NUM, grid);
-	if (isError)
-		return NULL;
+    for (int i = 0; i < ROW_NUM ; i++){
+    	grid[i] = (char *)malloc(COL_NUM*sizeof(char));
+    	if (grid[i] == NULL){
+    		perrorPrint("malloc");
+    		for (int j = 0; j < i; j++)
+    			free(grid[j]);
+    		free(grid);
+    		return NULL;
+    	}
+    }
 	return grid;
 }
 
-void initColumns(int rownum, int colnum, char ** grid){
-    int i, j;
-    for (i = 0; i<rownum ; i++){
-    	grid[i] = (char *)malloc(colnum*sizeof(char));
-    	if (grid[i] == NULL){
-    		for (j = 0; j<i; j++)
-    			free(grid[j]);
-    		free(grid);
-    		grid = NULL;
-    		perrorPrint("malloc");
-    		return;
-    	}
-    }
-}
 
 void freeGridData(char ** gridData){
 	if (gridData != NULL){
@@ -943,14 +936,6 @@ void makeGameMoveByArrowIfLegal(ViewStateref pgView, PGDataRef pgModel, directio
 gridItemPosition * getCurrPlayerPos(PGDataRef pgModel){
 	return pgModel->isCatCurrPlayer ? &pgModel->catPos : &pgModel->mousePos;
 }
-
-//void changePosDirection(gridItemPosition * currPos, logicalEventType direction){
-//	gridItemPosition newPos = getPosByDirection(*currPos, direction);
-//	if(!isSamePos(*currPos, newPos)){
-//		currPos->row = newPos.row;
-//		currPos->col = newPos.col;
-//	}
-//}
 
 gridItemPosition getPosByDirection(gridItemPosition currPos, direction direction){
 	switch(direction){

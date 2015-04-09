@@ -189,34 +189,87 @@ int evaluate(void * state){
 	return eval;
 }
 
-int ** getDistanceWithBFS (gridItemPosition * itemPos, char ** gridData){  //need to deal with errors!!!!!!!!
-	int ** distances = initDistMatrix();
+int ** getDistanceWithBFS (gridItemPosition * itemPos, char ** gridData){
+	int ** distMatrix = initDistMatrix();
+	if (distMatrix == NULL)
+		return NULL;
 	char ** copiedGrid = copyGrid(gridData);
-	setPosDistance(*itemPos, 0, distances);
-	ListRef queue = newList(itemPos);
+	if (copiedGrid == NULL)
+		return NULL;
+	setPosDistance(*itemPos, 0, distMatrix);
+	ListRef queueItemsList = newList(itemPos);
+	if (queueItemsList == NULL)
+		return NULL;
+	ListRef realQueue = queueItemsList;
+	ListRef queueTial = realQueue;
 	setPosVisited(*itemPos, copiedGrid);
 	direction directionArray[] = {UP, DOWN, RIGHT, LEFT};
 	gridItemPosition adjPos;
 
-	while (queue != NULL){
-		gridItemPosition * currPos = headData(queue);
+	while (realQueue != NULL){
+		gridItemPosition * currPos = headData(realQueue);
 		for (int i = 0; i < NUM_DIRECTIONS; i++){
 			adjPos = getPosByDirection(currPos, directionArray[i]);
 			if (!isAdjPos(*currPos, adjPos) && isPosReachable(adjPos, copiedGrid)){
-				setPosDistance(adjPos, getPosDistance(*currPos, distances) + 1, distances);
+				setPosDistance(adjPos, getPosDistance(*currPos, distMatrix) + 1, distMatrix);
 				if (isGridPosFree(adjPos, copiedGrid)){
-					append(queue, &adjPos);
+					queueTial = append(queueTial, &adjPos);
+					if (queueTial == NULL){
+						destroyList(queueItemsList, free);
+						freeGridData(copiedGrid);
+						return NULL;
+					}
 				}
 				setPosVisited(adjPos, copiedGrid);
 			}
 		}
-		tail(queue);
+		realQueue = tail(realQueue);
 	}
-	destroyList(queue, free);
+	destroyList(queueItemsList, free);
 	freeGridData(copiedGrid);
-	return distances;
+	return distMatrix;
 }
 
+/**
+ * initDistMatrix function:
+ * allocates memory for the distance matrix (rows and columns).
+ * return an integer matrix of size ROW_NUM*COL_NUM filled with a number
+ * that is higher than the largest possible distance between two items in the grid.
+ */
+int ** initDistMatrix(){
+	int ** distMatrix = createIntMatrix();
+	if (distMatrix == NULL)
+		return NULL;
+	for (int i = 0; i < ROW_NUM ; i++)
+		for (int  j = 0; j<COL_NUM; j++)
+			distMatrix[i][j] = ROW_NUM*ROW_NUM*ROW_NUM;
+	return distMatrix;
+}
+
+/**
+ * createIntMatrix function:
+ * allocates memory for the distance matrix (rows and columns).
+ * return an integer matrix of size ROW_NUM*COL_NUM
+ */
+int ** createIntMatrix(){
+	int ** intMatrix = (int **)malloc(ROW_NUM*sizeof(int *)); /* allocate memory for the rows */
+	if (intMatrix == NULL){ /* malloc failed */
+		perrorPrint("malloc");
+		return NULL;
+	}
+	for (int i = 0; i < ROW_NUM; i++){
+		intMatrix[i] = (int *)malloc(COL_NUM*sizeof(int)); /* allocate memory for the columns of each row */
+		if (intMatrix[i] == NULL){ /* malloc failed for this row */
+			perrorPrint("malloc");
+			for (int j=0; j < i ; j++){ /* free memory of each previous row's columns*/
+				free(intMatrix[j]);
+			}
+			free(intMatrix); /* free memory of allocated for the rows */
+			return NULL;
+		}
+	}
+	return intMatrix; /* return the intMatrix */
+}
 
 int getPosDistance(gridItemPosition pos, int ** distances){
 	return distances[pos.row][pos.col];
