@@ -167,7 +167,7 @@ int calcPanelWidth(int titleWidth){
 }
 
 int calcPanelHeight(int numButtons){
-	return 2*MENU_TITLE_Y_GAP + MENU_TITLE_H + numButtons*(MENU_BUTTON_H + MENU_BUTTON_GAP);
+	return 4*MENU_TITLE_Y_GAP + MENU_TITLE_H + numButtons*MENU_BUTTON_H + (numButtons-1)*MENU_BUTTON_GAP;
 }
 
 int calcMenuButtonX(int titleWidth){

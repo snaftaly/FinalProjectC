@@ -35,7 +35,16 @@ char ** createChildGrid(GameStateRef parentState, gridItemPosition movePos,
 char ** copyGrid(char ** fromGrid);
 gridItemPosition suggestMove(GameStateRef state, int maxDepth);
 int evaluate(void * state);
-void freeState(void * data);
 void consoleMode();
+int ** initDistMatrix();
+int ** createIntMatrix(int rows, int cols);
+int getPosDistance(gridItemPosition pos, int ** distances);
+void setPosDistance(gridItemPosition pos, int distance, int ** distances);
+void setPosVisited(gridItemPosition pos, char ** gridData);
+int isPosReachable(gridItemPosition pos, char ** gridData);
+
+void freeState(void * data);
+
+
 
 #endif //MACHINEUTILS_H_

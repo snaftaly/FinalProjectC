@@ -3,7 +3,6 @@
 
 /* includes: */
 #include <stdio.h>
-
 #include "gui_utils.h"
 
 /**** functions declaration: ****/

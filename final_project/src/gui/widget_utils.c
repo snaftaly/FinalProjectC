@@ -107,11 +107,31 @@ void setImageTransparent(Widget *image, int red, int green, int blue){
 
 void clearPanel(void * panel){
 	Widget * toClear = panel;
-	if (SDL_FillRect(toClear->surface,0,SDL_MapRGB(toClear->surface->format, PANEL_RED, PANEL_GREEN, PANEL_BLUE)) != 0) {
+	/* get panel colors */
+	Uint32 temp, pixel;
+	Uint8 red, green, blue;
+	SDL_PixelFormat * fmt=toClear->surface->format;
+	pixel=*((Uint32*)toClear->surface->pixels);
+	temp=pixel&fmt->Rmask; /* Isolate red component */
+	temp=temp>>fmt->Rshift;/* Shift it down to 8-bit */
+	temp=temp<<fmt->Rloss; /* Expand to a full 8-bit number */
+	red=(Uint8)temp;
+	temp=pixel&fmt->Gmask; /* Isolate green component */
+	temp=temp>>fmt->Gshift;/* Shift it down to 8-bit */
+	temp=temp<<fmt->Gloss; /* Expand to a full 8-bit number */
+	green=(Uint8)temp;
+	/* Get Blue component */
+	temp=pixel&fmt->Bmask; /* Isolate blue component */
+	temp=temp>>fmt->Bshift;/* Shift it down to 8-bit */
+	temp=temp<<fmt->Bloss; /* Expand to a full 8-bit number */
+	blue=(Uint8)temp;
+	/* recolor the panel */
+	if (SDL_FillRect(toClear->surface,0,SDL_MapRGB(toClear->surface->format, red, green, blue)) != 0) {
 		sdlErrorPrint("failed to fill rect with color");
 		return;
 	}
 }
+
 
 void freeWidget(void * widget_ptr){
 	Widget * widget = widget_ptr;

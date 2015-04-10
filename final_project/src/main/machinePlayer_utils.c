@@ -209,7 +209,7 @@ int ** getDistanceWithBFS (gridItemPosition * itemPos, char ** gridData){
 	while (realQueue != NULL){
 		gridItemPosition * currPos = headData(realQueue);
 		for (int i = 0; i < NUM_DIRECTIONS; i++){
-			adjPos = getPosByDirection(currPos, directionArray[i]);
+			adjPos = getPosByDirection(*currPos, directionArray[i]);
 			if (!isAdjPos(*currPos, adjPos) && isPosReachable(adjPos, copiedGrid)){
 				setPosDistance(adjPos, getPosDistance(*currPos, distMatrix) + 1, distMatrix);
 				if (isGridPosFree(adjPos, copiedGrid)){
@@ -237,7 +237,7 @@ int ** getDistanceWithBFS (gridItemPosition * itemPos, char ** gridData){
  * that is higher than the largest possible distance between two items in the grid.
  */
 int ** initDistMatrix(){
-	int ** distMatrix = createIntMatrix();
+	int ** distMatrix = createIntMatrix(ROW_NUM, COL_NUM);
 	if (distMatrix == NULL)
 		return NULL;
 	for (int i = 0; i < ROW_NUM ; i++)
@@ -251,14 +251,14 @@ int ** initDistMatrix(){
  * allocates memory for the distance matrix (rows and columns).
  * return an integer matrix of size ROW_NUM*COL_NUM
  */
-int ** createIntMatrix(){
-	int ** intMatrix = (int **)malloc(ROW_NUM*sizeof(int *)); /* allocate memory for the rows */
+int ** createIntMatrix(int rows, int cols){
+	int ** intMatrix = (int **)malloc(rows*sizeof(int *)); /* allocate memory for the rows */
 	if (intMatrix == NULL){ /* malloc failed */
 		perrorPrint("malloc");
 		return NULL;
 	}
-	for (int i = 0; i < ROW_NUM; i++){
-		intMatrix[i] = (int *)malloc(COL_NUM*sizeof(int)); /* allocate memory for the columns of each row */
+	for (int i = 0; i < rows; i++){
+		intMatrix[i] = (int *)malloc(cols*sizeof(int)); /* allocate memory for the columns of each row */
 		if (intMatrix[i] == NULL){ /* malloc failed for this row */
 			perrorPrint("malloc");
 			for (int j=0; j < i ; j++){ /* free memory of each previous row's columns*/
@@ -299,8 +299,6 @@ void freeState(void * data){
 	freeGridData(gameData->gridData);
 	free(data);
 }
-
-
 
 
 void consoleMode(){

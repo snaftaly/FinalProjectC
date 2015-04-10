@@ -6,41 +6,9 @@
 #include <SDL_video.h>
 #include "../main/ErrorHandling.h"
 
-/* define constants: */
+/* define constants */
 #define WIN_W 800
 #define WIN_H 800
-#define TOP_PANEL_H 200
-#define SIDE_PANEL_W 200
-#define SIDE_PANEL_H 590
-#define GRID_SIZE 590
-#define WB_TITLE_W 240
-#define WB_TITLE_H 60
-#define PANEL_BUTTON_W 176
-#define PANEL_BUTTON_H 80
-#define PANEL_WIDGET_Y_GAP 20
-#define WB_BUTTON_X_GAP 80
-#define PAUSE_BUTTON_H 50
-#define PAUSE_BUTTON_W 400
-#define GAME_OVER_LABEL_W 424
-#define GAME_OVER_LABEL_H 100
-#define GAME_INFO_LABEL_H 40
-#define GAME_INFO_LABEL_W 180
-#define STATE_LABEL_W 500
-#define STATE_LABEL_H 40
-#define DIGIT_LABEL_W 30
-#define CAT_MOUSE_DIF 35
-
-#define WINDOW_RED 100
-#define WINDOW_GREEN 100
-#define WINDOW_BLUE 100
-
-#define PANEL_RED 100
-#define PANEL_GREEN 100
-#define PANEL_BLUE 100
-
-#define TR_RED  0
-#define TR_GREEN 255
-#define TR_BLUE 0
 
 
 

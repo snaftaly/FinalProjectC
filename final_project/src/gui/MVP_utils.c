@@ -104,7 +104,7 @@ void initPlayGameModel(GUIref gui, void* initData){
 }
 
 void setTopPanelGameOver(PGDataRef pgModel, ViewStateref pgViewState){
-	freeDecendents(pgViewState->topPanelNode, freeWidget); //problem!!!
+	freeDecendents(pgViewState->topPanelNode, freeWidget);
 	clearPanel(pgViewState->topPanelNode->data);
 	if(isError)
 		return;
@@ -276,7 +276,7 @@ void addButtonsToSidePanel(ViewStateref viewState, int buttonImgX, int buttonImg
 }
 
 void createGridItemsImgArr(ViewStateref viewState){
-	SDL_Surface * gridItemsImg = SDL_LoadBMP("images/gridItems_temp.bmp");
+	SDL_Surface * gridItemsImg = SDL_LoadBMP("images/GridItems.bmp");
 	if (gridItemsImg == NULL){
 		sdlErrorPrint("failed to load image");
 		return;
@@ -314,7 +314,7 @@ void createGridItemsImgArr(ViewStateref viewState){
 }
 
 void setThreePartLayout(ViewStateref viewState, char ** gameGridData){
-	Widget *win = create_window(WIN_W,WIN_H, 0, 0, 0);
+	Widget *win = create_window(WIN_W,WIN_H, 40, 40, 40);
 	if (win == NULL){
 		return;
 	}

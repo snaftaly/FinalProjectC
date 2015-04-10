@@ -111,7 +111,7 @@ void startGeneralMenu(GUIref gui, void * initData, char * imgPath, int titleImgX
 	menuViewState->menuButtons = buttons;
 
 	/* create the UItree */
-	Widget *win = create_window(WIN_W,WIN_H, 0, 0, 0);
+	Widget *win = create_window(WIN_W,WIN_H, 193, 201, 255);
 	if (win == NULL){
 		return;
 	}
@@ -179,7 +179,7 @@ void startMainMenu(GUIref gui, void* initData){
 	initMenuModel(gui, initData);
 	if(isError)
 		return;
-	char imgPath[] = "images/MainMenu_temp.bmp";
+	char imgPath[] = "images/MainMenu.bmp";
 	MenuDataRef data = gui->model;
 	int currentButton = data->mainMenuButton;
 	/* start the main menu gui */
@@ -191,7 +191,7 @@ void startChooseAnimal(GUIref gui, void* initData){
 	initMenuModel(gui, initData);
 	if(isError)
 		return;
-	char imgPath[] = "images/chooseAnimal_temp.bmp";
+	char imgPath[] = "images/ChooseAnimal.bmp";
 	MenuDataRef data = gui->model;
 	int currentButton, titleImgY;
 	switch(gui->stateId){
@@ -214,7 +214,7 @@ void startAnimalSkill(GUIref gui, void* initData){
 	initMenuModel(gui, initData);
 	if(isError)
 		return;
-	char imgPath[] = "images/animalSkill_temp.bmp";
+	char imgPath[] = "images/AnimalSkill.bmp";
 	MenuDataRef data = gui->model;
 	int currentButton, currentValue, titleImgY;
 	switch(gui->stateId){
@@ -240,7 +240,7 @@ void startWorldMenu(GUIref gui, void* initData){
 	initMenuModel(gui, initData);
 	if(isError)
 		return;
-	char imgPath[] = "images/worldMenu_temp.bmp";
+	char imgPath[] = "images/WorldMenu.bmp";
 	MenuDataRef data = gui->model;
 
 	int currentButton, currentValue, titleImgY;
@@ -281,7 +281,7 @@ void startWorldBuilder(GUIref gui, void* initData){
 	gui->viewState = wbViewState;
 
 	// create image surface for gui
-	char imgPath[] = "images/worldBuilder_temp.bmp";
+	char imgPath[] = "images/WorldBuilder.bmp";
 	SDL_Surface * wbImage = SDL_LoadBMP(imgPath);
 	if (wbImage == NULL){
 		sdlErrorPrint("failed to load image");
@@ -353,7 +353,7 @@ void startErrMsg(GUIref gui, void* initData){
 		return;
 	MenuDataRef data = gui->model;
 
-	char imgPath[] = "images/ErrMsg_temp.bmp";
+	char imgPath[] = "images/ErrMsg.bmp";
 
 	ViewStateref menuViewState = initGUIViewState();
 	if (menuViewState == NULL){
@@ -454,7 +454,7 @@ void startPlayGame(GUIref gui, void* initData){
 
 
 	// create image surface for gui
-	char imgPath[] = "images/PlayGame_temp.bmp";
+	char imgPath[] = "images/PlayGame.bmp";
 	SDL_Surface * pgImage = SDL_LoadBMP(imgPath);
 	if (pgImage == NULL){
 		sdlErrorPrint("failed to load image");
