@@ -3,89 +3,12 @@
 #include "MVP_utils.h"
 #include "../main/ErrorHandling.h"
 
-GUI createGUIForState(StateId stateId){
-	GUI returnGUI;
-	returnGUI.stateId = stateId;
-	returnGUI.model = NULL;
-	returnGUI.viewState = NULL;
-	switch(stateId){
-		case(MAIN_MENU):
-			returnGUI.start = startMainMenu;
-			returnGUI.viewTranslateEvent = mainMenuVTE;
-			returnGUI.presenterHandleEvent = mainMenuPHE;
-			returnGUI.stop = stopMenu;
-			break;
-		case(CHOOSE_CAT):
-			returnGUI.start = startChooseAnimal;
-			returnGUI.viewTranslateEvent = chooseAnimalVTE;
-			returnGUI.presenterHandleEvent = chooseCatPHE;
-			returnGUI.stop = stopMenu;
-			break;
-		case(CHOOSE_MOUSE):
-			returnGUI.start = startChooseAnimal;
-			returnGUI.viewTranslateEvent = chooseAnimalVTE;
-			returnGUI.presenterHandleEvent = chooseMousePHE;
-			returnGUI.stop = stopMenu;
-			break;
-		case(CAT_SKILL):
-			returnGUI.start = startAnimalSkill;
-			returnGUI.viewTranslateEvent = complexMenuVTE;
-			returnGUI.presenterHandleEvent = catSkillPHE;
-			returnGUI.stop = stopMenu;
-			break;
-		case(MOUSE_SKILL):
-			returnGUI.start = startAnimalSkill;
-			returnGUI.viewTranslateEvent = complexMenuVTE;
-			returnGUI.presenterHandleEvent = mouseSkillPHE;
-			returnGUI.stop = stopMenu;
-			break;
-		case(LOAD_GAME):
-			returnGUI.start = startWorldMenu;
-			returnGUI.viewTranslateEvent = complexMenuVTE;
-			returnGUI.presenterHandleEvent = loadGamePHE;
-			returnGUI.stop = stopMenu;
-			break;
-		case(WORLD_BUILDER):
-			returnGUI.start = startWorldBuilder;
-			returnGUI.viewTranslateEvent = worldBuilderVTE;
-			returnGUI.presenterHandleEvent = worldBuilderPHE;
-			returnGUI.stop = stopWorldBuilder;
-			break;
-		case(EDIT_GAME):
-			returnGUI.start = startWorldMenu;
-			returnGUI.viewTranslateEvent = complexMenuVTE;
-			returnGUI.presenterHandleEvent = editGamePHE;
-			returnGUI.stop = stopMenu;
-			break;
-		case(SAVE_WORLD):
-			returnGUI.start = startWorldMenu;
-			returnGUI.viewTranslateEvent = complexMenuVTE;
-			returnGUI.presenterHandleEvent = saveWorldPHE;
-			returnGUI.stop = stopMenu;
-			break;
-		case(PLAY_GAME):
-			returnGUI.start = startPlayGame;
-			returnGUI.viewTranslateEvent = playGameVTE;
-			returnGUI.presenterHandleEvent = playGamePHE;
-			returnGUI.stop = stopPlayGame;
-			break;
-		case(ERR_MSG):
-			returnGUI.start = startErrMsg;
-			returnGUI.viewTranslateEvent = errMsgVTE;
-			returnGUI.presenterHandleEvent = errMsgPHE;
-			returnGUI.stop = stopMenu;
-			break;
-		default:
-			break;
-	}
-	return returnGUI;
-}
 
 
 //start functions:
 
 /* maybe we don't need to pass initdata !!!!!!!!!!!!! */
-void startGeneralMenu(GUIref gui, void * initData, char * imgPath, int titleImgX, int titleImgY, int titleWidth,
+void startGeneralMenu(GUIref gui, char * imgPath, int titleImgX, int titleImgY, int titleWidth,
 		int numButtons, int selectedButton, int firstButtonNumOpts, int value){
 	/* initialize viewState */
 	ViewStateref menuViewState = initGUIViewState();
@@ -94,9 +17,16 @@ void startGeneralMenu(GUIref gui, void * initData, char * imgPath, int titleImgX
 	}
 	gui->viewState = menuViewState;
 
-	/* create image surface */
+	/* create image anf bgImage surface */
 	SDL_Surface * menuImage = SDL_LoadBMP(imgPath);
 	if (menuImage == NULL){
+		sdlErrorPrint("failed to load image");
+		return;
+	}
+	menuViewState->image = menuImage;
+
+	SDL_Surface * bgImage = SDL_LoadBMP("images/background.bmp");
+	if (bgImage == NULL){
 		sdlErrorPrint("failed to load image");
 		return;
 	}
@@ -110,7 +40,8 @@ void startGeneralMenu(GUIref gui, void * initData, char * imgPath, int titleImgX
 	}
 	menuViewState->menuButtons = buttons;
 
-	/* create the UItree */
+	/* create the UItree: */
+	/* create the window */
 	Widget *win = create_window(WIN_W,WIN_H, 193, 201, 255);
 	if (win == NULL){
 		return;
@@ -121,6 +52,17 @@ void startGeneralMenu(GUIref gui, void * initData, char * imgPath, int titleImgX
 		freeWidget(win);
 		return;
 	}
+	/* create the background image */
+	Widget * bgImageWidget = create_image(0, 0, WIN_W, WIN_H,bgImage, 0, 0);
+	if (bgImageWidget == NULL){
+		return;
+	}
+	ListRef bgImage_node = addChildNode(win_node, bgImageWidget);
+	if (bgImage_node == NULL){
+		freeWidget(bgImageWidget);
+		return;
+	}
+	/* create the panel */
 	Widget *panel = create_panel(calcPanelX(titleWidth), calcPanelY(numButtons),
 			calcPanelWidth(titleWidth),calcPanelHeight(numButtons),PANEL_RED,PANEL_GREEN,PANEL_BLUE);
 	if (panel == NULL){
@@ -131,6 +73,7 @@ void startGeneralMenu(GUIref gui, void * initData, char * imgPath, int titleImgX
 		freeWidget(panel);
 		return;
 	}
+	/* create the label */
 	Widget *label = create_image(MENU_TITLE_X_GAP, MENU_TITLE_Y_GAP, titleWidth, MENU_TITLE_H,
 			menuImage, titleImgX, titleImgY);
 	if (label == NULL){
@@ -172,7 +115,7 @@ void startGeneralMenu(GUIref gui, void * initData, char * imgPath, int titleImgX
 	menuViewState->currButton = selectedButton;
 	setButtonSelected(menuViewState->menuButtons[selectedButton]);
 	/* draw GUI according to UItree */
-	drawGui(gui->viewState);
+	drawGui(menuViewState->UITree);
 }
 
 void startMainMenu(GUIref gui, void* initData){
@@ -183,7 +126,7 @@ void startMainMenu(GUIref gui, void* initData){
 	MenuDataRef data = gui->model;
 	int currentButton = data->mainMenuButton;
 	/* start the main menu gui */
-	startGeneralMenu(gui, initData, imgPath,
+	startGeneralMenu(gui, imgPath,
 			MENU_BUTTON_W*2, 0, MENU_TITLE_W, MAIN_MENU_NUM_BUTTONS, currentButton, 1, 0);
 }
 
@@ -206,7 +149,7 @@ void startChooseAnimal(GUIref gui, void* initData){
 		default:
 			break;
 	}
-	startGeneralMenu(gui, initData, imgPath,
+	startGeneralMenu(gui, imgPath,
 			MENU_BUTTON_W*2, titleImgY, MENU_TITLE_W, COMMON_MENU_NUM_BUTTONS, currentButton, 1, 0);
 }
 
@@ -231,7 +174,7 @@ void startAnimalSkill(GUIref gui, void* initData){
 		default:
 			break;
 	}
-	startGeneralMenu(gui, initData, imgPath,
+	startGeneralMenu(gui, imgPath,
 			MENU_BUTTON_W*2, titleImgY, MENU_TITLE_W, COMMON_MENU_NUM_BUTTONS,currentButton, MAX_SKILL_VALUE, currentValue);
 }
 
@@ -263,7 +206,7 @@ void startWorldMenu(GUIref gui, void* initData){
 		default:
 			break;
 	}
-	startGeneralMenu(gui, initData, imgPath,
+	startGeneralMenu(gui, imgPath,
 			MENU_BUTTON_W*2, titleImgY, MENU_TITLE_W, COMMON_MENU_NUM_BUTTONS,currentButton, MAX_WORLD, currentValue);
 }
 
@@ -343,7 +286,7 @@ void startWorldBuilder(GUIref gui, void* initData){
 	if (isError)
 		return;
 	// draw GUI according to UItree
-	drawGui(gui->viewState);
+	drawGui(wbViewState->UITree);
 }
 
 /* Main Menu specific MVP functions */
@@ -355,11 +298,11 @@ void startErrMsg(GUIref gui, void* initData){
 
 	char imgPath[] = "images/ErrMsg.bmp";
 
-	ViewStateref menuViewState = initGUIViewState();
-	if (menuViewState == NULL){
+	ViewStateref errViewState = initGUIViewState();
+	if (errViewState == NULL){
 		return;
 	}
-	gui->viewState = menuViewState;
+	gui->viewState = errViewState;
 
 	/* create image surface */
 	SDL_Surface * menuImage = SDL_LoadBMP(imgPath);
@@ -367,7 +310,7 @@ void startErrMsg(GUIref gui, void* initData){
 		sdlErrorPrint("failed to load image");
 		return;
 	}
-	menuViewState->image = menuImage;
+	errViewState->image = menuImage;
 
 	/* create buttons array */
 	Widget ** buttons = (Widget **)malloc(ERR_MSG_NUM_BUTTONS*sizeof(Widget *));
@@ -375,7 +318,7 @@ void startErrMsg(GUIref gui, void* initData){
 		perrorPrint("malloc");
 		return;
 	}
-	menuViewState->menuButtons = buttons;
+	errViewState->menuButtons = buttons;
 
 	/* create the UItree */
 	Widget *win = create_window(WIN_W,WIN_H, 0, 0, 0);
@@ -383,7 +326,7 @@ void startErrMsg(GUIref gui, void* initData){
 		return;
 	}
 	ListRef win_node = newList(win);
-	menuViewState->UITree = win_node;
+	errViewState->UITree = win_node;
 	if (win_node == NULL){
 		freeWidget(win);
 		return;
@@ -431,9 +374,9 @@ void startErrMsg(GUIref gui, void* initData){
 		freeWidget(buttons[0]);
 		return;
 	}
-	setButtonSelected(menuViewState->menuButtons[0]);
+	setButtonSelected(errViewState->menuButtons[0]);
 	/* draw GUI according to UItree */
-	drawGui(gui->viewState);
+	drawGui(errViewState->UITree);
 }
 
 void startPlayGame(GUIref gui, void* initData){
@@ -513,7 +456,7 @@ void startPlayGame(GUIref gui, void* initData){
 		return;
 
 	// draw GUI according to UItree
-	drawGui(gui->viewState);
+	drawGui(pgViewState->UITree);
 }
 
 //vte functions:

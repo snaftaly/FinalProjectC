@@ -4,6 +4,84 @@
 #include "../main/ErrorHandling.h"
 
 
+
+GUI createGUIForState(StateId stateId){
+	GUI returnGUI;
+	returnGUI.stateId = stateId;
+	returnGUI.model = NULL;
+	returnGUI.viewState = NULL;
+	switch(stateId){
+		case(MAIN_MENU):
+			returnGUI.start = startMainMenu;
+			returnGUI.viewTranslateEvent = mainMenuVTE;
+			returnGUI.presenterHandleEvent = mainMenuPHE;
+			returnGUI.stop = stopMenu;
+			break;
+		case(CHOOSE_CAT):
+			returnGUI.start = startChooseAnimal;
+			returnGUI.viewTranslateEvent = chooseAnimalVTE;
+			returnGUI.presenterHandleEvent = chooseCatPHE;
+			returnGUI.stop = stopMenu;
+			break;
+		case(CHOOSE_MOUSE):
+			returnGUI.start = startChooseAnimal;
+			returnGUI.viewTranslateEvent = chooseAnimalVTE;
+			returnGUI.presenterHandleEvent = chooseMousePHE;
+			returnGUI.stop = stopMenu;
+			break;
+		case(CAT_SKILL):
+			returnGUI.start = startAnimalSkill;
+			returnGUI.viewTranslateEvent = complexMenuVTE;
+			returnGUI.presenterHandleEvent = catSkillPHE;
+			returnGUI.stop = stopMenu;
+			break;
+		case(MOUSE_SKILL):
+			returnGUI.start = startAnimalSkill;
+			returnGUI.viewTranslateEvent = complexMenuVTE;
+			returnGUI.presenterHandleEvent = mouseSkillPHE;
+			returnGUI.stop = stopMenu;
+			break;
+		case(LOAD_GAME):
+			returnGUI.start = startWorldMenu;
+			returnGUI.viewTranslateEvent = complexMenuVTE;
+			returnGUI.presenterHandleEvent = loadGamePHE;
+			returnGUI.stop = stopMenu;
+			break;
+		case(WORLD_BUILDER):
+			returnGUI.start = startWorldBuilder;
+			returnGUI.viewTranslateEvent = worldBuilderVTE;
+			returnGUI.presenterHandleEvent = worldBuilderPHE;
+			returnGUI.stop = stopWorldBuilder;
+			break;
+		case(EDIT_GAME):
+			returnGUI.start = startWorldMenu;
+			returnGUI.viewTranslateEvent = complexMenuVTE;
+			returnGUI.presenterHandleEvent = editGamePHE;
+			returnGUI.stop = stopMenu;
+			break;
+		case(SAVE_WORLD):
+			returnGUI.start = startWorldMenu;
+			returnGUI.viewTranslateEvent = complexMenuVTE;
+			returnGUI.presenterHandleEvent = saveWorldPHE;
+			returnGUI.stop = stopMenu;
+			break;
+		case(PLAY_GAME):
+			returnGUI.start = startPlayGame;
+			returnGUI.viewTranslateEvent = playGameVTE;
+			returnGUI.presenterHandleEvent = playGamePHE;
+			returnGUI.stop = stopPlayGame;
+			break;
+		case(ERR_MSG):
+			returnGUI.start = startErrMsg;
+			returnGUI.viewTranslateEvent = errMsgVTE;
+			returnGUI.presenterHandleEvent = errMsgPHE;
+			returnGUI.stop = stopMenu;
+			break;
+		default:
+			break;
+	}
+	return returnGUI;
+}
 /* helper functions for MVP */
 
 // init data functions:
@@ -16,6 +94,7 @@ ViewStateref initGUIViewState(){
 	}
 	/* initialize viewState fields */
 	viewState->image = NULL;
+	viewState->bgImage = NULL;
 	viewState->gridItemImage = NULL;
 	viewState->menuButtons = NULL;
 	viewState->UITree = NULL;
@@ -314,7 +393,7 @@ void createGridItemsImgArr(ViewStateref viewState){
 }
 
 void setThreePartLayout(ViewStateref viewState, char ** gameGridData){
-	Widget *win = create_window(WIN_W,WIN_H, 40, 40, 40);
+	Widget *win = create_window(WIN_W,WIN_H, 193, 201, 255);
 	if (win == NULL){
 		return;
 	}
@@ -369,32 +448,14 @@ int updateGameOver(PGDataRef pgModel){
 }
 
 
-gameOverType checkGameOverType(gridItemPosition catPos, gridItemPosition mousePos,
-		gridItemPosition cheesePos, int numTurnsLeft){
 
-	if (isAdjPos(catPos, mousePos)){
-		return CAT_WINS;
-	}
-	if (isAdjPos(cheesePos, mousePos)){
-		return MOUSE_WINS;
-	}
-	if (numTurnsLeft==0){
-		return TIE;
-	}
-	return GAME_NOT_OVER;
-}
 
 //void printPos(gridItemPosition pos){
 //	printf("col: %d", pos.col);
 //	printf("row: %d \n", pos.row);
 //}
 
-int isAdjPos(gridItemPosition pos1, gridItemPosition pos2){
-	if ((pos1.col == pos2.col && abs(pos1.row - pos2.row) == 1) ||
-			(pos1.row == pos2.row && abs(pos1.col - pos2.col) == 1))
-		return 1;
-	return 0;
-}
+
 
 void freeViewState(ViewStateref guiViewState){
 	if (guiViewState != NULL){
@@ -402,6 +463,8 @@ void freeViewState(ViewStateref guiViewState){
 			free(guiViewState->menuButtons);
 		if (guiViewState->image != NULL)
 			SDL_FreeSurface(guiViewState->image);
+		if (guiViewState->bgImage != NULL)
+			SDL_FreeSurface(guiViewState->bgImage);
 		if (guiViewState->gridItemImage != NULL)
 			SDL_FreeSurface(guiViewState->gridItemImage);
 		if (guiViewState->UITree != NULL)
@@ -658,33 +721,7 @@ void changeSelectedGridSquare(Widget * gridPanel, Widget ** gridItemsImages, gri
 
 
 
-void updateItemsPositions(gridItemPosition * mousePosRef,gridItemPosition * catPosRef, gridItemPosition * cheesePosRef,
-		char ** gameGridData){
 
-	gridItemPosition catPos = {-1, -1};
-	gridItemPosition mousePos = {-1, -1};
-	gridItemPosition cheesePos = {-1, -1};
-	*catPosRef = catPos;
-	*mousePosRef = mousePos;
-	*cheesePosRef = cheesePos;
-	for (int i = 0 ; i < ROW_NUM ;i++){
-		for (int j = 0; j < COL_NUM; j++){
-			char currItemChar = gameGridData[i][j];
-			if (currItemChar == MOUSE_CHAR){
-				mousePosRef->row = i;
-				mousePosRef->col = j;
-			}
-			else if (currItemChar == CAT_CHAR){
-				catPosRef->row = i;
-				catPosRef->col = j;
-			}
-			else if (currItemChar == CHEESE_CHAR){
-				cheesePosRef->row = i;
-				cheesePosRef->col = j;
-			}
-		}
-	}
-}
 
 
 void saveGridDataToFile(int worldNum, int isCatFirst, char ** gridData){
@@ -738,82 +775,7 @@ void saveGridDataToFile(int worldNum, int isCatFirst, char ** gridData){
 }
 
 
-char ** initGameDataByFile(int worldNum, int * numTurns, int * isCatFirst){
-	char ** grid = initGrid();
-	if (isError)
-		return NULL;
-	*numTurns = DEFAULT_TURNS;
-	char firstAnimal[6];
-	if (worldNum == 0){
-		setEmptyGrid(grid);
-	}
-	else{
-		//open the file:
-		FILE * worldFile = NULL;
-		if (worldNum == -1){ //read from standard input
-			worldFile = stdin;
-		}
-		else { // read from appropriate world file
-			char filename[WORLD_FILE_NAME_LEN];
-			if (sprintf(filename, "%s%s%d.%s", WORLD_FILE_PATH, WORLD_FILE_NAME_PREFIX, worldNum, WORLD_FILE_NAME_TYPE) < 0){
-				perrorPrint("sprintf");
-				freeGridData(grid);
-				return NULL;
-			}
-			worldFile = fopen(filename,"r");
-			if (worldFile == NULL){
-				perrorPrint("fopen");
-				freeGridData(grid);
-				return NULL;
-			}
-		}
-		//update numTurns
-		if (fscanf(worldFile, "%d", numTurns) < 0){
-			perrorPrint("fscanf");
-			freeGridData(grid);
-			return NULL;
-		}
-		//update isCatFirst
-		if (fscanf(worldFile, "%s", firstAnimal) < 0){
-			perrorPrint("fscanf");
-			freeGridData(grid);
-			return NULL;
-		}
-		if (strcmp(firstAnimal, "cat") == 0)
-			*isCatFirst = 1;
-		else
-			*isCatFirst = 0;
-		//fill grid by file:
-		char nextChar;
-		for (int i = 0; i< ROW_NUM;i++){
-			for (int j = 0; j< COL_NUM; j++){
-				if (j == 0){
-					while (1){
-						if ((fscanf(worldFile, "%c" , &nextChar)) < 0){
-							perrorPrint("fscanf");
-							freeGridData(grid);
-							return NULL;
-						}
-						if (nextChar != '\r' && nextChar != '\n')
-							break;
-					}
-					grid[i][0] = nextChar;
-				}
-				else{
-					if ((fscanf(worldFile, "%c" , &nextChar)) < 0){
-						perrorPrint("fscanf");
-						freeGridData(grid);
-						return NULL;
-					}
-					grid[i][j] = nextChar;
-				}
-			}
-		}
-		//close the file
-		fclose(worldFile);
-	}
-	return grid;
-}
+
 
 
 MenuDataRef initMenuDataToDefault(){
@@ -854,40 +816,12 @@ MenuDataRef initMenuDataToDefault(){
 
 	return menuData;
 }
-void setEmptyGrid(char ** grid){
-	for (int i = 0; i< ROW_NUM; i++){
-		for (int j = 0; j< COL_NUM; j++)
-			grid[i][j] = EMPTY_CELL_CHAR;
-	}
-}
-
-char ** initGrid(){
-	char ** grid = (char **)malloc(ROW_NUM*sizeof(char *));
-	if (grid == NULL){
-		perrorPrint("malloc");
-		return NULL;
-	}
-    for (int i = 0; i < ROW_NUM ; i++){
-    	grid[i] = (char *)malloc(COL_NUM*sizeof(char));
-    	if (grid[i] == NULL){
-    		perrorPrint("malloc");
-    		for (int j = 0; j < i; j++)
-    			free(grid[j]);
-    		free(grid);
-    		return NULL;
-    	}
-    }
-	return grid;
-}
 
 
-void freeGridData(char ** gridData){
-	if (gridData != NULL){
-		for (int i = 0; i< ROW_NUM; i++)
-			free(gridData[i]);
-	}
-	free(gridData);
-}
+
+
+
+
 
 void freeMenuData(MenuDataRef menuData){
 	if (menuData != NULL){
@@ -937,35 +871,9 @@ gridItemPosition * getCurrPlayerPos(PGDataRef pgModel){
 	return pgModel->isCatCurrPlayer ? &pgModel->catPos : &pgModel->mousePos;
 }
 
-gridItemPosition getPosByDirection(gridItemPosition currPos, direction direction){
-	switch(direction){
-		case(UP):
-			if (currPos.row > 0)
-				currPos.row -= 1;
-			break;
-		case(DOWN):
-			if (currPos.row < ROW_NUM-1)
-				currPos.row += 1;
-			break;
-		case(LEFT):
-			if (currPos.col > 0)
-				currPos.col -= 1;
-			break;
-		case(RIGHT):
-			if (currPos.col < COL_NUM-1)
-				currPos.col += 1;
-			break;
-		default:
-			return currPos;
-	}
-	return currPos;
-}
 
-int isMoveValid(char ** gridData, gridItemPosition currPlayerPos, gridItemPosition movePos){
-	if (isAdjPos(currPlayerPos, movePos) && isGridPosFree(movePos, gridData))
-		return 1;
-	return 0;
-}
+
+
 
 void warnIllegalMove(ViewStateref pgViewState, gridItemPosition eventPos, gridItemPosition currPlayerPos){
 	blitItemToGrid(pgViewState->gridPanel, pgViewState->gridItemsImgArr[WARN], eventPos.row, eventPos.col);
@@ -996,7 +904,7 @@ void restartGame(ViewStateref pgViewState, PGDataRef pgModel){
 		setTopPanelPlayGame(pgModel, pgViewState);
 		disablePGSidePanelButtons(pgViewState);
 	}
-	drawGui(pgViewState);
+	drawGui(pgViewState->UITree);
 }
 
 void resumeGame(ViewStateref pgViewState, PGDataRef pgModel){
@@ -1030,11 +938,7 @@ void enablePGSidePanelButtons(ViewStateref pgViewState){
 	}
 }
 
-int isGridPosFree(gridItemPosition gridPos, char ** gridData){
-	if (gridData[gridPos.row][gridPos.col] == EMPTY_CELL_CHAR)
-		return 1;
-	return 0;
-}
+
 
 void handleThreePartLayoutMouseSelect(SDL_Event * event, logicalEventRef returnEvent, Widget ** buttons, int numButtons){
 	if (event->button.x < WIN_W - GRID_SIZE || event->button.y < WIN_H - GRID_SIZE){
@@ -1064,4 +968,32 @@ void handleThreePartLayoutArrowKey(SDLKey key, logicalEventRef returnEvent){
 		returnEvent->type = GO_RIGHT;
 	else if (key ==  SDLK_LEFT)
 		returnEvent->type = GO_LEFT;
+}
+
+void updateMachineMoveIfNeeded(GUI pgGUI){
+	PGDataRef pgModel = pgGUI.model;
+	if (isCurrPlayerHuman(pgModel) || pgModel->isGameOver || pgModel->isGamePaused)
+		return;
+	ViewStateref pgViewState = pgGUI.viewState;
+	GameStateRef currState = (GameStateRef)malloc(sizeof(GameState)); /* allocate memory for currState  */
+	if (currState == NULL){ /* malloc failed */
+		perrorPrint("malloc");
+		return;
+	}
+	int currPlayerSkill = pgModel->isCatCurrPlayer ? pgModel->catSkill : pgModel->mouseSkill;
+	currState->gridData = copyGrid(pgModel->gameGridData);
+	currState->catPos = pgModel->catPos;
+	currState->mousePos = pgModel->mousePos;
+	currState->cheesePos = pgModel->cheesePos;
+	currState->isCatCurrPlayer = pgModel->isCatCurrPlayer;
+	currState->numTurnsLeft = pgModel->numTurnsLeft;
+	gridItemPosition errorPos = {-1, -1};
+	gridItemPosition movePos = suggestMove(currState, currPlayerSkill);
+	if (isSamePos(movePos, errorPos)){ // there was an error while getting the suggested move
+		freeState(currState); /* free memory */
+		return;
+	}
+	SDL_Delay(1000);
+	makeGameMoveIfLegal(pgViewState, pgModel,movePos);
+	freeState(currState); /* free memory */
 }

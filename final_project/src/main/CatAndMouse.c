@@ -1,7 +1,6 @@
 #include <stdio.h>
+#include "CatAndMouseUtils.h"
 #include "../gui/MVP_utils.h"
-#include "ErrorHandling.h"
-#include "machinePlayer_utils.h"
 
 /* global variables: */
 int isError = 0;

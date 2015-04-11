@@ -1,9 +1,12 @@
 /* includes */
 #include "gui_utils.h"
 
-void drawGui(ViewStateref viewState){ //changes to gui view state from GUIref
-	treeDFS(viewState->UITree, calcAbsWidgetXY, addChildWidgetsToParent);
-	Widget * window = viewState->UITree->data;
+
+
+
+void drawGui(ListRef UITree){ //changed to UITree instead of view state, //changes to gui view state from GUIref
+	treeDFS(UITree, calcAbsWidgetXY, addChildWidgetsToParent);
+	Widget * window = UITree->data;
 	if (SDL_Flip(window->surface) != 0) {
 		sdlErrorPrint("failed to flip buffer");
 		return;

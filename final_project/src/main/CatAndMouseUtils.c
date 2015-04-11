@@ -1,34 +1,9 @@
 #include <stdio.h>
-#include "machinePlayer_utils.h"
+#include "CatAndMouseUtils.h"
 
 
-void updateMachineMoveIfNeeded(GUI pgGUI){
-	PGDataRef pgModel = pgGUI.model;
-	if (isCurrPlayerHuman(pgModel) || pgModel->isGameOver || pgModel->isGamePaused)
-		return;
-	ViewStateref pgViewState = pgGUI.viewState;
-	GameStateRef currState = (GameStateRef)malloc(sizeof(GameState)); /* allocate memory for currState  */
-	if (currState == NULL){ /* malloc failed */
-		perrorPrint("malloc");
-		return;
-	}
-	int currPlayerSkill = pgModel->isCatCurrPlayer ? pgModel->catSkill : pgModel->mouseSkill;
-	currState->gridData = copyGrid(pgModel->gameGridData);
-	currState->catPos = pgModel->catPos;
-	currState->mousePos = pgModel->mousePos;
-	currState->cheesePos = pgModel->cheesePos;
-	currState->isCatCurrPlayer = pgModel->isCatCurrPlayer;
-	currState->numTurnsLeft = pgModel->numTurnsLeft;
-	gridItemPosition errorPos = {-1, -1};
-	gridItemPosition movePos = suggestMove(currState, currPlayerSkill);
-	if (isSamePos(movePos, errorPos)){ // there was an error while getting the suggested move
-		freeState(currState); /* free memory */
-		return;
-	}
-	SDL_Delay(1000);
-	makeGameMoveIfLegal(pgViewState, pgModel,movePos);
-	freeState(currState); /* free memory */
-}
+
+
 
 
 
@@ -325,4 +300,204 @@ void consoleMode(){
 	printf("%d\n",eval);
 	// what should we do now????
 
+}
+
+gameOverType checkGameOverType(gridItemPosition catPos, gridItemPosition mousePos,
+		gridItemPosition cheesePos, int numTurnsLeft){
+
+	if (isAdjPos(catPos, mousePos)){
+		return CAT_WINS;
+	}
+	if (isAdjPos(cheesePos, mousePos)){
+		return MOUSE_WINS;
+	}
+	if (numTurnsLeft==0){
+		return TIE;
+	}
+	return GAME_NOT_OVER;
+}
+
+int isAdjPos(gridItemPosition pos1, gridItemPosition pos2){
+	if ((pos1.col == pos2.col && abs(pos1.row - pos2.row) == 1) ||
+			(pos1.row == pos2.row && abs(pos1.col - pos2.col) == 1))
+		return 1;
+	return 0;
+}
+
+int isGridPosFree(gridItemPosition gridPos, char ** gridData){
+	if (gridData[gridPos.row][gridPos.col] == EMPTY_CELL_CHAR)
+		return 1;
+	return 0;
+}
+
+
+char ** initGrid(){
+	char ** grid = (char **)malloc(ROW_NUM*sizeof(char *));
+	if (grid == NULL){
+		perrorPrint("malloc");
+		return NULL;
+	}
+    for (int i = 0; i < ROW_NUM ; i++){
+    	grid[i] = (char *)malloc(COL_NUM*sizeof(char));
+    	if (grid[i] == NULL){
+    		perrorPrint("malloc");
+    		for (int j = 0; j < i; j++)
+    			free(grid[j]);
+    		free(grid);
+    		return NULL;
+    	}
+    }
+	return grid;
+}
+
+
+gridItemPosition getPosByDirection(gridItemPosition currPos, direction direction){
+	switch(direction){
+		case(UP):
+			if (currPos.row > 0)
+				currPos.row -= 1;
+			break;
+		case(DOWN):
+			if (currPos.row < ROW_NUM-1)
+				currPos.row += 1;
+			break;
+		case(LEFT):
+			if (currPos.col > 0)
+				currPos.col -= 1;
+			break;
+		case(RIGHT):
+			if (currPos.col < COL_NUM-1)
+				currPos.col += 1;
+			break;
+		default:
+			return currPos;
+	}
+	return currPos;
+}
+
+int isMoveValid(char ** gridData, gridItemPosition currPlayerPos, gridItemPosition movePos){
+	if (isAdjPos(currPlayerPos, movePos) && isGridPosFree(movePos, gridData))
+		return 1;
+	return 0;
+}
+
+void freeGridData(char ** gridData){
+	if (gridData != NULL){
+		for (int i = 0; i< ROW_NUM; i++)
+			free(gridData[i]);
+	}
+	free(gridData);
+}
+
+void updateItemsPositions(gridItemPosition * mousePosRef,gridItemPosition * catPosRef, gridItemPosition * cheesePosRef,
+		char ** gameGridData){
+
+	gridItemPosition catPos = {-1, -1};
+	gridItemPosition mousePos = {-1, -1};
+	gridItemPosition cheesePos = {-1, -1};
+	*catPosRef = catPos;
+	*mousePosRef = mousePos;
+	*cheesePosRef = cheesePos;
+	for (int i = 0 ; i < ROW_NUM ;i++){
+		for (int j = 0; j < COL_NUM; j++){
+			char currItemChar = gameGridData[i][j];
+			if (currItemChar == MOUSE_CHAR){
+				mousePosRef->row = i;
+				mousePosRef->col = j;
+			}
+			else if (currItemChar == CAT_CHAR){
+				catPosRef->row = i;
+				catPosRef->col = j;
+			}
+			else if (currItemChar == CHEESE_CHAR){
+				cheesePosRef->row = i;
+				cheesePosRef->col = j;
+			}
+		}
+	}
+}
+
+
+char ** initGameDataByFile(int worldNum, int * numTurns, int * isCatFirst){
+	char ** grid = initGrid();
+	if (isError)
+		return NULL;
+	*numTurns = DEFAULT_TURNS;
+	char firstAnimal[6];
+	if (worldNum == 0){
+		setEmptyGrid(grid);
+	}
+	else{
+		//open the file:
+		FILE * worldFile = NULL;
+		if (worldNum == -1){ //read from standard input
+			worldFile = stdin;
+		}
+		else { // read from appropriate world file
+			char filename[WORLD_FILE_NAME_LEN];
+			if (sprintf(filename, "%s%s%d.%s", WORLD_FILE_PATH, WORLD_FILE_NAME_PREFIX, worldNum, WORLD_FILE_NAME_TYPE) < 0){
+				perrorPrint("sprintf");
+				freeGridData(grid);
+				return NULL;
+			}
+			worldFile = fopen(filename,"r");
+			if (worldFile == NULL){
+				perrorPrint("fopen");
+				freeGridData(grid);
+				return NULL;
+			}
+		}
+		//update numTurns
+		if (fscanf(worldFile, "%d", numTurns) < 0){
+			perrorPrint("fscanf");
+			freeGridData(grid);
+			return NULL;
+		}
+		//update isCatFirst
+		if (fscanf(worldFile, "%s", firstAnimal) < 0){
+			perrorPrint("fscanf");
+			freeGridData(grid);
+			return NULL;
+		}
+		if (strcmp(firstAnimal, "cat") == 0)
+			*isCatFirst = 1;
+		else
+			*isCatFirst = 0;
+		//fill grid by file:
+		char nextChar;
+		for (int i = 0; i< ROW_NUM;i++){
+			for (int j = 0; j< COL_NUM; j++){
+				if (j == 0){
+					while (1){
+						if ((fscanf(worldFile, "%c" , &nextChar)) < 0){
+							perrorPrint("fscanf");
+							freeGridData(grid);
+							return NULL;
+						}
+						if (nextChar != '\r' && nextChar != '\n')
+							break;
+					}
+					grid[i][0] = nextChar;
+				}
+				else{
+					if ((fscanf(worldFile, "%c" , &nextChar)) < 0){
+						perrorPrint("fscanf");
+						freeGridData(grid);
+						return NULL;
+					}
+					grid[i][j] = nextChar;
+				}
+			}
+		}
+		//close the file
+		fclose(worldFile);
+	}
+	return grid;
+}
+
+void setEmptyGrid(char ** grid){
+	for (int i = 0; i< ROW_NUM; i++){
+		for (int j = 0; j< COL_NUM; j++)
+			grid[i][j] = EMPTY_CELL_CHAR;
+	}
 }
