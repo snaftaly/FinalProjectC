@@ -119,7 +119,7 @@ void startGeneralMenu(GUIref gui, char * imgPath, int titleImgX, int titleImgY, 
 }
 
 void startMainMenu(GUIref gui, void* initData){
-	initMenuModel(gui, initData);
+	initMainMenuData(gui, initData);
 	if(isError)
 		return;
 	char imgPath[] = "images/MainMenu.bmp";
@@ -699,8 +699,8 @@ StateId generalMenuPHE(void* model, void* viewState, void* logicalEvent, StateId
 		default:
 			break;
 	}
-	if (*currButton == numOfButtons-1 && returnStateId != stateId)
-		*currButton = FIRST_BUTTON;
+//	if (*currButton == numOfButtons-1 && returnStateId != stateId)
+//		*currButton = FIRST_BUTTON;
 	free(logicalEvent);
 	//menuModel->retStateId = returnStateId;
 	return returnStateId;
@@ -716,19 +716,8 @@ StateId mainMenuPHE(void* model, void* viewState, void* logicalEvent){
 			&mainMenuModel->mainMenuButton, NULL, 0);
 	// maybe create a function the will reset all the data when going to main menu
 	// and maybe it should be in start main menu!
-	if (returnStateId == CHOOSE_CAT){ //new game is pressed
-		mainMenuModel->preChooseCat = MAIN_MENU;
-		mainMenuModel->loadGameWorld = 1;
-		mainMenuModel->loadFromFile = 1;
-	}
-	else if (returnStateId == WORLD_BUILDER){
-		mainMenuModel->preWorldBuilder = MAIN_MENU;
-		mainMenuModel->editedWorld = 0; // we can delete this line!!!
-	}
-	else if (returnStateId == LOAD_GAME)
-		mainMenuModel->loadGameWorld = DEFAULT_WORLD;
-	else if (returnStateId == EDIT_GAME)
-		mainMenuModel->editedWorld = DEFAULT_WORLD;
+	if (returnStateId == WORLD_BUILDER)
+		mainMenuModel->editedWorld = 0;
 	mainMenuModel->retStateId = returnStateId;
 	return returnStateId;
 }
@@ -749,8 +738,8 @@ StateId chooseCatPHE(void* model, void* viewState, void* logicalEvent){
 		chooseCatModel->isCatHuman = 1;
 		chooseCatModel->preChooseMouse = CHOOSE_CAT;
 	}
-	else if (returnStateId == PLAY_GAME && chooseCatModel->chooseCatButton == 0)
-		chooseCatModel->isCatHuman = 1;
+	else if (returnStateId == PLAY_GAME && chooseCatModel->chooseCatButton == 0) // human was pressed
+			chooseCatModel->isCatHuman = 1;
 	else if (returnStateId == CAT_SKILL)
 		chooseCatModel->currValueTemp = chooseCatModel->catSkill;
 	chooseCatModel->retStateId = returnStateId;
@@ -765,10 +754,14 @@ StateId chooseMousePHE(void* model, void* viewState, void* logicalEvent){
 	StateId chooseMouseStates[COMMON_MENU_NUM_BUTTONS] = {PLAY_GAME, MOUSE_SKILL, chooseMouseModel->preChooseMouse};
 	returnStateId = generalMenuPHE(model, viewState, logicalEvent, chooseMouseStates, COMMON_MENU_NUM_BUTTONS,
 			returnStateId, &chooseMouseModel->chooseMouseButton, NULL, 0);
-	if (returnStateId == PLAY_GAME && chooseMouseModel->chooseMouseButton == 0)
+
+	if (returnStateId == PLAY_GAME && chooseMouseModel->chooseMouseButton == 0){
 		chooseMouseModel->isMouseHuman = 1;
+	}
 	else if (returnStateId == MOUSE_SKILL)
 		chooseMouseModel->currValueTemp = chooseMouseModel->mouseSkill;
+	else if (returnStateId == CAT_SKILL || returnStateId == CHOOSE_CAT)
+		chooseMouseModel->chooseMouseButton = 0;
 	chooseMouseModel->retStateId = returnStateId;
 	return returnStateId;
 }
@@ -791,8 +784,9 @@ StateId catSkillPHE(void* model, void* viewState, void* logicalEvent){
 			catSkillModel->preChooseMouse = CAT_SKILL;
 		}
 	}
-	if (returnStateId == CHOOSE_CAT && catSkillModel->preChooseCat == MAIN_MENU)
-		catSkillModel->catSkill = DEFAULT_SKILL;
+
+	if (returnStateId == CHOOSE_CAT) // back was pressed and we go back to choose cat
+		catSkillModel->catSkillButton = 0;
 	catSkillModel->retStateId = returnStateId;
 	return returnStateId;
 }
@@ -809,8 +803,11 @@ StateId mouseSkillPHE(void* model, void* viewState, void* logicalEvent){
 		mouseSkillModel->isMouseHuman = 0;
 		mouseSkillModel->mouseSkill = mouseSkillModel->currValueTemp;
 	}
-	if (returnStateId == CHOOSE_MOUSE && mouseSkillModel->preChooseMouse == CAT_SKILL)
-		mouseSkillModel->mouseSkill = DEFAULT_SKILL;
+	else if (returnStateId == CHOOSE_MOUSE){
+		mouseSkillModel->mouseSkillButton = 0;
+		if (mouseSkillModel->preChooseMouse == CAT_SKILL)
+			mouseSkillModel->mouseSkill = DEFAULT_SKILL;
+	}
 	mouseSkillModel->retStateId = returnStateId;
 	return returnStateId;
 }
@@ -982,6 +979,8 @@ StateId playGamePHE(void* model, void* viewState, void* logicalEvent){
 			break;
 
 	}
+	if (returnStateId == CHOOSE_CAT || returnStateId == CHOOSE_MOUSE)
+		pgModel->loadFromFile = 0;
 	free(logicalEvent);
 	pgModel->returnStateId = returnStateId;
 	return returnStateId;
@@ -1077,7 +1076,7 @@ void* stopPlayGame(GUI * gui){
 	returnData->chooseCatButton = pgData->isCatHuman ? 0 : 1;
 	returnData->chooseMouseButton = pgData->isMouseHuman ? 0 : 1;
 	returnData->isGamePaused = pgData->isGamePaused;
-
+	returnData->loadFromFile = pgData->loadFromFile;
 	freePGData(pgData, 0);
 
 	return returnData;

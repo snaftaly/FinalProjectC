@@ -692,11 +692,7 @@ void fixOverride(gridItem itemType, WBDataRef wbModel, gridItemPosition currPos)
 		wbModel->cheesePos = noPos;
 }
 
-int isSamePos(gridItemPosition pos1, gridItemPosition pos2){
-	if (pos1.row == pos2.row && pos1.col == pos2.col)
-		return 1;
-	return 0;
-}
+
 
 void changeSelectedPosByArrow(Widget * gridPanel, Widget ** gridItemsImages,
 		gridItemPosition * currPos, direction direction){
@@ -799,8 +795,8 @@ MenuDataRef initMenuDataToDefault(){
 	menuData->catSkill = DEFAULT_SKILL;
 	menuData->mouseSkill = DEFAULT_SKILL;
 
-	menuData->editedWorld = MIN_VALUE;
-	menuData->loadGameWorld = MIN_VALUE;
+	menuData->editedWorld = DEFAULT_WORLD;
+	menuData->loadGameWorld = DEFAULT_WORLD;
 	//menuData->saveOnWorld = MIN_VALUE; maybe we can delete this!
 
 	menuData->currValueTemp = 0;
@@ -809,7 +805,8 @@ MenuDataRef initMenuDataToDefault(){
 	menuData->isCatFirst = 0;
 
 	menuData->preWorldBuilder = MAIN_MENU;
-	menuData->loadFromFile = 0;
+	menuData->preChooseCat = MAIN_MENU;
+	menuData->loadFromFile = 1;
 	menuData->isGamePaused = 0;
 
 	/* what else ???? */
@@ -996,4 +993,15 @@ void updateMachineMoveIfNeeded(GUI pgGUI){
 	SDL_Delay(1000);
 	makeGameMoveIfLegal(pgViewState, pgModel,movePos);
 	freeState(currState); /* free memory */
+}
+
+
+void initMainMenuData(GUIref mainMenuGui, void * initData){
+	mainMenuGui->model = initMenuDataToDefault();
+	if (initData != NULL){
+		MenuDataRef data = initData;
+		MenuDataRef model = mainMenuGui->model;
+		model->mainMenuButton = data->mainMenuButton;
+		freeMenuData(initData);
+	}
 }

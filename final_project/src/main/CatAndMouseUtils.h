@@ -107,6 +107,7 @@ void freeState(void * data);
 void freeGridData(char ** gridData);
 char ** initGameDataByFile(int worldNum, int * numTurns, int * isCatFirst);
 void setEmptyGrid(char ** grid);
+int isSamePos(gridItemPosition pos1, gridItemPosition pos2);
 
 
 

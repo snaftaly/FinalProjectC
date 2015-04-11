@@ -134,6 +134,7 @@ typedef struct PGData{
 	gridItemPosition cheesePos;
 	//gridItemPosition currPos; we probably don't need this!
 	int loadGameWorld;
+	int loadFromFile;
 
 	int isCatCurrPlayer;
 	int numTurnsLeft;
@@ -199,6 +200,7 @@ GUI createGUIForState(StateId stateId);
 /** MVP functions: **/
 /* start functions */
 void initMenuModel(GUIref gui, void* initData);
+void initMainMenuData(GUIref mainMenuGui, void * initData);
 void initWorldBuilderModel(GUIref gui, void* initData);
 void initPlayGameModel(GUIref gui, void* initData);
 ViewStateref initGUIViewState();
@@ -262,7 +264,6 @@ void changeSelectedGridSquare(Widget * gridPanel, Widget ** gridItemsImages, gri
 		gridItemPosition newPos);
 
 void saveGridDataToFile(int worldNum, int isCatFirst, char ** gridData);
-int isSamePos(gridItemPosition pos1, gridItemPosition pos2);
 int isGridInvalid(WBDataRef wbModel);
 
 int updateGameOver(PGDataRef pgModel);

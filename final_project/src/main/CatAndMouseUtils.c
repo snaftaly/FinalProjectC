@@ -501,3 +501,10 @@ void setEmptyGrid(char ** grid){
 			grid[i][j] = EMPTY_CELL_CHAR;
 	}
 }
+
+
+int isSamePos(gridItemPosition pos1, gridItemPosition pos2){
+	if (pos1.row == pos2.row && pos1.col == pos2.col)
+		return 1;
+	return 0;
+}
