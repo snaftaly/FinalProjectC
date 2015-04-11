@@ -30,3 +30,8 @@ void sdlErrorPrint(char * sdlProblem){
 	fprintf(stderr, "ERROR: %s: %s\n", sdlProblem, SDL_GetError());
 }
 
+void generalErrorprint(char * errorStr){
+	isError = 1;
+	fprintf(stderr, "Error: %s\n", errorStr);
+}
+

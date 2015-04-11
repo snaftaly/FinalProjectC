@@ -25,8 +25,20 @@ MVP_utils.o: src/gui/MVP_utils.c src/gui/MVP_utils.h src/main/CatAndMouseUtils.h
 gui_utils.o: src/gui/gui_utils.c src/gui/gui_utils.h src/main/CatAndMouseUtils.h src/gui/widget_utils.h src/main/ListUtils.h src/main/ListUtilsExt.h src/main/ErrorHandling.h
 	gcc -c src/gui/gui_utils.c $(CFLAGS) $(SDL_C)
 
+MiniMaxDemo: MiniMaxDemo.o MiniMax.o ListUtils.o ErrorHandling.o
+	gcc -o $@ $^ $(CFLAGS)
+
+MiniMaxDemo.o: src/main/MiniMaxDemo.c MiniMax.h ListUtils.h
+	gcc -c $(CFLAGS) src/main/MiniMaxDemo.c
+
 MiniMax.o: src/main/MiniMax.c src/main/MiniMax.h src/main/ErrorHandling.h
 	gcc -c $(CFLAGS) src/main/MiniMax.c
+
+ListUtilsDemo: ListUtilsDemo.o ListUtils.o ErrorHandling.o
+	gcc -o $@ $^ $(CFLAGS)
+
+ListUtilsDemo.o: src/main/ListUtilsDemo.c ListUtils.h
+	gcc -c $(CFLAGS) src/main/ListUtilsDemo.c
 
 ListUtils.o: src/main/ListUtils.c src/main/ListUtils.h src/main/ListUtilsExt.h src/main/ErrorHandling.h
 	gcc -c $(CFLAGS) src/main/ListUtils.c

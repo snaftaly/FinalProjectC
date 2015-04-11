@@ -998,7 +998,7 @@ void* stopMenu(GUIref gui){ /* maybe this will be a general stop function */
 	freeViewState(guiViewState);
 
 	if (isError || returnData->retStateId == QUIT){
-		//freeMenuData(returnData);
+		freeMenuData(returnData);
 		return NULL;
 	}
 	return returnData;

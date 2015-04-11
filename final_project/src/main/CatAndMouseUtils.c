@@ -279,27 +279,40 @@ void freeState(void * data){
 void consoleMode(){
 	int isCatCurrPlayer, numTurnsLeft;
 	gridItemPosition catPos, mousePos, cheesePos;
-	char ** gridData = initGameDataByFile(-1, &numTurnsLeft, &isCatCurrPlayer);
-	if (gridData == NULL)
-		return;
-	updateItemsPositions(&mousePos,&catPos,&cheesePos, gridData);
+	char ** gridData = NULL;
+	GameStateRef currState = NULL;
+	int doExit = 0;
+	char endChar;
+	while(!doExit){
+		gridData = initGameDataByFile(-1, &numTurnsLeft, &isCatCurrPlayer);
+		if (gridData == NULL)
+			return;
+		updateItemsPositions(&mousePos,&catPos,&cheesePos, gridData);
 
-	GameStateRef currState = (GameStateRef)malloc(sizeof(GameState)); /* allocate memory for currState  */
-	if (currState == NULL){ /* malloc failed */
-		perrorPrint("malloc");
-		freeGridData(gridData);
-		return;
+		currState = (GameStateRef)malloc(sizeof(GameState)); /* allocate memory for currState  */
+		if (currState == NULL){ /* malloc failed */
+			perrorPrint("malloc");
+			freeGridData(gridData);
+			return;
+		}
+		currState->gridData = gridData;
+		currState->catPos = catPos;
+		currState->mousePos = mousePos;
+		currState->cheesePos = cheesePos;
+		currState->isCatCurrPlayer = isCatCurrPlayer;
+		currState->numTurnsLeft = numTurnsLeft;
+		int eval = evaluate(currState);
+		printf("%d\n",eval);
+		endChar = getchar();
+//		if (endChar == EOF){
+//			generalErrorprint("failed to read char from stdin");
+//			doExit = 1;
+//		}
+//		else
+		if (endChar == 'q')
+			doExit = 1;
+		freeState(currState);
 	}
-	currState->gridData = gridData;
-	currState->catPos = catPos;
-	currState->mousePos = mousePos;
-	currState->cheesePos = cheesePos;
-	currState->isCatCurrPlayer = isCatCurrPlayer;
-	currState->numTurnsLeft = numTurnsLeft;
-	int eval = evaluate(currState);
-	printf("%d\n",eval);
-	// what should we do now????
-
 }
 
 gameOverType checkGameOverType(gridItemPosition catPos, gridItemPosition mousePos,
@@ -465,8 +478,8 @@ char ** initGameDataByFile(int worldNum, int * numTurns, int * isCatFirst){
 			*isCatFirst = 0;
 		//fill grid by file:
 		char nextChar;
-		for (int i = 0; i< ROW_NUM;i++){
-			for (int j = 0; j< COL_NUM; j++){
+		for (int i = 0; i < ROW_NUM;i++){
+			for (int j = 0; j < COL_NUM; j++){
 				if (j == 0){
 					while (1){
 						if ((fscanf(worldFile, "%c" , &nextChar)) < 0){
@@ -489,8 +502,9 @@ char ** initGameDataByFile(int worldNum, int * numTurns, int * isCatFirst){
 				}
 			}
 		}
-		//close the file
-		fclose(worldFile);
+		//close the file if it is not stdin
+		if (worldNum > 0)
+			fclose(worldFile);
 	}
 	return grid;
 }

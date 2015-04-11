@@ -133,11 +133,12 @@ void clearPanel(void * panel){
 }
 
 
-void freeWidget(void * widget_ptr){
-	Widget * widget = widget_ptr;
+void freeWidget(void * widgetPtr){
+	Widget * widget = widgetPtr;
 	if (widget != NULL){
-		if (widget->surface != NULL && widget->type == PANEL && widget->type == WINDOW) //WINDOW??????
+		if (widget->surface != NULL && (widget->type == PANEL || widget->type == WINDOW)){ //WINDOW??????
 			SDL_FreeSurface(widget->surface); //free() invalid pointer error!!!
+		}
 		free(widget);
 	}
 }
