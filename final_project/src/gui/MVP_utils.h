@@ -272,6 +272,8 @@ int getWBButtonNum(SDLKey key);
 int getPGButtonNum(SDLKey key);
 
 //thre part gui layout functions:
+void addButtonsToWBTopPanel(ViewStateref viewState, int buttonImgX, int buttonImgY,
+		int buttonImgDisX, int buttonImgDisY, int fromButtonNum, int toButtonNum, int isDisabled);
 void addButtonsToSidePanel(ViewStateref viewState, int buttonImgX, int buttonImgY,
 		int buttonImgDisX, int buttonImgDisY, int fromButtonNum, int toButtonNum, int isDisabled);
 void setThreePartLayout(ViewStateref viewState, char ** gameGridData);

@@ -349,6 +349,7 @@ void addButtonsToWBTopPanel(ViewStateref viewState, int buttonImgX, int buttonIm
 		}
 		buttonImgY += PANEL_BUTTON_H;
 		topButtonX += PANEL_BUTTON_W + WB_BUTTON_X_GAP;
+	}
 }
 
 void addButtonsToSidePanel(ViewStateref viewState, int buttonImgX, int buttonImgY,
