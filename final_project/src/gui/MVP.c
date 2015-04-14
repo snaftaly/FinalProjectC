@@ -4,10 +4,9 @@
 #include "../main/ErrorHandling.h"
 
 
-
 //start functions:
 
-/* maybe we don't need to pass initdata !!!!!!!!!!!!! */
+/* startGeneralMenu is a function used for starting all the menu GUIs */
 void startGeneralMenu(GUIref gui, char * imgPath, int titleImgX, int titleImgY, int titleWidth,
 		int numButtons, int selectedButton, int firstButtonNumOpts, int value){
 	/* initialize viewState */
@@ -17,7 +16,7 @@ void startGeneralMenu(GUIref gui, char * imgPath, int titleImgX, int titleImgY, 
 	}
 	gui->viewState = menuViewState;
 
-	/* create image anf bgImage surface */
+	/* create image an bgImage surfaces */
 	SDL_Surface * menuImage = SDL_LoadBMP(imgPath);
 	if (menuImage == NULL){
 		sdlErrorPrint("failed to load image");
@@ -30,7 +29,7 @@ void startGeneralMenu(GUIref gui, char * imgPath, int titleImgX, int titleImgY, 
 		sdlErrorPrint("failed to load image");
 		return;
 	}
-	menuViewState->image = menuImage;
+	menuViewState->bgImage = bgImage;
 
 	/* create buttons array */
 	Widget ** buttons = (Widget **)malloc(numButtons*sizeof(Widget *));
@@ -108,55 +107,72 @@ void startGeneralMenu(GUIref gui, char * imgPath, int titleImgX, int titleImgY, 
 		button_y += MENU_BUTTON_H+MENU_BUTTON_GAP;
 	}
 
-	/* update the view buttons */
-	if(firstButtonNumOpts > 1){ /* update the values button */
+	/* update the view buttons according to the appropriate data */
+	/* update the values button if it is a value selection button */
+	if(firstButtonNumOpts > 1){
 		setValuesButtonFromInit(value, buttons[0]);
 	}
+	/* set the correct button as the button selected */
 	menuViewState->currButton = selectedButton;
 	setButtonSelected(menuViewState->menuButtons[selectedButton]);
+
 	/* draw GUI according to UItree */
 	drawGui(menuViewState->UITree);
 }
 
+/* startMainMenu is a function used for starting the Main Menu GUI
+ * It calls startGeneralMenu function */
 void startMainMenu(GUIref gui, void* initData){
+	/* init the main menu model according to init data */
 	initMainMenuData(gui, initData);
 	if(isError)
 		return;
+	/* set the information needed to start the GUI */
 	char imgPath[] = "images/MainMenu.bmp";
 	MenuDataRef data = gui->model;
 	int currentButton = data->mainMenuButton;
-	/* start the main menu gui */
+	/* call startGeneralMenu to start the GUI */
 	startGeneralMenu(gui, imgPath,
 			MENU_BUTTON_W*2, 0, MENU_TITLE_W, MAIN_MENU_NUM_BUTTONS, currentButton, 1, 0);
 }
 
+/* startChooseAnimal is a function used for starting choose cat and choose mouse GUI
+ * It calls startGeneralMenu function, with the data of the appropriate animal */
 void startChooseAnimal(GUIref gui, void* initData){
+	/* init the choose cat/mouse model according to init data */
 	initMenuModel(gui, initData);
 	if(isError)
 		return;
+	/* set the information needed to start the GUI according to the GUI's stateId*/
 	char imgPath[] = "images/ChooseAnimal.bmp";
 	MenuDataRef data = gui->model;
 	int currentButton, titleImgY;
 	switch(gui->stateId){
 		case(CHOOSE_CAT):
 			currentButton = data->chooseCatButton;
-			titleImgY = 0;
+			titleImgY = 0; /* set the title location in the GUI's widgets' image */
 			break;
 		case(CHOOSE_MOUSE):
 			currentButton = data->chooseMouseButton;
-			titleImgY = MENU_TITLE_H;
+			titleImgY = MENU_TITLE_H; /* set the title location in the the GUI's widgets' image */
 			break;
 		default:
 			break;
 	}
+	/* call startGeneralMenu to start the GUI */
 	startGeneralMenu(gui, imgPath,
 			MENU_BUTTON_W*2, titleImgY, MENU_TITLE_W, COMMON_MENU_NUM_BUTTONS, currentButton, 1, 0);
 }
 
+
+/* startAnimalAkill is a function used for starting cat/mouse skill GUI
+ * It calls startGeneralMenu function, with the data of the appropriate animal */
 void startAnimalSkill(GUIref gui, void* initData){
+	/* init the cat/mouse skill model according to init data */
 	initMenuModel(gui, initData);
 	if(isError)
 		return;
+	/* set the information needed to start the GUI according to the GUI's stateId*/
 	char imgPath[] = "images/AnimalSkill.bmp";
 	MenuDataRef data = gui->model;
 	int currentButton, currentValue, titleImgY;
@@ -174,15 +190,19 @@ void startAnimalSkill(GUIref gui, void* initData){
 		default:
 			break;
 	}
+	/* call startGeneralMenu to start the GUI */
 	startGeneralMenu(gui, imgPath,
 			MENU_BUTTON_W*2, titleImgY, MENU_TITLE_W, COMMON_MENU_NUM_BUTTONS,currentButton, MAX_SKILL_VALUE, currentValue);
 }
 
-
+/* startWorldMenu is a function used for starting load game/edit game/save world GUI
+ * It calls startGeneralMenu function, with the data of the appropriate gui  */
 void startWorldMenu(GUIref gui, void* initData){
+	/* init the world menu model according to init data */
 	initMenuModel(gui, initData);
 	if(isError)
 		return;
+	/* set the information needed to start the GUI according to the GUI's stateId*/
 	char imgPath[] = "images/WorldMenu.bmp";
 	MenuDataRef data = gui->model;
 
@@ -206,24 +226,27 @@ void startWorldMenu(GUIref gui, void* initData){
 		default:
 			break;
 	}
+	/* call startGeneralMenu to start the GUI */
 	startGeneralMenu(gui, imgPath,
 			MENU_BUTTON_W*2, titleImgY, MENU_TITLE_W, COMMON_MENU_NUM_BUTTONS,currentButton, MAX_WORLD, currentValue);
 }
 
+/* startWorldBuilder is a function used for starting the world builder (wb) gui */
 void startWorldBuilder(GUIref gui, void* initData){
+	/* init world builder model */
 	initWorldBuilderModel(gui, initData);
 	if(isError)
 		return;
 	WBDataRef wbModel = gui->model;
 
-	// initialize viewState
+	/* initialize viewState */
 	ViewStateref wbViewState = initGUIViewState();
 	if (wbViewState == NULL){
 		return;
 	}
 	gui->viewState = wbViewState;
 
-	// create image surface for gui
+	/* create image surface for the wb GUI */
 	char imgPath[] = "images/WorldBuilder.bmp";
 	SDL_Surface * wbImage = SDL_LoadBMP(imgPath);
 	if (wbImage == NULL){
@@ -232,15 +255,17 @@ void startWorldBuilder(GUIref gui, void* initData){
 	}
 	wbViewState->image = wbImage;
 
-	//create grid Items array
+	/* create grid Items array */
 	createGridItemsImgArr(wbViewState);
 	if (isError)
 		return;
 
-	//set the layout of world builder gui
+	/* set the layout of world builder gui */
 	setThreePartLayout(wbViewState, wbModel->gameGridData);
+	if (isError)
+		return;
 
-	// create buttons array
+	/* create buttons array */
 	Widget ** buttons = (Widget **)malloc(WB_NUM_BUTTONS*sizeof(Widget *));
 	if (buttons == NULL){
 		perrorPrint("malloc");
@@ -248,7 +273,7 @@ void startWorldBuilder(GUIref gui, void* initData){
 	}
 	wbViewState->menuButtons = buttons;
 
-	// set up wb top label
+	/* setup wb top label */
 	Widget *label = create_image(calcWBtitleX(WB_TITLE_W), PANEL_WIDGET_Y_GAP, WB_TITLE_W, WB_TITLE_H,
 			wbImage, PANEL_BUTTON_W, wbModel->editedWorld*WB_TITLE_H);
 	if (label == NULL){
@@ -260,28 +285,21 @@ void startWorldBuilder(GUIref gui, void* initData){
 		return;
 	}
 
-	//add buttons to top panel:
-	int topButtonX = calcTopButtonX(), topButtonY = calcTopButtonY(), buttonImgX = 0, buttonImgY = 0;
-	// Add buttons to buttons array and to UI tree
-	for (int i = 0; i < WB_TOP_PANEL_NUM_BUTTONS; i++){
-		buttons[i] = create_button(topButtonX, topButtonY, PANEL_BUTTON_W, PANEL_BUTTON_H,
-				wbImage, buttonImgX, buttonImgY, buttonImgX, buttonImgY, 0);//write function for creating a non markable button
-		if (buttons[i] == NULL){
-			return;
-		}
-		ListRef newButtonNode = addChildNode(wbViewState->topPanelNode, buttons[i]);
-		if (newButtonNode == NULL){
-			freeWidget(buttons[i]);
-			return;
-		}
-		buttonImgY += PANEL_BUTTON_H;
-		topButtonX += PANEL_BUTTON_W + WB_BUTTON_X_GAP;
-	}
+	/* add buttons to top panel: */
+	int buttonImgX = 0, buttonImgY = 0;/* set the location of the button images in the image file */
+	addButtonsToWBTopPanel(wbViewState, buttonImgX, buttonImgY, buttonImgX, buttonImgY, 0,
+			WB_TOP_PANEL_NUM_BUTTONS, 1);
+	if (isError)
+		return;
 
-	//add buttons to side panel:
+	/* add buttons to side panel: */
+	buttonImgY = PANEL_BUTTON_H*WB_TOP_PANEL_NUM_BUTTONS; /* update the location of the button images in the image file */
 	addButtonsToSidePanel(wbViewState, buttonImgX, buttonImgY, buttonImgX, buttonImgY, WB_TOP_PANEL_NUM_BUTTONS,
 			WB_NUM_BUTTONS, 1);
+	if (isError)
+		return;
 
+	/* select the correct grid position */
 	selectGridPos(wbViewState->gridPanel, wbViewState->gridItemsImgArr, wbModel->currPos);
 	if (isError)
 		return;
@@ -289,28 +307,35 @@ void startWorldBuilder(GUIref gui, void* initData){
 	drawGui(wbViewState->UITree);
 }
 
-/* Main Menu specific MVP functions */
+/* startErrMsg is used for starting the error message GUI */
 void startErrMsg(GUIref gui, void* initData){
+	/* init the model according to initData */
 	initMenuModel(gui, initData);
 	if(isError)
 		return;
 	MenuDataRef data = gui->model;
 
 	char imgPath[] = "images/ErrMsg.bmp";
-
+	/* init the view state */
 	ViewStateref errViewState = initGUIViewState();
 	if (errViewState == NULL){
 		return;
 	}
 	gui->viewState = errViewState;
 
-	/* create image surface */
+	/* create image and bgImage surfaces */
 	SDL_Surface * menuImage = SDL_LoadBMP(imgPath);
 	if (menuImage == NULL){
 		sdlErrorPrint("failed to load image");
 		return;
 	}
 	errViewState->image = menuImage;
+	SDL_Surface * bgImage = SDL_LoadBMP("images/background.bmp");
+	if (bgImage == NULL){
+		sdlErrorPrint("failed to load image");
+		return;
+	}
+	errViewState->bgImage = bgImage;
 
 	/* create buttons array */
 	Widget ** buttons = (Widget **)malloc(ERR_MSG_NUM_BUTTONS*sizeof(Widget *));
@@ -321,6 +346,7 @@ void startErrMsg(GUIref gui, void* initData){
 	errViewState->menuButtons = buttons;
 
 	/* create the UItree */
+	/* create the window */
 	Widget *win = create_window(WIN_W,WIN_H, 0, 0, 0);
 	if (win == NULL){
 		return;
@@ -331,6 +357,17 @@ void startErrMsg(GUIref gui, void* initData){
 		freeWidget(win);
 		return;
 	}
+	/* create the background image */
+	Widget * bgImageWidget = create_image(0, 0, WIN_W, WIN_H,bgImage, 0, 0);
+	if (bgImageWidget == NULL){
+		return;
+	}
+	ListRef bgImage_node = addChildNode(win_node, bgImageWidget);
+	if (bgImage_node == NULL){
+		freeWidget(bgImageWidget);
+		return;
+	}
+	/* create the panel */
 	Widget *panel = create_panel(calcPanelX(ERR_MSG_TITLE_W), calcErrPanelY(),
 			calcPanelWidth(ERR_MSG_TITLE_W),calcErrPanelHeight(),PANEL_RED,PANEL_GREEN,PANEL_BLUE);
 	if (panel == NULL){
@@ -341,6 +378,7 @@ void startErrMsg(GUIref gui, void* initData){
 		freeWidget(panel);
 		return;
 	}
+	/* create the labels */
 	Widget *label = create_image(MENU_TITLE_X_GAP, MENU_TITLE_Y_GAP, ERR_MSG_TITLE_W, MENU_TITLE_H,
 			menuImage, 0, 0);
 	if (label == NULL){
@@ -362,7 +400,7 @@ void startErrMsg(GUIref gui, void* initData){
 		return;
 	}
 
-	/* Add buttons to buttons array and to UI tree */
+	/* Add button to buttons array and to UI tree */
 	int button_x = calcMenuButtonX(ERR_MSG_TITLE_W), button_y = calcErrMsgButtonY(), isSelected_x = ERR_MSG_TITLE_W, isSelected_y = 0;
 	buttons[0] = create_button(button_x,button_y, MENU_BUTTON_W, MENU_BUTTON_H,
 			menuImage, isSelected_x, isSelected_y, isSelected_x, isSelected_x, 0);
@@ -374,29 +412,32 @@ void startErrMsg(GUIref gui, void* initData){
 		freeWidget(buttons[0]);
 		return;
 	}
+	/* set the button selected */
 	setButtonSelected(errViewState->menuButtons[0]);
 	/* draw GUI according to UItree */
 	drawGui(errViewState->UITree);
 }
 
+/* start play game is a function used to start the play game GUI */
 void startPlayGame(GUIref gui, void* initData){
+	/* init play game model */
 	initPlayGameModel(gui, initData);
 	if(isError)
 		return;
 	PGDataRef pgModel = gui->model;
 
-	// initialize viewState
+	/* initialize viewState */
 	ViewStateref pgViewState = initGUIViewState();
 	if (pgViewState == NULL){
 		return;
 	}
 	gui->viewState = pgViewState;
 
-	//check if game is over
+	/* check if game is over and update the model accordingly */
 	pgModel->isGameOver = updateGameOver(pgModel);
 
 
-	// create image surface for gui
+	/* create image surface for gui */
 	char imgPath[] = "images/PlayGame.bmp";
 	SDL_Surface * pgImage = SDL_LoadBMP(imgPath);
 	if (pgImage == NULL){
@@ -405,17 +446,17 @@ void startPlayGame(GUIref gui, void* initData){
 	}
 	pgViewState->image = pgImage;
 
-	//create grid items array
+	/* create grid items array for the grid items images widgets */
 	createGridItemsImgArr(pgViewState);
 	if (isError)
 		return;
 
-	//set the layout of play game gui
+	/* set the layout of play game gui */
 	setThreePartLayout(pgViewState, pgModel->gameGridData);
 	if (isError)
 		return;
 
-	// create buttons array
+	/* create buttons array */
 	Widget ** buttons = (Widget **)malloc(PG_NUM_BUTTONS*sizeof(Widget *));
 	if (buttons == NULL){
 		perrorPrint("malloc");
@@ -436,52 +477,61 @@ void startPlayGame(GUIref gui, void* initData){
 	int buttonImgDisX = PANEL_BUTTON_W, buttonImgDisY = 3*PAUSE_BUTTON_H;
 	addButtonsToSidePanel(pgViewState, buttonImgX, buttonImgY, buttonImgDisX, buttonImgDisY,
 			PG_TOP_PANEL_NUM_BUTTONS, PG_NUM_BUTTONS, 1-pgModel->isGameOver);
-	if (isError)//check if we need this
+	if (isError)
 		return;
 
-	//handle top panel presentation
+	/* handle top panel presentation */
 	if (pgModel->isGameOver)
 		setTopPanelGameOver(pgModel, pgViewState);
 	else
 		setTopPanelPlayGame(pgModel, pgViewState);
 	if (isError)
 		return;
+	/* enable side panel buttons if game is over */
 	if (pgModel->isGameOver || pgModel->isGamePaused)
 		enablePGSidePanelButtons(pgViewState);
 
-
-	//set selected position to current player
+	/* set selected position to current player */
 	selectGridPos(pgViewState->gridPanel, pgViewState->gridItemsImgArr, *getCurrPlayerPos(pgModel));
 	if (isError)
 		return;
 
-	// draw GUI according to UItree
+	/* draw GUI according to UItree */
 	drawGui(pgViewState->UITree);
 }
 
-//vte functions:
+/**** vte functions: ****/
+
+/* simpleMenuVte is a function that is used as a VTE for the menus which have only
+ * regular buttons (the menus that don't have value selection button */
 void* simpleMenuVTE(void* viewState, SDL_Event* event, int numOfButtons){
+	/* create the return event */
 	logicalEventRef returnEvent = malloc(sizeof(logicalEvent));
 	if (returnEvent == NULL){
 		perrorPrint("malloc");
 		return NULL;
 	}
+	/* set type of return event to NO_EVENT as default */
 	returnEvent->type = NO_EVENT;
 	ViewStateref menuViewState = viewState;
+	/* switch over event types */
 	switch (event->type) {
-		case (SDL_KEYUP):
+		case (SDL_KEYUP): /* handle key up events */
 			if (event->key.keysym.sym == SDLK_TAB){
+				/* if tab was pressed, event is mark next button */
 				returnEvent->type = MARK_NEXT_BUTTON;
 			}
 			if (event->key.keysym.sym == SDLK_RETURN || event->key.keysym.sym == SDLK_KP_ENTER){
+				/* if return button pressed, even is select curr button */
 				returnEvent->type = SELECT_CURR_BUTTON;
 			}
 			break;
-		case (SDL_MOUSEBUTTONUP):
-			for (int i = 0; i< numOfButtons; i++){
+		case (SDL_MOUSEBUTTONUP): /* handle mouse button up events */
+			for (int i = 0; i< numOfButtons; i++){ /* go over each button and check if mouse clicked on it */
 				Widget * currButton = menuViewState->menuButtons[i];
-				if (isClickEventOnButton(event, currButton, REGULAR_BUTTON)){
-					returnEvent->type = SELECT_BUTTON_NUM;
+				if (isClickEventOnButton(event, currButton, REGULAR_BUTTON)){ /* check if button was clicked*/
+					returnEvent->type = SELECT_BUTTON_NUM; /* set event type to select button with
+					 	 	 	 	 	 	 	 	 	 	  the number of the button*/
 					returnEvent->buttonNum = i;
 					break;
 				}
@@ -493,8 +543,10 @@ void* simpleMenuVTE(void* viewState, SDL_Event* event, int numOfButtons){
 	return returnEvent;
 }
 
-
+/* complexMenuVte is a function that is used as a VTE for the menus which have one value selection
+ * button and other regular buttons */
 void* complexMenuVTE(void* viewState, SDL_Event* event){
+	/* create the return event */
 	logicalEventRef returnEvent = malloc(sizeof(logicalEvent));
 	int numOfButtons = COMMON_MENU_NUM_BUTTONS;
 	if (returnEvent == NULL){
@@ -502,44 +554,52 @@ void* complexMenuVTE(void* viewState, SDL_Event* event){
 		return NULL;
 	}
 	ViewStateref menuViewState = viewState;
+	/* set type of return event to NO_EVENT as default */
 	returnEvent->type = NO_EVENT;
+	/* switch over event types */
 	switch (event->type) {
-		case (SDL_KEYUP):
+		case (SDL_KEYUP): /* handle key up events */
+			/* if tab was pressed, event is mark next button */
 			if (event->key.keysym.sym == SDLK_TAB){
 				returnEvent->type = MARK_NEXT_BUTTON;
 			}
 			else if (event->key.keysym.sym == SDLK_RETURN || event->key.keysym.sym == SDLK_KP_ENTER){
+				/* if return button pressed, event is select curr button */
 				if (menuViewState->currButton != FIRST_BUTTON)
 					returnEvent->type = SELECT_CURR_BUTTON;
 			}
 			else if (event->key.keysym.sym == SDLK_UP){
 				if (menuViewState->currButton == FIRST_BUTTON)
+					/* if the first button (value selection) is selected, event is increase value */
 					returnEvent->type = INCREASE_VALUE;
 			}
 			else if (event->key.keysym.sym == SDLK_DOWN){
 				if (menuViewState->currButton == FIRST_BUTTON)
+					/* if the first button (value selection) is selected, event is decrease value */
 					returnEvent->type = DECREASE_VALUE;
 			}
 			break;
-		case (SDL_MOUSEBUTTONUP):
-			for (int i = 0; i< numOfButtons; i++){
+		case (SDL_MOUSEBUTTONUP): /* handle mouse button up events */
+			for (int i = 0; i< numOfButtons; i++){ /* go over each button and check if mouse clicked on it */
 				Widget * currButton = menuViewState->menuButtons[i];
 				if (i == FIRST_BUTTON){
+					/* for the value selection button first check if click is on arrow area or not */
 					if(isClickEventOnButton(event, currButton, UP_ARROW_BUTTON)){
-						returnEvent->type = INCREASE_VALUE;
+						returnEvent->type = INCREASE_VALUE; /* if up arrow area is clicked, event is increase value */
 						break;
 					}
 					if(isClickEventOnButton(event, currButton, DOWN_ARROW_BUTTON)){
-						returnEvent->type = DECREASE_VALUE;
+						returnEvent->type = DECREASE_VALUE;/* if down arrow area is clicked, event is decrease value */
 						break;
 					}
 					if (isClickEventOnButton(event, currButton, REGULAR_BUTTON)){
-						returnEvent->type = MARK_VALUES_BUTTON;
+						returnEvent->type = MARK_VALUES_BUTTON; /* if other parts are clicked event is mark values button */
 						returnEvent->buttonNum = i;
 						break;
 					}
 				}
 				if (isClickEventOnButton(event, currButton, REGULAR_BUTTON)){
+					/* for all other buttons (regular buttons) check if they were clicked */
 					returnEvent->type = SELECT_BUTTON_NUM;
 					returnEvent->buttonNum = i;
 					break;
@@ -550,16 +610,21 @@ void* complexMenuVTE(void* viewState, SDL_Event* event){
 	return returnEvent;
 }
 
+/* mainMenuVTE is the VTE function for the main menu gui
+ * it calls simpleMenuVTE function */
 void* mainMenuVTE(void* viewState, SDL_Event* event){
 	logicalEventRef returnEvent = simpleMenuVTE(viewState, event, MAIN_MENU_NUM_BUTTONS);
 	return returnEvent;
 }
 
+/* chooseAnimalVTE is the VTE function for the choose cat/mouse guis
+ * it calls simpleMenuVTE function */
 void* chooseAnimalVTE(void* viewState, SDL_Event* event){
 	logicalEventRef returnEvent = simpleMenuVTE(viewState, event, COMMON_MENU_NUM_BUTTONS);
 	return returnEvent;
 }
 
+/* worldBuilderVTE is the VTE function for the world builder gui */
 void* worldBuilderVTE(void* viewState, SDL_Event* event){
 	logicalEventRef returnEvent = malloc(sizeof(logicalEvent));
 	if (returnEvent == NULL){

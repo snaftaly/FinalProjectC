@@ -1,14 +1,6 @@
 #include <stdio.h>
 #include "CatAndMouseUtils.h"
 
-
-
-
-
-
-
-
-
 /*
  * getChildren function:
  * gets a state and return a List containing all possible

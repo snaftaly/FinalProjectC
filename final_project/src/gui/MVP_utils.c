@@ -332,6 +332,24 @@ int isCurrPlayerHuman(PGDataRef pgModel){
 	return 0;
 }
 
+void addButtonsToWBTopPanel(ViewStateref viewState, int buttonImgX, int buttonImgY,
+		int buttonImgDisX, int buttonImgDisY, int fromButtonNum, int toButtonNum, int isDisabled){
+	int topButtonX = calcTopButtonX(), topButtonY = calcTopButtonY();
+
+	for (int i = 0; i < WB_TOP_PANEL_NUM_BUTTONS; i++){
+		viewState->menuButtons[i] = create_button(topButtonX, topButtonY, PANEL_BUTTON_W, PANEL_BUTTON_H,
+				viewState->image, buttonImgX, buttonImgY, buttonImgX, buttonImgY, 0);
+		if (viewState->menuButtons[i] == NULL){
+			return;
+		}
+		ListRef newButtonNode = addChildNode(viewState->topPanelNode, viewState->menuButtons[i]);
+		if (newButtonNode == NULL){
+			freeWidget(viewState->menuButtons[i]);
+			return;
+		}
+		buttonImgY += PANEL_BUTTON_H;
+		topButtonX += PANEL_BUTTON_W + WB_BUTTON_X_GAP;
+}
 
 void addButtonsToSidePanel(ViewStateref viewState, int buttonImgX, int buttonImgY,
 		int buttonImgDisX, int buttonImgDisY, int fromButtonNum, int toButtonNum, int isDisabled){
@@ -353,6 +371,7 @@ void addButtonsToSidePanel(ViewStateref viewState, int buttonImgX, int buttonImg
 		sideButtonY += PANEL_BUTTON_H + PANEL_WIDGET_Y_GAP;
 	}
 }
+
 
 void createGridItemsImgArr(ViewStateref viewState){
 	SDL_Surface * gridItemsImg = SDL_LoadBMP("images/GridItems.bmp");
@@ -1005,3 +1024,4 @@ void initMainMenuData(GUIref mainMenuGui, void * initData){
 		freeMenuData(initData);
 	}
 }
+
