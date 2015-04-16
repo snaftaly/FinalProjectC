@@ -4,7 +4,7 @@
 #include "../main/ErrorHandling.h"
 
 
-//start functions:
+/**** start functions ****/
 
 /* startGeneralMenu is a function used for starting all the menu GUIs */
 void startGeneralMenu(GUIref gui, char * imgPath, int titleImgX, int titleImgY, int titleWidth,
@@ -41,7 +41,7 @@ void startGeneralMenu(GUIref gui, char * imgPath, int titleImgX, int titleImgY, 
 
 	/* create the UItree: */
 	/* create the window */
-	Widget *win = create_window(WIN_W,WIN_H, 193, 201, 255);
+	Widget *win = createWindow(WIN_W,WIN_H, 193, 201, 255);
 	if (win == NULL){
 		return;
 	}
@@ -62,8 +62,8 @@ void startGeneralMenu(GUIref gui, char * imgPath, int titleImgX, int titleImgY, 
 		return;
 	}
 	/* create the panel */
-	Widget *panel = create_panel(calcPanelX(titleWidth), calcPanelY(numButtons),
-			calcPanelWidth(titleWidth),calcPanelHeight(numButtons),PANEL_RED,PANEL_GREEN,PANEL_BLUE);
+	Widget *panel = create_panel(calcMenuPanelX(titleWidth), calcMenuPanelY(numButtons),
+			calcMenuPanelWidth(titleWidth),calcMenuPanelHeight(numButtons),PANEL_RED,PANEL_GREEN,PANEL_BLUE);
 	if (panel == NULL){
 		return;
 	}
@@ -347,7 +347,7 @@ void startErrMsg(GUIref gui, void* initData){
 
 	/* create the UItree */
 	/* create the window */
-	Widget *win = create_window(WIN_W,WIN_H, 0, 0, 0);
+	Widget *win = createWindow(WIN_W,WIN_H, 0, 0, 0);
 	if (win == NULL){
 		return;
 	}
@@ -368,8 +368,8 @@ void startErrMsg(GUIref gui, void* initData){
 		return;
 	}
 	/* create the panel */
-	Widget *panel = create_panel(calcPanelX(ERR_MSG_TITLE_W), calcErrPanelY(),
-			calcPanelWidth(ERR_MSG_TITLE_W),calcErrPanelHeight(),PANEL_RED,PANEL_GREEN,PANEL_BLUE);
+	Widget *panel = create_panel(calcMenuPanelX(ERR_MSG_TITLE_W), calcErrPanelY(),
+			calcMenuPanelWidth(ERR_MSG_TITLE_W),calcErrPanelHeight(),PANEL_RED,PANEL_GREEN,PANEL_BLUE);
 	if (panel == NULL){
 		return;
 	}
@@ -434,7 +434,7 @@ void startPlayGame(GUIref gui, void* initData){
 	gui->viewState = pgViewState;
 
 	/* check if game is over and update the model accordingly */
-	pgModel->isGameOver = updateGameOver(pgModel);
+	pgModel->isGameOver = checkAndupdateGameOverType(pgModel);
 
 
 	/* create image surface for gui */
@@ -480,27 +480,24 @@ void startPlayGame(GUIref gui, void* initData){
 	if (isError)
 		return;
 
-	/* handle top panel presentation */
+	/* handle top panel presentation and select curr player if game is played */
 	if (pgModel->isGameOver)
 		setTopPanelGameOver(pgModel, pgViewState);
 	else
-		setTopPanelPlayGame(pgModel, pgViewState);
+		setPlayGame(pgViewState, pgModel);
 	if (isError)
 		return;
+
 	/* enable side panel buttons if game is over */
 	if (pgModel->isGameOver || pgModel->isGamePaused)
 		enablePGSidePanelButtons(pgViewState);
-
-	/* set selected position to current player */
-	selectGridPos(pgViewState->gridPanel, pgViewState->gridItemsImgArr, *getCurrPlayerPos(pgModel));
-	if (isError)
-		return;
 
 	/* draw GUI according to UItree */
 	drawGui(pgViewState->UITree);
 }
 
-/**** vte functions: ****/
+
+/**** viewTranslateEvent (VTE) functions: ****/
 
 /* simpleMenuVte is a function that is used as a VTE for the menus which have only
  * regular buttons (the menus that don't have value selection button */
@@ -544,7 +541,7 @@ void* simpleMenuVTE(void* viewState, SDL_Event* event, int numOfButtons){
 }
 
 /* complexMenuVte is a function that is used as a VTE for the menus which have one value selection
- * button and other regular buttons */
+ * button and two other regular buttons */
 void* complexMenuVTE(void* viewState, SDL_Event* event){
 	/* create the return event */
 	logicalEventRef returnEvent = malloc(sizeof(logicalEvent));
@@ -626,26 +623,30 @@ void* chooseAnimalVTE(void* viewState, SDL_Event* event){
 
 /* worldBuilderVTE is the VTE function for the world builder gui */
 void* worldBuilderVTE(void* viewState, SDL_Event* event){
+	/* create the return event */
 	logicalEventRef returnEvent = malloc(sizeof(logicalEvent));
 	if (returnEvent == NULL){
 		perrorPrint("malloc");
 		return NULL;
 	}
+	/* set type of return event to NO_EVENT as default */
 	returnEvent->type = NO_EVENT;
 	ViewStateref wbViewState = viewState;
 	SDLKey key;
 	switch (event->type) {
-		case (SDL_KEYUP):
+		case (SDL_KEYUP):/* handle key up events */
 			key = event->key.keysym.sym;
 			if (key == SDLK_s || key == SDLK_F1 || key == SDLK_ESCAPE ||
 					key == SDLK_m || key == SDLK_c || key == SDLK_p || key == SDLK_w || key == SDLK_SPACE){
+				/* handle case where a button key was pressed */
 				returnEvent->type = SELECT_BUTTON_NUM;
 				returnEvent->buttonNum = getWBButtonNum(key);
 			}
 			else
+				/* check and handle arrow key events */
 				handleThreePartLayoutArrowKey(key, returnEvent);
 			break;
-		case (SDL_MOUSEBUTTONUP):
+		case (SDL_MOUSEBUTTONUP): /* handle mouse button up events */
 			handleThreePartLayoutMouseSelect(event, returnEvent, wbViewState->menuButtons, WB_NUM_BUTTONS);
 			break;
 		default:
@@ -655,22 +656,23 @@ void* worldBuilderVTE(void* viewState, SDL_Event* event){
 }
 
 void* errMsgVTE(void* viewState, SDL_Event* event){
+	/* create the return event */
 	logicalEventRef returnEvent = malloc(sizeof(logicalEvent));
 	if (returnEvent == NULL){
 		perrorPrint("malloc");
 		return NULL;
 	}
+	/* set type of return event to NO_EVENT as default */
 	returnEvent->type = NO_EVENT;
 	ViewStateref menuViewState = viewState;
-	Widget * currButton = menuViewState->menuButtons[0];
-
+	Widget * currButton = menuViewState->menuButtons[0]; /* there is only one button */
 	switch (event->type) {
-		case (SDL_KEYUP):
+		case (SDL_KEYUP): /* handle key up events - for return click */
 			if (event->key.keysym.sym == SDLK_RETURN || event->key.keysym.sym == SDLK_KP_ENTER){
 				returnEvent->type = SELECT_CURR_BUTTON;
 			}
 			break;
-		case (SDL_MOUSEBUTTONUP):
+		case (SDL_MOUSEBUTTONUP): /* handle mouse button up events on the back button */
 			if (isClickEventOnButton(event, currButton, REGULAR_BUTTON)){
 				returnEvent->type = SELECT_BUTTON_NUM;
 				returnEvent->buttonNum = 0;
@@ -684,11 +686,13 @@ void* errMsgVTE(void* viewState, SDL_Event* event){
 }
 
 void* playGameVTE(void* viewState, SDL_Event * event){
+	/* create the return event */
 	logicalEventRef returnEvent = malloc(sizeof(logicalEvent));
 	if (returnEvent == NULL){
 		perrorPrint("malloc");
 		return NULL;
 	}
+	/* set type of return event to NO_EVENT as default */
 	returnEvent->type = NO_EVENT;
 	ViewStateref pgViewState = viewState;
 	SDLKey key;
@@ -697,13 +701,15 @@ void* playGameVTE(void* viewState, SDL_Event * event){
 			key = event->key.keysym.sym;
 			if (key == SDLK_SPACE || key == SDLK_F1 || key == SDLK_F2 || key == SDLK_F3 || key == SDLK_F4 ||
 					key == SDLK_ESCAPE){
+				/* handle case where a button key was pressed */
 				returnEvent->type = SELECT_BUTTON_NUM;
 				returnEvent->buttonNum = getPGButtonNum(key);
 			}
 			else
+				/* check and handle arrow key events */
 				handleThreePartLayoutArrowKey(key, returnEvent);
 			break;
-		case (SDL_MOUSEBUTTONUP):
+		case (SDL_MOUSEBUTTONUP):/* handle mouse button up events */
 			handleThreePartLayoutMouseSelect(event, returnEvent, pgViewState->menuButtons, PG_NUM_BUTTONS);
 			break;
 		default:
@@ -714,271 +720,296 @@ void* playGameVTE(void* viewState, SDL_Event * event){
 
 
 
-// PHE functions:
+/**** presenterHandleEvent functions ****/
+/* generalMenuPHE is the PHE function used for all the menus of the program
+ * (both simple and complex menus. it gets the menu model, view state, an array of states representing
+ * the state the button number leads to, number of buttons in the menu, the stateId, the current button selected
+ * the current value of the values button (if applicable), and the max value of the values button (if applicable) */
 StateId generalMenuPHE(void* model, void* viewState, void* logicalEvent, StateId states[], int numOfButtons,
 		StateId stateId, int* currButton, int* currValue, int maxValue){
 	StateId returnStateId = stateId;
 	if (logicalEvent == NULL || viewState == NULL || model == NULL)
 		return returnStateId;
+	/* get the logical event, viewState and menuModel */
 	logicalEventRef menuEvent = logicalEvent;
 	ViewStateref menuView = viewState;
 	MenuDataRef menuModel = menuModel;
+	/* switch over event types */
 	switch(menuEvent->type){
 		case(SELECT_CURR_BUTTON):
-			returnStateId = states[*currButton];
-			menuView->currButton = *currButton;
+			returnStateId = states[*currButton]; /* set the correct return stateId according to the button and state arr*/
+			menuView->currButton = *currButton; /* update the current button in the view */
 			break;
 		case(MARK_NEXT_BUTTON):
 			changeSelectedButton(menuView->menuButtons[*currButton],
-					menuView->menuButtons[(*currButton+1)%numOfButtons]);
-			*currButton = (*currButton + 1)%numOfButtons;
-			menuView->currButton = *currButton;
+					menuView->menuButtons[(*currButton+1)%numOfButtons]); /* update the selected button in the view */
+			*currButton = (*currButton + 1)%numOfButtons; /* update the button number */
+			menuView->currButton = *currButton;/* update the current button in the view */
 			break;
 		case(SELECT_BUTTON_NUM):
-			*currButton = menuEvent->buttonNum;
-			returnStateId = states[menuEvent->buttonNum];
-			menuView->currButton = *currButton;
+			*currButton = menuEvent->buttonNum; /* get the number of button from the event */
+			returnStateId = states[menuEvent->buttonNum]; /* set the correct return stateId according to the button and state arr*/
+			menuView->currButton = *currButton; /* update the current button in the view */
 			break;
 		case(MARK_VALUES_BUTTON):
 			changeSelectedButton(menuView->menuButtons[*currButton],
-					menuView->menuButtons[FIRST_BUTTON]);
-			*currButton = FIRST_BUTTON;
-			menuView->currButton = *currButton;
+					menuView->menuButtons[FIRST_BUTTON]); /* update the selected button in the view */
+			*currButton = FIRST_BUTTON; /* update the button number */
+			menuView->currButton = *currButton; /* update the current button in the view */
 			break;
 		case(INCREASE_VALUE):
-			increaseValuesButton(currValue, maxValue, menuView->menuButtons[FIRST_BUTTON]);
+			increaseValuesButton(currValue, maxValue, menuView->menuButtons[FIRST_BUTTON]); /* update the value */
 			changeSelectedButton(menuView->menuButtons[*currButton],
-				menuView->menuButtons[FIRST_BUTTON]);
-			*currButton = FIRST_BUTTON;
-			menuView->currButton = *currButton;
+				menuView->menuButtons[FIRST_BUTTON]); /* update the selected button in the view */
+			*currButton = FIRST_BUTTON; /* update the button number */
+			menuView->currButton = *currButton; /* update the current button in the view */
 			break;
 		case(DECREASE_VALUE):
-			decreaseValuesButton(currValue, MIN_VALUE, menuView->menuButtons[FIRST_BUTTON]);
+			decreaseValuesButton(currValue, MIN_VALUE, menuView->menuButtons[FIRST_BUTTON]); /* update the value */
 			changeSelectedButton(menuView->menuButtons[*currButton],
-				menuView->menuButtons[FIRST_BUTTON]);
-			*currButton = FIRST_BUTTON;
-			menuView->currButton = *currButton;
+				menuView->menuButtons[FIRST_BUTTON]); /* update the selected button in the view */
+			*currButton = FIRST_BUTTON; /* update the button number */
+			menuView->currButton = *currButton; /* update the current button in the view */
 			break;
 		case(NO_EVENT):
 			break;
 		default:
 			break;
 	}
-//	if (*currButton == numOfButtons-1 && returnStateId != stateId)
-//		*currButton = FIRST_BUTTON;
-	free(logicalEvent);
-	//menuModel->retStateId = returnStateId;
+	free(logicalEvent); /* free logical event */
 	return returnStateId;
 }
 
+/* the phe function for main menu. calls generalMenuPHE */
 StateId mainMenuPHE(void* model, void* viewState, void* logicalEvent){
-	StateId returnStateId = MAIN_MENU;
+	StateId returnStateId = MAIN_MENU; /* default return stateId */
 	if (model == NULL)
 		return returnStateId;
 	MenuDataRef mainMenuModel = model;
+	/* create an array of return stateIds according to the buttons: */
 	StateId mainMenuStates[MAIN_MENU_NUM_BUTTONS] = {CHOOSE_CAT, LOAD_GAME, WORLD_BUILDER, EDIT_GAME, QUIT};
+	/* get stateId by logical event, and update model and view */
 	returnStateId = generalMenuPHE(model, viewState, logicalEvent, mainMenuStates, MAIN_MENU_NUM_BUTTONS, returnStateId,
 			&mainMenuModel->mainMenuButton, NULL, 0);
-	// maybe create a function the will reset all the data when going to main menu
-	// and maybe it should be in start main menu!
-	if (returnStateId == WORLD_BUILDER)
+	if (returnStateId == WORLD_BUILDER) /* set edited world to 0 if we're going to world builder from main menu */
 		mainMenuModel->editedWorld = 0;
-	mainMenuModel->retStateId = returnStateId;
+	mainMenuModel->retStateId = returnStateId; /* update returnStateId in model */
 	return returnStateId;
 }
 
+/* The phe function for choose cat. Calls generalMenuPHE */
 StateId chooseCatPHE(void* model, void* viewState, void* logicalEvent){
-	StateId returnStateId = CHOOSE_CAT;
-
+	StateId returnStateId = CHOOSE_CAT; /* default return stateId */
 	if (model == NULL)
 		return returnStateId;
-	MenuDataRef chooseCatModel = model;
+	MenuDataRef chooseCatModel = model; /* get the model data */
+	/* create an array of return stateIds according to the buttons: */
 	StateId chooseCatStates[COMMON_MENU_NUM_BUTTONS] = {CHOOSE_MOUSE, CAT_SKILL, chooseCatModel->preChooseCat};
-	if (chooseCatModel->preChooseCat == PLAY_GAME){
+	if (chooseCatModel->preChooseCat == PLAY_GAME) /* set the first button to go to play game if we came from play game */
 		chooseCatStates[0]=PLAY_GAME;
-	}
+	/* get stateId by logical event, and update model and view */
 	returnStateId = generalMenuPHE(model, viewState, logicalEvent, chooseCatStates, COMMON_MENU_NUM_BUTTONS,
 			returnStateId, &chooseCatModel->chooseCatButton, NULL, 0);
-	if (returnStateId == CHOOSE_MOUSE){
+	if (returnStateId == CHOOSE_MOUSE){ /* human was pressed */
 		chooseCatModel->isCatHuman = 1;
 		chooseCatModel->preChooseMouse = CHOOSE_CAT;
 	}
-	else if (returnStateId == PLAY_GAME && chooseCatModel->chooseCatButton == 0) // human was pressed
+	else if (returnStateId == PLAY_GAME && chooseCatModel->chooseCatButton == 0) /* human was pressed */
 			chooseCatModel->isCatHuman = 1;
-	else if (returnStateId == CAT_SKILL)
+	else if (returnStateId == CAT_SKILL) /* update the current skill in a temp value */
 		chooseCatModel->currValueTemp = chooseCatModel->catSkill;
-	chooseCatModel->retStateId = returnStateId;
+	else if (returnStateId == LOAD_GAME) // back was pressed
+		chooseCatModel->chooseCatButton = 0;
+	chooseCatModel->retStateId = returnStateId; /* update returnStateId in model */
 	return returnStateId;
 }
 
+/* The phe function for choose mouse. Calls generalMenuPHE */
 StateId chooseMousePHE(void* model, void* viewState, void* logicalEvent){
-	StateId returnStateId = CHOOSE_MOUSE;
+	StateId returnStateId = CHOOSE_MOUSE; /* default return stateId */
 	if (model == NULL)
 		return returnStateId;
-	MenuDataRef chooseMouseModel = model;
+	MenuDataRef chooseMouseModel = model; /* get the model data */
+	/* create an array of return stateIds according to the buttons: */
 	StateId chooseMouseStates[COMMON_MENU_NUM_BUTTONS] = {PLAY_GAME, MOUSE_SKILL, chooseMouseModel->preChooseMouse};
+	/* get stateId by logical event, and update model and view */
 	returnStateId = generalMenuPHE(model, viewState, logicalEvent, chooseMouseStates, COMMON_MENU_NUM_BUTTONS,
 			returnStateId, &chooseMouseModel->chooseMouseButton, NULL, 0);
-
-	if (returnStateId == PLAY_GAME && chooseMouseModel->chooseMouseButton == 0){
+	if (returnStateId == PLAY_GAME && chooseMouseModel->chooseMouseButton == 0) /* human was pressed */
 		chooseMouseModel->isMouseHuman = 1;
-	}
-	else if (returnStateId == MOUSE_SKILL)
+	else if (returnStateId == MOUSE_SKILL) /* update the current skill in a temp value */
 		chooseMouseModel->currValueTemp = chooseMouseModel->mouseSkill;
-	else if (returnStateId == CAT_SKILL || returnStateId == CHOOSE_CAT)
+	else if (returnStateId == CHOOSE_CAT || returnStateId == CAT_SKILL) // back was pressed
 		chooseMouseModel->chooseMouseButton = 0;
-	chooseMouseModel->retStateId = returnStateId;
+	chooseMouseModel->retStateId = returnStateId; /* update returnStateId in model */
 	return returnStateId;
 }
 
+/* The phe function for cat skill. Calls generalMenuPHE */
 StateId catSkillPHE(void* model, void* viewState, void* logicalEvent){
-	StateId returnStateId = CAT_SKILL;
+	StateId returnStateId = CAT_SKILL; /* default return stateId */
 	if (model == NULL)
 		return returnStateId;
-	MenuDataRef catSkillModel = model;
+	MenuDataRef catSkillModel = model; /* get the model data */
+	/* create an array of return stateIds according to the buttons: */
 	StateId catSkillStates[COMMON_MENU_NUM_BUTTONS] = {CAT_SKILL, CHOOSE_MOUSE, CHOOSE_CAT};
-	if (catSkillModel->preChooseCat == PLAY_GAME){
-		catSkillStates[1]=PLAY_GAME;
-	}
+	if (catSkillModel->preChooseCat == PLAY_GAME)
+		catSkillStates[1]=PLAY_GAME; /* set the second button to go to play game if we came from play game */
+	/* get stateId by logical event, and update model and view */
 	returnStateId = generalMenuPHE(model, viewState, logicalEvent, catSkillStates, COMMON_MENU_NUM_BUTTONS,
 		returnStateId, &catSkillModel->catSkillButton, &catSkillModel->currValueTemp, MAX_SKILL_VALUE);
-	if (returnStateId == PLAY_GAME || returnStateId == CHOOSE_MOUSE){ // Done button was pressed
-		catSkillModel->isCatHuman = 0;
-		catSkillModel->catSkill = catSkillModel->currValueTemp;
-		if (returnStateId == CHOOSE_MOUSE){
+	if (returnStateId == PLAY_GAME || returnStateId == CHOOSE_MOUSE){ /* Done button was pressed */
+		catSkillModel->isCatHuman = 0; /* cat us a machine */
+		catSkillModel->catSkill = catSkillModel->currValueTemp; /* set cat skill once done is pressed */
+		if (returnStateId == CHOOSE_MOUSE){ /* update pre choose mouse in model */
 			catSkillModel->preChooseMouse = CAT_SKILL;
 		}
 	}
-
-	if (returnStateId == CHOOSE_CAT) // back was pressed and we go back to choose cat
+	if (returnStateId == CHOOSE_CAT) /* back was pressed and we go back to choose cat */
 		catSkillModel->catSkillButton = 0;
-	catSkillModel->retStateId = returnStateId;
+	catSkillModel->retStateId = returnStateId; /* update returnStateId in model */
 	return returnStateId;
 }
 
+/* The phe function for mouse skill. Calls generalMenuPHE */
 StateId mouseSkillPHE(void* model, void* viewState, void* logicalEvent){
-	StateId returnStateId = MOUSE_SKILL;
+	StateId returnStateId = MOUSE_SKILL; /* default return stateId */
 	if (model == NULL)
 		return returnStateId;
-	MenuDataRef mouseSkillModel = model;
+	MenuDataRef mouseSkillModel = model; /* get the model data */
+	/* create an array of return stateIds according to the buttons: */
 	StateId mouseSkillStates[COMMON_MENU_NUM_BUTTONS] = {MOUSE_SKILL, PLAY_GAME, CHOOSE_MOUSE};
+	/* get stateId by logical event, and update model and view */
 	returnStateId = generalMenuPHE(model, viewState, logicalEvent, mouseSkillStates, COMMON_MENU_NUM_BUTTONS,
 		returnStateId, &mouseSkillModel->mouseSkillButton, &mouseSkillModel->currValueTemp, MAX_SKILL_VALUE);
-	if (returnStateId == PLAY_GAME){ // Done button was pressed
-		mouseSkillModel->isMouseHuman = 0;
+	if (returnStateId == PLAY_GAME){ /* Done button was pressed */
+		mouseSkillModel->isMouseHuman = 0; /* set mouse as machine */
 		mouseSkillModel->mouseSkill = mouseSkillModel->currValueTemp;
 	}
-	else if (returnStateId == CHOOSE_MOUSE){
-		mouseSkillModel->mouseSkillButton = 0;
-		if (mouseSkillModel->preChooseMouse == CAT_SKILL)
-			mouseSkillModel->mouseSkill = DEFAULT_SKILL;
+	else if (returnStateId == CHOOSE_MOUSE){ /* back was pressed */
+		mouseSkillModel->mouseSkillButton = 0; /* set button to 0 for when we get back */
 	}
-	mouseSkillModel->retStateId = returnStateId;
+	mouseSkillModel->retStateId = returnStateId; /* update returnStateId in model */
 	return returnStateId;
 }
 
+/* The phe function for load game menu. calls generalMenuPHE */
 StateId loadGamePHE(void* model, void* viewState, void* logicalEvent){
-	StateId returnStateId = LOAD_GAME;
+	StateId returnStateId = LOAD_GAME;/* default return stateId */
 	if (model == NULL)
 		return returnStateId;
-	MenuDataRef loadGameModel = model;
+	MenuDataRef loadGameModel = model; /* get the model data */
+	/* create an array of return stateIds according to the buttons: */
 	StateId loadGameStates[COMMON_MENU_NUM_BUTTONS] = {LOAD_GAME, CHOOSE_CAT, MAIN_MENU};
+	/* get stateId by logical event, and update model and view */
 	returnStateId = generalMenuPHE(model, viewState, logicalEvent, loadGameStates, COMMON_MENU_NUM_BUTTONS,
 		returnStateId, &loadGameModel->loadGameButton, &loadGameModel->loadGameWorld, MAX_WORLD);
-	if (returnStateId == CHOOSE_CAT){ //done was pressed
-		loadGameModel->preChooseCat = LOAD_GAME;
-		loadGameModel->loadFromFile = 1;
+	if (returnStateId == CHOOSE_CAT){ /* done was pressed */
+		loadGameModel->preChooseCat = LOAD_GAME; /* update the pre choose cat stateId */
+		loadGameModel->loadFromFile = 1; /* update load from file to 1 */
 	}
-	loadGameModel->retStateId = returnStateId;
+	loadGameModel->retStateId = returnStateId; /* update returnStateId in model */
 	return returnStateId;
 }
 
+/* The phe function for edit game menu. calls generalMenuPHE */
 StateId editGamePHE(void* model, void* viewState, void* logicalEvent){
-	StateId returnStateId = EDIT_GAME;
+	StateId returnStateId = EDIT_GAME; /* default return stateId */
 	if (model == NULL)
 		return returnStateId;
-	MenuDataRef editGameModel = model;
+	MenuDataRef editGameModel = model; /* get the model data */
+	/* create an array of return stateIds according to the buttons: */
 	StateId editGameStates[COMMON_MENU_NUM_BUTTONS] = {EDIT_GAME, WORLD_BUILDER, MAIN_MENU};
+	/* get stateId by logical event, and update model and view */
 	returnStateId = generalMenuPHE(model, viewState, logicalEvent, editGameStates, COMMON_MENU_NUM_BUTTONS,
 		returnStateId, &editGameModel->editGameButton, &editGameModel->editedWorld, MAX_WORLD);
-	if (returnStateId == WORLD_BUILDER){
-		editGameModel->preWorldBuilder = EDIT_GAME;
-		editGameModel->loadFromFile = 1;
+	if (returnStateId == WORLD_BUILDER){ /* done was pressed */
+		editGameModel->preWorldBuilder = EDIT_GAME; /* update pre world builder */
+		editGameModel->loadFromFile = 1; /* set load from file to 1 */
 	}
-	editGameModel->retStateId = returnStateId;
+	editGameModel->retStateId = returnStateId; /* update returnStateId in model */
 	return returnStateId;
 }
 
+/* The phe function for save world menu. calls generalMenuPHE */
 StateId saveWorldPHE(void* model, void* viewState, void* logicalEvent){
-	StateId returnStateId = SAVE_WORLD;
+	StateId returnStateId = SAVE_WORLD; /* default return stateId */
 	if (model == NULL)
 		return returnStateId;
-	MenuDataRef saveWorldModel = model;
+	MenuDataRef saveWorldModel = model; /* get the model data */
+	/* create an array of return stateIds according to the buttons: */
 	StateId saveWorldStates[COMMON_MENU_NUM_BUTTONS] = {SAVE_WORLD, WORLD_BUILDER, WORLD_BUILDER};
+	/* get stateId by logical event, and update model and view */
 	returnStateId = generalMenuPHE(model, viewState, logicalEvent, saveWorldStates, COMMON_MENU_NUM_BUTTONS,
 		returnStateId, &saveWorldModel->saveWorldButton, &saveWorldModel->currValueTemp, MAX_WORLD);
 	if (returnStateId == WORLD_BUILDER){ //done or back were pressed
-		saveWorldModel->preWorldBuilder = SAVE_WORLD; // do we need this?
-		if (saveWorldModel->saveWorldButton == 1){ //done was pressed
-			saveWorldModel->loadFromFile = 1;// tell wb to use file to load the grid
-			saveWorldModel->editedWorld = saveWorldModel->currValueTemp;
+		saveWorldModel->preWorldBuilder = SAVE_WORLD;
+		if (saveWorldModel->saveWorldButton == 1){ /* done was pressed */
+			saveWorldModel->loadFromFile = 1; /* tell wb to use file to load the grid */
+			saveWorldModel->editedWorld = saveWorldModel->currValueTemp; /* set edited world to curr value */
+			/* save the grid data to the correct file and free it */
 			saveGridDataToFile(saveWorldModel->editedWorld, saveWorldModel->isCatFirst, saveWorldModel->gameGridData);
-			//free grid data
-			freeGridData(saveWorldModel->gameGridData);
+			freeGridData(saveWorldModel->gameGridData); /* free grid data */
 			saveWorldModel->gameGridData = NULL;
 		}
 		else if (saveWorldModel->saveWorldButton == 2) //back was pressed
-			saveWorldModel->loadFromFile = 0;// tell wb to use char ** to load the grid
+			saveWorldModel->loadFromFile = 0; /* tell wb to use char ** to load the grid */
 	}
-	saveWorldModel->retStateId = returnStateId;
+	saveWorldModel->retStateId = returnStateId; /* update returnStateId in model */
 	return returnStateId;
 }
 
+/* The phe function for error message. calls generalMenuPHE */
 StateId errMsgPHE(void* model, void* viewState, void* logicalEvent){
-	StateId returnStateId = ERR_MSG;
+	StateId returnStateId = ERR_MSG; /* default return stateId */
 	if (model == NULL)
 		return returnStateId;
-	MenuDataRef errMsgModel = model;
+	MenuDataRef errMsgModel = model; /* get the model data */
+	/* create an array of return stateIds according to the buttons: */
 	StateId errMsgStates[MAIN_MENU_NUM_BUTTONS] = {WORLD_BUILDER};
+	/* get stateId by logical event, and update model and view */
 	returnStateId = generalMenuPHE(model, viewState, logicalEvent, errMsgStates, ERR_MSG_NUM_BUTTONS,
 			returnStateId, &errMsgModel->errMsgButton, NULL, 0);
-	if (returnStateId == WORLD_BUILDER)
+	if (returnStateId == WORLD_BUILDER) /* back button pressed */
 		errMsgModel->preWorldBuilder = ERR_MSG;
-	errMsgModel->retStateId = returnStateId;
+	errMsgModel->retStateId = returnStateId; /* update returnStateId in model */
 	return returnStateId;
 }
 
+/* The phe function for the world builder */
 StateId worldBuilderPHE(void* model, void* viewState, void* logicalEvent){
-	StateId returnStateId = WORLD_BUILDER;
+	StateId returnStateId = WORLD_BUILDER; /* default return stateId */
 	if (logicalEvent == NULL || viewState == NULL || model == NULL)
 		return returnStateId;
 	logicalEventRef wbEvent = logicalEvent;
 	ViewStateref wbView = viewState;
-	WBDataRef wbModel = model;
+	WBDataRef wbModel = model; /* get the model data */
+	/* create an array of return stateIds according to the buttons: */
 	StateId states[WB_NUM_BUTTONS] = {SAVE_WORLD, MAIN_MENU, QUIT, WORLD_BUILDER, WORLD_BUILDER, WORLD_BUILDER,
 			WORLD_BUILDER,WORLD_BUILDER};
+	/* switch over logical events type */
 	switch(wbEvent->type){
 		case(SELECT_BUTTON_NUM):
 			returnStateId = states[wbEvent->buttonNum];
-			if(returnStateId == SAVE_WORLD && isGridInvalid(wbModel))
+			if(returnStateId == SAVE_WORLD && isGridInvalid(wbModel)) /* save world was pressed and grid is invalid */
 				returnStateId = ERR_MSG;
-			else if (returnStateId == WORLD_BUILDER){
+			else if (returnStateId == WORLD_BUILDER){ /* place mouse/cat/cheese/wall/empty space was pressed */
 				putGridItemInPos(wbModel, wbView->gridPanel, wbView->gridItemsImgArr, wbModel->currPos, wbEvent->buttonNum);
 			}
 			break;
-		case(SELECT_SQUARE):
+		case(SELECT_SQUARE): /* a grid square was pressed */
 			changeSelectedGridSquare(wbView->gridPanel, wbView->gridItemsImgArr,&wbModel->currPos, wbEvent->gridPos);
 			break;
-		case(GO_UP):
+		case(GO_UP): /* up arrow pressed */
 			changeSelectedPosByArrow(wbView->gridPanel, wbView->gridItemsImgArr, &wbModel->currPos, UP);
 			break;
-		case(GO_DOWN):
+		case(GO_DOWN): /* down arrow pressed */
 			changeSelectedPosByArrow(wbView->gridPanel, wbView->gridItemsImgArr, &wbModel->currPos, DOWN);
 			break;
-		case(GO_RIGHT):
+		case(GO_RIGHT): /* right arrow pressed */
 			changeSelectedPosByArrow(wbView->gridPanel, wbView->gridItemsImgArr, &wbModel->currPos, RIGHT);
 			break;
-		case(GO_LEFT):
+		case(GO_LEFT): /* left arrow pressed */
 			changeSelectedPosByArrow(wbView->gridPanel, wbView->gridItemsImgArr, &wbModel->currPos, LEFT);
 			break;
 		case(NO_EVENT):
@@ -988,53 +1019,53 @@ StateId worldBuilderPHE(void* model, void* viewState, void* logicalEvent){
 
 	}
 	free(logicalEvent);
-	wbModel->returnStateId = returnStateId;
+	wbModel->returnStateId = returnStateId; /* update returnStateId in model */
 	return returnStateId;
 }
 
-
+/* The phe function for the play game */
 StateId playGamePHE(void* model, void* viewState, void* logicalEvent){
-	StateId returnStateId = PLAY_GAME;
+	StateId returnStateId = PLAY_GAME; /* default return stateId */
 	if (logicalEvent == NULL || viewState == NULL || model == NULL)
 		return returnStateId;
 	logicalEventRef pgEvent = logicalEvent;
 	ViewStateref pgViewState = viewState;
-	PGDataRef pgModel = model;
+	PGDataRef pgModel = model; /* get the model data */
+	/* create an array of return stateIds according to the buttons: */
 	StateId states[PG_NUM_BUTTONS] = {PLAY_GAME, CHOOSE_MOUSE, CHOOSE_CAT, PLAY_GAME, MAIN_MENU, QUIT};
-	/////// done forget to update pre choose cat and pre choose mouse in stop function!!!!!!!!
+	/* switch over logical events type */
 	switch(pgEvent->type){
 		case(SELECT_BUTTON_NUM):
 			if (pgModel->isGamePaused || pgModel->isGameOver){
 				returnStateId = states[pgEvent->buttonNum];
-				if (pgEvent->buttonNum == 3){ // restart the game
+				if (pgEvent->buttonNum == 3){ /* restart game was pressed */
 					restartGame(pgViewState, pgModel);
 				}
-				if (pgEvent->buttonNum == 0 && pgModel->isGamePaused){ //game is paused and space was pressed
+				if (pgEvent->buttonNum == 0 && pgModel->isGamePaused){ /* game is paused and space was pressed */
 					resumeGame(pgViewState, pgModel);
 				}
 			}
-			else if (pgEvent->buttonNum == 0){ // game is running and space was pressed
+			else if (pgEvent->buttonNum == 0){ /* game is running and space was pressed */
 				pauseGame(pgViewState, pgModel);
-				//setPauseButton(pgModel, pgViewState);// how do we update the view????? (blit up to window)
 			}
 			break;
-		case(SELECT_SQUARE):
-			if (isCurrPlayerHuman(pgModel))
-				makeGameMoveIfLegal(pgViewState, pgModel, pgEvent->gridPos); // will call call change selected grid square if needed
+		case(SELECT_SQUARE): /* a square was selected */
+			if (isCurrPlayerHuman(pgModel)) /* if current player is human make the move if possible */
+				makeGameMoveIfLegal(pgViewState, pgModel, pgEvent->gridPos);
 			break;
-		case(GO_UP):
+		case(GO_UP): /* arrow button pressed - make move if possible */
 			if (isCurrPlayerHuman(pgModel))
 				makeGameMoveByArrowIfLegal(pgViewState, pgModel, UP);
 			break;
-		case(GO_DOWN):
+		case(GO_DOWN): /* arrow button pressed - make move if possible */
 			if (isCurrPlayerHuman(pgModel))
 				makeGameMoveByArrowIfLegal(pgViewState, pgModel, DOWN);
 			break;
-		case(GO_RIGHT):
+		case(GO_RIGHT): /* arrow button pressed - make move if possible */
 			if (isCurrPlayerHuman(pgModel))
 				makeGameMoveByArrowIfLegal(pgViewState, pgModel, RIGHT);
 			break;
-		case(GO_LEFT):
+		case(GO_LEFT): /* arrow button pressed - make move if possible */
 			if (isCurrPlayerHuman(pgModel))
 				makeGameMoveByArrowIfLegal(pgViewState, pgModel, LEFT);
 			break;
@@ -1045,52 +1076,57 @@ StateId playGamePHE(void* model, void* viewState, void* logicalEvent){
 
 	}
 	if (returnStateId == CHOOSE_CAT || returnStateId == CHOOSE_MOUSE)
-		pgModel->loadFromFile = 0;
+		pgModel->loadFromFile = 0; /* set the load from file value to 0, so that when we get back the same grid will be shown */
 	free(logicalEvent);
-	pgModel->returnStateId = returnStateId;
+	pgModel->returnStateId = returnStateId; /* update returnStateId in model */
 	return returnStateId;
 }
 
 
-// stop functions:
-void* stopMenu(GUIref gui){ /* maybe this will be a general stop function */
+/**** stop functions: ****/
 
-	MenuDataRef returnData = gui->model;
+/* stop function for all menus and err msg */
+void* stopMenu(GUIref gui){ /* maybe this will be a general stop function */
+	/* get the model and view state */
+	MenuDataRef returnData = gui->model; /* return data will be menu data */
 	ViewStateref guiViewState = gui->viewState;
+	/* reset the model and view to NULL */
 	gui->model = NULL;
 	gui->viewState = NULL;
 
-	freeViewState(guiViewState);
+	freeViewState(guiViewState); /* free viewstate */
 
-	if (isError || returnData->retStateId == QUIT){
+	if (isError || returnData->retStateId == QUIT){ /* if we are in a final situation, free the return data */
 		freeMenuData(returnData);
 		return NULL;
 	}
 	return returnData;
 }
 
-
+/* stop function for world builder */
 void* stopWorldBuilder(GUI * gui){
-
+	/* get the model and view state */
 	ViewStateref guiViewState = gui->viewState;
 	WBDataRef wbData = gui->model;
+	/* reset the model and view to NULL */
 	gui->model = NULL;
 	gui->viewState = NULL;
 
-	freeViewState(guiViewState);
+	freeViewState(guiViewState); /* free viewstate */
 
+	/* if we are in a final situation, or we go back to Main Menu, free the wb data */
 	if (isError || wbData->returnStateId == QUIT || wbData->returnStateId == MAIN_MENU){
-		freeWBData(wbData, 1);
+		freeWBData(wbData, 1); /* free wbData with grid free */
 		return NULL;
 	}
 
+	/* initialize return data as menu data default values */
 	MenuDataRef returnData = initMenuDataToDefault();
 	if (isError){
-		freeWBData(wbData, 1);
+		freeWBData(wbData, 1); /* free wbData with grid free */
 		return NULL;
 	}
-	//Assign values in return Data
-	//for save world/error message:
+	/* Assign values in return Data for save world/error message: */
 	returnData->gameGridData = wbData->gameGridData;
 	returnData->editedWorld = wbData->editedWorld;
 	returnData->isCatFirst = wbData->isCatFirst;
@@ -1099,34 +1135,36 @@ void* stopWorldBuilder(GUI * gui){
 	returnData->currValueTemp = wbData->editedWorld ? wbData->editedWorld : MIN_VALUE;
 	returnData->missingItems = wbData->missingItems;
 
-	freeWBData(wbData, 0);
+	freeWBData(wbData, 0); /* free wbData without grid free */
 
 	return returnData;
 }
 
 
-
+/* stop function for play game */
 void* stopPlayGame(GUI * gui){
-
+	/* get the model and view state */
 	ViewStateref guiViewState = gui->viewState;
 	PGDataRef pgData = gui->model;
+	/* reset the model and view to NULL */
 	gui->model = NULL;
 	gui->viewState = NULL;
 
-	freeViewState(guiViewState);
+	freeViewState(guiViewState); /* free viewstate */
 
+	/* if we are in a final situation, or we go back to Main Menu, free the PG data */
 	if (isError || pgData->returnStateId == QUIT || pgData->returnStateId == MAIN_MENU){
-		freePGData(pgData, 1);
+		freePGData(pgData, 1); /* free pgData with grid free */
 		return NULL;
 	}
 
+	/* initialize return data as menu data default values */
 	MenuDataRef returnData = initMenuDataToDefault();
 	if (isError){
-		freePGData(pgData, 1);
+		freePGData(pgData, 1); /* free pgData with grid free */
 		return NULL;
 	}
-	//Assign values in return Data
-	//for choose cat & choose mouse:
+	/*Assign values in return Data for choose cat & choose mouse: */
 	returnData->gameGridData = pgData->gameGridData;
 	returnData->loadGameWorld = pgData->loadGameWorld;
 	returnData->isCatFirst = pgData->isCatCurrPlayer;
@@ -1142,7 +1180,8 @@ void* stopPlayGame(GUI * gui){
 	returnData->chooseMouseButton = pgData->isMouseHuman ? 0 : 1;
 	returnData->isGamePaused = pgData->isGamePaused;
 	returnData->loadFromFile = pgData->loadFromFile;
-	freePGData(pgData, 0);
+
+	freePGData(pgData, 0); /* free pgData without grid free */
 
 	return returnData;
 }

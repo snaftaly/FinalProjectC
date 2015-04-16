@@ -141,64 +141,76 @@ ListRef addChildNode(ListRef parent, void * data){
 	return childNode; /* return the node added */
 }
 
+/* treeDFS is a recursive function that makes a DFS traversal over a tree,
+ * using treeNodePreFunction as a function that will run in a pre-order manner
+ * (parent before child , and using treeNodePostFunction as a function that will run in a post-order manner
+ * (child before parent). return -1 if there was an error running one of the functions.
+ */
 int treeDFS(ListRef root, int (* treeNodePreFunction) (ListRef node), int (* treeNodePostFunction) (ListRef node)){
 	if (root == NULL)
 		return 0;
-	int preState = treeNodePreFunction(root);
-	if (preState == -1){
+	int preState = treeNodePreFunction(root); /* run pre function on current root */
+	if (preState == -1){ /* if there was an error, return -1 */
 		return -1;
 	}
 	if (root->child != NULL ){
 		ListRef curr = root->child;
-		while (curr != NULL){
-			if (treeDFS(curr, treeNodePreFunction, treeNodePostFunction) == -1)
-				return -1;
+		while (curr != NULL){ /* go over each child of the root */
+			if (treeDFS(curr, treeNodePreFunction, treeNodePostFunction) == -1) /* make a recursive call */
+				return -1; /* if there was an error, return -1 */
 			curr = curr->next;
 		}
 	}
-	int postState = treeNodePostFunction(root);
-	if (postState == -1)
+	int postState = treeNodePostFunction(root); /* run post function */
+	if (postState == -1) /* if there was an error, return -1 */
 		return -1;
 	return 0;
 }
 
-
+/* freeTree frees the tree nodes and frees their data using a free data function */
 void freeTree(ListRef root, FreeFunc freeData){
 	if (root != NULL){
-		 if (root->child != NULL)
-			 freeTree(root->child, freeData);
-		 freeTree(root->next, freeData);
-		 if (root->data != NULL)
-		 	freeData(root->data);
-		 free(root);
-	}
-}
-
-void freeDecendents(ListRef root, FreeFunc freeData){
-	if (root != NULL){
-		ListRef child = root->child;
-		freeTree(child, freeData);
-		root->child = NULL;
-	}
-}
-/*
-int treeDFS(ListRef root, int (* treeNodeFunction) (ListRef node)){  return value ???
-	if (root == NULL)
-		return 0;
-	int state = treeNodeFunction(root);
-	if (state == -1)
-		return -1;
-	else if (root->child == NULL) // root has no children
-		return 0;
-	else{ // root->child != NULL
-		ListRef curr = root->child;
-		while (curr != NULL){
-			if (treeDFS(curr, treeNodeFunction) == -1)
-				return -1;
-			curr = curr->next;
+		ListRef currChild = root->child;
+		while (currChild != NULL){ /* go over each child of the root */
+			ListRef temp = currChild->next;
+			freeTree(currChild, freeData); /* make a recursive call on the root child */
+			currChild =  temp;
 		}
-		return 0;
+		if (root->data != NULL) /* free the data  if it is not null */
+			freeData(root->data);
+		free(root); /* free the listRef itself */
 	}
-}*/
+}
 
 
+///* freeTree frees the tree nodes and frees their data using a free data function */
+//void freeTree(ListRef root, FreeFunc freeData){
+//	if (root != NULL){
+//		 if (root->child != NULL) /* if there is a child */
+//			 freeTree(root->child, freeData); /* make a recursive call on the root child */
+//		 freeTree(root->next, freeData); /* go to the next node */
+//		 if (root->data != NULL) /* free the data  if it is not null */
+//		 	freeData(root->data);
+//		 free(root);
+//	}
+//}
+
+/* freeDescendants frees all the descendants of a tree node */
+void freeDescendants(ListRef root, FreeFunc freeData){
+	if (root != NULL){
+		ListRef currChild = root->child;
+		while (currChild != NULL){ /* go over each child of the root */
+			ListRef temp = currChild->next;
+			freeTree(currChild, freeData); /* call free tree on each child */
+			currChild = temp;
+		}
+		root->child = NULL; /* set the root child to NULL */
+	}
+}
+
+void freeNode(ListRef node, FreeFunc freeData){
+	if (node != NULL)
+		if (node->data != NULL) /* free the data  if it is not null */
+		 	freeData(node->data);
+		free(node);
+}

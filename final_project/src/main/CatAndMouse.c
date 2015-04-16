@@ -4,11 +4,10 @@
 
 /* global variables: */
 int isError = 0;
-int isQuit = 0;
 
 int main(int argc, char * argv[]){
 
-	if (argc == 2 && strcmp(argv[1], "console") == 0){
+	if (argc == 2 && strcmp(argv[1], "-console") == 0){
 		/* enter console mode */
 		consoleMode();
 		return 0;
@@ -55,9 +54,13 @@ int main(int argc, char * argv[]){
 
 			// translating the SDL event to a logical event using the view:
 			void* logicalEvent = activeGUI.viewTranslateEvent(activeGUI.viewState, &event);
+			if (isError) /* PHE function may result in an error */
+				break;
 
 			// Handling the logical event using the presenter:
 			nextStateId = activeGUI.presenterHandleEvent(activeGUI.model, activeGUI.viewState, logicalEvent);
+			if (isError) /* PHE function may result in an error */
+				break;
 
 			// if state has changed, stop the active GUI and move to the next one:
 			if (activeGUI.stateId != nextStateId) {
@@ -66,7 +69,7 @@ int main(int argc, char * argv[]){
 				}
 				else {
 					void* nextGuiInitData = activeGUI.stop(&activeGUI);
-					if (isError) //added!!!
+					if (isError) /* stop function may result in an error */
 						break;
 					activeGUI = guis[nextStateId];
 					activeGUI.start(&activeGUI, nextGuiInitData);
@@ -76,7 +79,7 @@ int main(int argc, char * argv[]){
 		SDL_Delay(POLLING_DELAY);
 	}
 
-	// API may be extended with a "provideInitData" flag or something similar:
+	// stop the active GUI (stop function will return NULL stop is called from here)
 	activeGUI.stop(&activeGUI);
 
 	return isError;

@@ -2,12 +2,22 @@
 #define CATANDMOUSE_H_
 
 #include "../gui/gui_utils.h"
-//#include "../gui/MVP_utils.h"
 #include "ErrorHandling.h"
 #include "MiniMax.h"
 
-/* defines: */
+/**** define constants ****/
+/* game related constants */
 #define STATES_COUNT 11
+#define DEFAULT_SKILL 5
+#define DEFAULT_WORLD 1
+#define DEFAULT_TURNS 20
+#define MIN_VALUE 1
+#define MAX_SKILL_VALUE 9
+#define MAX_WORLD 5
+#define ROW_NUM 7
+#define COL_NUM 7
+#define NUM_DIRECTIONS 4
+/* world file constants */
 #define WORLD_FILE_NAME_LEN 20
 #define WORLD_FILE_PATH "worlds/"
 #define WORLD_FILE_NAME_PREFIX "world_"
@@ -18,23 +28,13 @@
 #define CHEESE_CHAR 'P'
 #define WALL_CHAR 'W'
 #define VISITED_CHAR 'V'
-
-#define DEFAULT_SKILL 5
-#define DEFAULT_WORLD 1
-#define DEFAULT_TURNS 20
-#define MIN_VALUE 1
-#define MAX_SKILL_VALUE 9
-#define MAX_WORLD 5
-#define ROW_NUM 7
-#define COL_NUM 7
-
+/* delays constants */
 #define POLLING_DELAY 10
 #define WARN_DELAY 200
 
-#define NUM_DIRECTIONS 4
+/**** enums ****/
 
-
-
+/* an enumeration of the different game over types */
 typedef enum{
 	CAT_WINS,
 	MOUSE_WINS,
@@ -42,6 +42,7 @@ typedef enum{
 	GAME_NOT_OVER
 } gameOverType;
 
+/* an enumeration of the different arrow directions */
 typedef enum{
 	UP,
 	DOWN,
@@ -49,15 +50,16 @@ typedef enum{
 	LEFT
 } direction;
 
-/* structs: */
+/**** structs: ****/
 
+/* a struct that holds a grid Item position -
+ * row num and col num, where the top left corner is (0,0)
+ */
 typedef struct gridItemPosition{
 	int row;
 	int col;
 } gridItemPosition;
 
-
-/* structs */
 /*
  * struct GameState is used to represent a game state.
  * It holds following information:
@@ -76,6 +78,7 @@ typedef struct GameState{
 } GameState;
 
 typedef struct GameState * GameStateRef; /* a pointer to struct GameState */
+
 
 /* function declarations : */
 void consoleMode();

@@ -24,12 +24,15 @@ void perrorPrint(char * command){
 	perror(part1);
 }
 
+/* print an error message to stdErr containing the SDL_GetError() info
+ * set isError to 1 */
 void sdlErrorPrint(char * sdlProblem){
 	/* set isError to 1: */
 	isError = 1;
 	fprintf(stderr, "ERROR: %s: %s\n", sdlProblem, SDL_GetError());
 }
 
+/* print an error message to stdErr and set isError to 1 */
 void generalErrorprint(char * errorStr){
 	isError = 1;
 	fprintf(stderr, "Error: %s\n", errorStr);

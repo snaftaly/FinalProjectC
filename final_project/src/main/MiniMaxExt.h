@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include "MiniMax.h"
 
+/* function declarations */
+
 struct MiniMaxResult getBestChildWithPruning(
     	void* state,
 		unsigned int maxDepth,
