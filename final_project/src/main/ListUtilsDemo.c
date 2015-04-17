@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "ListUtils.h"
 
+
 void printList(ListRef list) {
 	if (isEmpty(list)) {
 		printf("List is empty.\n");

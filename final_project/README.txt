@@ -1,7 +1,7 @@
 ##########################################################################################
 
 README file for the CatAndMouse project (2015)
-Partners: Itay Sabato & Maya Naor
+Partners: Yishay Feldman & Sharon Naftaly
 
 ##########################################################################################
 

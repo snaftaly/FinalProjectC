@@ -9,5 +9,6 @@ extern int isError;
 void perrorPrint(char * command);
 void sdlErrorPrint(char * sdlProblem);
 void generalErrorprint(char * errorStr);
+
 #endif /* ERRHANDLE_H_ */
 

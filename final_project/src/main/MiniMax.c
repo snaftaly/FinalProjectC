@@ -48,10 +48,7 @@ struct MiniMaxResult getBestChildWithPruning(
 	struct MiniMaxResult res; /* will hold the result */
 	if (maxDepth == 0){ /* if reached the maximal depth of the recursion */
 		res.value = evaluate(state); /* res value will be the state's evaluation */
-		if (isError)
-			res.index = -2; /* assign a non-valid index -2 that indicates the failure */
-		else
-			res.index = -1; /* res index will be a non-valid index -1 (since there are no children) */
+		res.index = -1; /* res index will be a non-valid index -1 (since there are no children) */
 		return res;
 	}
 
@@ -64,10 +61,7 @@ struct MiniMaxResult getBestChildWithPruning(
 
 	if (isEmpty(childsList)){ /* if the state is a leaf then its child list will be empty */
 		res.value = evaluate(state); /* res value will be the state's evaluation */
-		if (isError)
-			res.index = -2; /* assign a non-valid index -2 that indicates the failure */
-		else
-			res.index = -1; /* res index will be a non-valid index -1 (since there are no children) */
+		res.index = -1; /* res index will be a non-valid index -1 (since there are no children) */
 	}
 	else {
 		ListRef childsListTemp = childsList; /* create a temp list in order to get childsList on O(1) */

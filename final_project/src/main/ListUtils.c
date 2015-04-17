@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "ListUtils.h"
 #include "ListUtilsExt.h"
+#include "../services/ErrorHandling.h"
+
 
 /**
  * Allocate a new list with the given data pointer at the head.

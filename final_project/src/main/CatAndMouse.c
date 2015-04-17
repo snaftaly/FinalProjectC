@@ -1,9 +1,10 @@
-#include <stdio.h>
-#include "CatAndMouseUtils.h"
-#include "../gui/MVP_utils.h"
+//#include <stdio.h>
+//#include <SDL.h>
+//#include <SDL_video.h>
+//#include "CatAndMouse.h"
+//#include "../services/CatAndMouseUtils.h"
+#include "../factories/GUIsFactory.h"
 
-/* global variables: */
-int isError = 0;
 
 int main(int argc, char * argv[]){
 

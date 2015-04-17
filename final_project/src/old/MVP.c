@@ -721,6 +721,7 @@ void* playGameVTE(void* viewState, SDL_Event * event){
 
 
 /**** presenterHandleEvent functions ****/
+
 /* generalMenuPHE is the PHE function used for all the menus of the program
  * (both simple and complex menus. it gets the menu model, view state, an array of states representing
  * the state the button number leads to, number of buttons in the menu, the stateId, the current button selected
@@ -948,7 +949,7 @@ StateId saveWorldPHE(void* model, void* viewState, void* logicalEvent){
 			saveWorldModel->loadFromFile = 1; /* tell wb to use file to load the grid */
 			saveWorldModel->editedWorld = saveWorldModel->currValueTemp; /* set edited world to curr value */
 			/* save the grid data to the correct file and free it */
-			saveGridDataToFile(saveWorldModel->editedWorld, saveWorldModel->isCatFirst, saveWorldModel->gameGridData);
+			saveGameDataToFile(saveWorldModel->editedWorld, saveWorldModel->isCatFirst, saveWorldModel->gameGridData);
 			freeGridData(saveWorldModel->gameGridData); /* free grid data */
 			saveWorldModel->gameGridData = NULL;
 		}

@@ -2,29 +2,13 @@
 #define MVP_UTILS_H_
 
 /* includes: */
-#include <stdio.h>
-#include "gui_utils.h"
-#include "../main/CatAndMouseUtils.h"
+#include "guiUtils.h"
+#include "CatAndMouseUtils.h"
 
 
 /**** enums ****/
 
-/* an enumeration of all the different states of the program.
-/ each state corresponds to a specific GUI.*/
-typedef enum {
-	MAIN_MENU,
-	CHOOSE_CAT,
-	CHOOSE_MOUSE,
-	CAT_SKILL,
-	MOUSE_SKILL,
-	LOAD_GAME,
-	EDIT_GAME,
-	WORLD_BUILDER,
-	SAVE_WORLD,
-	PLAY_GAME,
-	ERR_MSG,
-	QUIT
-} StateId;
+
 
 /* an enumeration of all the logical event types .*/
 typedef enum{
@@ -42,17 +26,6 @@ typedef enum{
 	NO_EVENT
 } logicalEventType;
 
-/* enumeration of the different grid Items */
-typedef enum{
-	CAT,
-	MOUSE,
-	CHEESE,
-	WALL,
-	EMPTY,
-	SELECT,
-	DESELECT,
-	WARN
-} gridItem;
 
 /**** structs ****/
 
@@ -185,82 +158,10 @@ typedef struct PGData{
 typedef struct PGData * PGDataRef;
 
 
-/* The GUI structure */
-typedef struct GUI {
-	/* The unique state id: */
-	StateId stateId;
-
-	/* The model and viewState. Assumed to be NULL until GUI is started and once it is stopped.
-	/ The model and view state should NOT hold references to each other. */
-	void *model, *viewState;
-
-	/* The function pointer for starting this GUI - initializing the model
-	 * and viewState as well as drawing the initial state of the GUI.*/
-	void (*start) (struct GUI* gui, void* initData);
-
-	/* The function pointer for translating the SDL_Event to a logical event according to the current viewState.
-	/ The logical event will be passed to the presenter which will take care of updating the model and/or the view.
-	/ The data type of the logical event is assumed to be known by the presenter and will also be freed by it, if need be.*/
-	void* (*viewTranslateEvent) (void* viewState, SDL_Event* event);
-
-	/* The function pointer for handling the given logical event.
-	/ may or may not update the model and/or viewState.
-	/ Returns the next state to transition to. */
-	StateId (*presenterHandleEvent) (void* model, void* viewState, void* logicalEvent);
-
-	/* The function pointer for deactivating this GUI - freeing the model and viewState and any other
-	 * resources used. Returns the initialization data for the next state (can be NULL if not required).*/
-	void* (*stop) (struct GUI* gui);
-} GUI;
-
-typedef struct GUI* GUIref;
 
 
 
 /******* functions declaration: *******/
-GUI createGUIForState(StateId stateId);
-
-/***** MVP functions: *****/
-/* start functions */
-void startGeneralMenu(GUIref gui, char * imgPath, int titleImgX, int titleImgY, int titleWidth, int numButtons, int selectedButton, int firstButtonNumOpts, int value);
-void startMainMenu(GUIref gui, void* initData);
-void startChooseAnimal(GUIref gui, void* initData);
-void startAnimalSkill(GUIref gui, void* initData);
-void startWorldMenu(GUIref gui, void* initData);
-void startWorldBuilder(GUIref gui, void* initData);
-void startErrMsg(GUIref gui, void* initData);
-void startPlayGame(GUIref gui, void* initData);
-
-
-/* VTE functions: */
-void* simpleMenuVTE(void* viewState, SDL_Event* event, int numOfButtons);
-void* mainMenuVTE(void* viewState, SDL_Event* event);
-void* chooseAnimalVTE(void* viewState, SDL_Event* event);
-void* complexMenuVTE(void* viewState, SDL_Event* event);
-void* worldBuilderVTE(void* viewState, SDL_Event* event);
-void* errMsgVTE(void* viewState, SDL_Event* event);
-void* playGameVTE(void* viewState, SDL_Event* event);
-
-/* PHE functions */
-StateId generalMenuPHE(void* model, void* viewState, void* logicalEvent, StateId states[], int numOfButtons,
-		StateId stateId, int* currButton, int* currValue, int maxValue);
-StateId mainMenuPHE(void* model, void* viewState, void* logicalEvent);
-StateId chooseCatPHE(void* model, void* viewState, void* logicalEvent);
-StateId chooseMousePHE(void* model, void* viewState, void* logicalEvent);
-StateId catSkillPHE(void* model, void* viewState, void* logicalEvent);
-StateId mouseSkillPHE(void* model, void* viewState, void* logicalEvent);
-StateId loadGamePHE(void* model, void* viewState, void* logicalEvent);
-StateId editGamePHE(void* model, void* viewState, void* logicalEvent);
-StateId saveWorldPHE(void* model, void* viewState, void* logicalEvent);
-StateId worldBuilderPHE(void* model, void* viewState, void* logicalEvent);
-StateId errMsgPHE(void* model, void* viewState, void* logicalEvent);
-StateId playGamePHE(void* model, void* viewState, void* logicalEvent);
-
-/* stop functions */
-void* stopMenu(GUIref gui); /* maybe this will be a general stop function */
-void* stopWorldBuilder(GUI * gui);
-void* stopPlayGame(GUI * gui);
-
 
 /***** MVP helper functions *****/
 
@@ -273,8 +174,6 @@ void initWorldBuilderModel(GUIref gui, void* initData);
 void initPlayGameModel(GUIref gui, void* initData);
 
 /**** general MVP helper functions ****/
-char getItemChar(gridItem item);
-void saveGridDataToFile(int worldNum, int isCatFirst, char ** gridData);
 
 /** VTE helper functions **/
 void handleThreePartLayoutMouseSelect(SDL_Event * event, logicalEventRef returnEvent, Widget ** buttons, int numButtons);

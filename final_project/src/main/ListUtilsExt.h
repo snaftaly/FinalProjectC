@@ -1,7 +1,7 @@
 #ifndef TREEUTILS_H_
 #define TREEUTILS_H_
 #include "ListUtils.h"
-#include "ErrorHandling.h"
+#include "../services/ErrorHandling.h"
 
 /*
  * struct List implementation:

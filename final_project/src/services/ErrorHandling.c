@@ -2,6 +2,9 @@
 #include <SDL_video.h>
 #include "ErrorHandling.h"
 
+/* global variables: */
+int isError = 0;
+
 /**
  * perrorPrint function:
  * gets a string representing the name of a standard function

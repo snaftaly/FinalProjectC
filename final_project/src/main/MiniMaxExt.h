@@ -4,7 +4,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "MiniMax.h"
-#include "ErrorHandling.h"
+#include "ListUtilsExt.h"
+#include "../services/ErrorHandling.h"
 
 /* function declarations */
 

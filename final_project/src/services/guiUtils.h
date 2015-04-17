@@ -2,9 +2,9 @@
 #define GUI_UTILS_H_
 
 /* includes */
-#include "../main/CatAndMouseUtils.h"
 #include "../main/ListUtilsExt.h"
-#include "widget_utils.h"
+#include "../services/widgetUtils.h"
+
 
 /*** define constants: ***/
 /* button numbers of guis */
@@ -75,6 +75,7 @@
 #define TR_RED  0
 #define TR_GREEN 255
 #define TR_BLUE 0
+
 
 /**** functions declarations ****/
 
