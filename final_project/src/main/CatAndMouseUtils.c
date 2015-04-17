@@ -14,6 +14,8 @@ ListRef getChildren(void * data){
 		return NULL;
 	}
 	int eval = evaluate(data); /* evaluate the current state */
+	if (isError)
+		return NULL;
 	if (currState->numTurnsLeft == 0 || eval == MAX_EVALUATION || eval == MIN_EVALUATION){ /* if currState is a leaf state */
 		return childsList; /* return empty childsList */
 	}
@@ -150,18 +152,23 @@ int evaluate(void * state){
 
 
 	GameStateRef currState = state;
-	int ** distCat = getDistanceWithBFS(currState->catPos, currState->gridData);
-	int ** distMouse = getDistanceWithBFS(currState->mousePos, currState->gridData);
-	int catFromMouse = distCat[currState->mousePos.row][currState->mousePos.col];
-	int catFromCheese = distCat[currState->cheesePos.row][currState->cheesePos.col];
-	int mouseFromCheese = distMouse[currState->cheesePos.row][currState->cheesePos.col];
 	gameOverType gameOverType = checkGameOverType(currState->catPos, currState->mousePos,
-			currState->cheesePos, currState->numTurnsLeft);
-
+				currState->cheesePos, currState->numTurnsLeft);
 	if (gameOverType == CAT_WINS)
 		return MAX_EVALUATION;
 	if (gameOverType == CAT_WINS)
 		return MIN_EVALUATION;
+
+	int ** distCat = getDistanceWithBFS(currState->catPos, currState->gridData);
+	if (isError) { return 300000; }
+	int ** distMouse = getDistanceWithBFS(currState->mousePos, currState->gridData);
+	if (isError){
+		freeDistMatrix(distCat);
+		return 300000;
+	}
+	int catFromMouse = distCat[currState->mousePos.row][currState->mousePos.col];
+	int catFromCheese = distCat[currState->cheesePos.row][currState->cheesePos.col];
+	int mouseFromCheese = distMouse[currState->cheesePos.row][currState->cheesePos.col];
 	int eval;
 	int CMrowDiff = abs(currState->catPos.row-currState->mousePos.row);
 	int CMcolDiff = abs(currState->catPos.col-currState->mousePos.col);
@@ -209,6 +216,8 @@ int evaluate(void * state){
 //			}
 		}
 	}
+	freeDistMatrix(distCat);
+	freeDistMatrix(distMouse);
 	return eval;
 }
 
@@ -269,7 +278,7 @@ int ** getDistanceWithBFS (gridItemPosition itemPos, char ** gridData){
 		}
 		ListRef headNode = queue;
 		queue = tail(queue);
-		freeNode(headNode);
+		freeNode(headNode, free);
 	}
 	freeGridData(copiedGrid);
 	return distMatrix;
@@ -391,6 +400,10 @@ void consoleMode(){
 		currState->isCatCurrPlayer = isCatCurrPlayer;
 		currState->numTurnsLeft = numTurnsLeft;
 		int eval = evaluate(currState);
+		if (isError){
+			freeState(currState); /* free the current state including the grid data */
+			return;
+		}
 		printf("%d\n",eval);
 		endChar = getchar();
 		if (endChar == 'q')
@@ -490,11 +503,11 @@ int isMoveValid(char ** gridData, gridItemPosition currPlayerPos, gridItemPositi
 
 /* free memory allocated for the grid */
 void freeGridData(char ** gridData){
-	if (gridData != NULL){ /* free the cols */
-		for (int i = 0; i< ROW_NUM; i++)
+	if (gridData != NULL){
+		for (int i = 0; i < ROW_NUM; i++) /* free the cols */
 			free(gridData[i]);
+		free(gridData); /* free the rows */
 	}
-	free(gridData); /* free the rows */
 }
 
 /* update the cat, cheese and mouse positions */
@@ -625,9 +638,11 @@ int isSamePos(gridItemPosition pos1, gridItemPosition pos2){
 }
 /* free the dist matrix */
 void freeDistMatrix(int ** matrix){
-	if ( matrix!= NULL){ /* free the cols */
-		for (int i = 0; i< ROW_NUM; i++)
+	if (matrix != NULL){
+		for (int i = 0; i < ROW_NUM; i++){ /* free the cols */
 			free(matrix[i]);
 		}
-	free(matrix); /* free the rows */
+		free(matrix); /* free the rows */
+	}
+
 }

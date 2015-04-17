@@ -7,9 +7,10 @@
 /* drawGui does DFS traversing through the UI tree which builds the widgets one on top of the other.
  * Then it flips the window surface for updating the display */
 void drawGui(ListRef UITree){
-	int dfsRes = treeDFS(UITree, calcAbsWidgetXY, addChildWidgetsToParent);
-	if (dfsRes == -1)
-		return;
+	treeDFS(UITree, calcAbsWidgetXY, addChildWidgetsToParent);
+//	int dfsRes = treeDFS(UITree, calcAbsWidgetXY, addChildWidgetsToParent);
+//	if (dfsRes == -1)
+//		return;
 	Widget * window = UITree->data;
 	if (SDL_Flip(window->surface) != 0) {
 		sdlErrorPrint("failed to flip buffer");
@@ -92,7 +93,8 @@ int addChildWidgetsToParent(ListRef parent){
 int calcAbsWidgetXY(ListRef node){
 	Widget * nodeWidget = node->data;
 	if (nodeWidget->type == WINDOW){ /* if we are at the top level absX=absY=0;*/
-		nodeWidget->absX = nodeWidget->absY = 0;
+		nodeWidget->absX = 0;
+		nodeWidget->absY = 0;
 	}
 	else { /* node has to have a parent node! */
 		Widget * parentWidget = node->parent->data; /* get parent widget */

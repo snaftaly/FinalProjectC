@@ -111,7 +111,9 @@ void freeGridData(char ** gridData);
 char ** initGameDataByFile(int worldNum, int * numTurns, int * isCatFirst);
 void setEmptyGrid(char ** grid);
 int isSamePos(gridItemPosition pos1, gridItemPosition pos2);
-
+void freeDistMatrix(int ** matrix);
+gridItemPosition * createPosRef(gridItemPosition movePos);
+int ** getDistanceWithBFS (gridItemPosition itemPos, char ** gridData);
 
 
 

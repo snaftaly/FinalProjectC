@@ -311,12 +311,15 @@ void saveGridDataToFile(int worldNum, int isCatFirst, char ** gridData){
 /* handleThreePartLayoutMouseSelect updates the logical event of a mouse click in a three part layout GUI (world builder
  * and play game). If the click was on a button it will set the event to SELECT_BUTTON_NUM, and if the click was on
  * a grid square it will set the event to SELECT_SQUARE */
-void handleThreePartLayoutMouseSelect(SDL_Event * event, logicalEventRef returnEvent, Widget ** buttons, int numButtons){
+void handleThreePartLayoutMouseSelect(SDL_Event * event, logicalEventRef returnEvent,
+		Widget ** buttons, int numButtons){
 	/* first check if the click was on top panel or on side panel */
 	if (event->button.x < WIN_W - GRID_SIZE || event->button.y < WIN_H - GRID_SIZE){
 		/* check if the click is on a button */
 		for (int i = 0; i< numButtons; i++){
 			Widget * currButton = buttons[i];
+			if (currButton == NULL) /* used for handling pause button when game is over */
+				continue;
 			if (isClickEventOnButton(event, currButton, REGULAR_BUTTON)){
 				/* if click was on a button change the return event type */
 				returnEvent->type = SELECT_BUTTON_NUM;
@@ -349,7 +352,7 @@ void handleThreePartLayoutArrowKey(SDLKey key, logicalEventRef returnEvent){
 
 /* check if a given button has an SDL click event on its absolute location */
 int isClickEventOnButton(SDL_Event* event, Widget * button, int buttonType){
-	int isClicked;
+	int isClicked = 0;
 	switch (buttonType){
 		case (UP_ARROW_BUTTON): /* for up arrow button - check only the location of the up arrow in the button */
 			isClicked = isClickEventOnButtonSpecificArea(event, button, ARROW_BUTTON_X, ARROW_BUTTON_Y, 0);
@@ -729,6 +732,7 @@ void setGameOver(PGDataRef pgModel, ViewStateref pgViewState){
  * and updating the view */
 void setTopPanelGameOver(PGDataRef pgModel, ViewStateref pgViewState){
 	freeDescendants(pgViewState->topPanelNode, freeWidget); /* free all nodes in UI tree that are under topPanelNode) */
+	pgViewState->menuButtons[0] = NULL;
 	clearPanel(pgViewState->topPanelNode->data); /* clear the panel from previous items */
 	if(isError)
 		return;
