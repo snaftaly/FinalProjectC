@@ -8,8 +8,6 @@
 
 /**** enums ****/
 
-
-
 /* an enumeration of all the logical event types .*/
 typedef enum{
 	SELECT_CURR_BUTTON,

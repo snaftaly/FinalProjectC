@@ -52,7 +52,7 @@
 #define WB_TITLE_H 60
 #define WB_BUTTON_X_GAP 50
 /* sizes for play game */
-#define GAME_OVER_LABEL_W 424
+#define GAME_OVER_LABEL_W 490
 #define GAME_OVER_LABEL_H 100
 #define GAME_INFO_LABEL_H 40
 #define GAME_INFO_LABEL_W 180
