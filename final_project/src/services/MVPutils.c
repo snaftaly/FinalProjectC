@@ -611,7 +611,6 @@ void setTopPanelGameOver(PGDataRef pgModel, ViewStateref pgViewState){
 /* set the view and model for playing the game when starting/restarting the game */
 void setPlayGame(ViewStateref pgViewState, PGDataRef pgModel){
 	pgModel->isGameOver = 0; /* update model */
-	pgModel->isGamePaused = 0;
 	setTopPanelPlayGame(pgModel, pgViewState);
 	if (isError) { return; }
 	disablePGSidePanelButtons(pgViewState);
@@ -923,6 +922,7 @@ void restartGame(ViewStateref pgViewState, PGDataRef pgModel){
 		setGameOver(pgModel, pgViewState);
 	}
 	else{ /* game is not over */
+		pgModel->isGamePaused=0;
 		setPlayGame(pgViewState, pgModel);
 	}
 	/* redraw entire gui */
