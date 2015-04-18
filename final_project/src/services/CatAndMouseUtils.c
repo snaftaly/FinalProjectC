@@ -252,7 +252,7 @@ ListRef getChildren(void * data){
 		return NULL;
 	}
 	int eval = evaluate(data); /* evaluate the current state */
-	if (isError)
+	if (eval == EVALERR)
 		return NULL;
 	if (currState->numTurnsLeft == 0 || eval == MAX_EVALUATION || eval == MIN_EVALUATION){ /* if currState is a leaf state */
 		return childsList; /* return empty childsList */
@@ -345,11 +345,11 @@ int evaluate(void * state){
 		return MIN_EVALUATION;
 
 	int ** distCat = getDistanceWithBFS(currState->catPos, currState->gridData);
-	if (isError) { return 300000; }
+	if (isError) { return EVALERR; }
 	int ** distMouse = getDistanceWithBFS(currState->mousePos, currState->gridData);
 	if (isError){
 		freeDistMatrix(distCat);
-		return 300000;
+		return EVALERR;
 	}
 	int catFromMouse = distCat[currState->mousePos.row][currState->mousePos.col];
 	int catFromCheese = distCat[currState->cheesePos.row][currState->cheesePos.col];

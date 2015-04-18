@@ -20,6 +20,7 @@ Widget * createWindow(int width, int height, int red, int green, int blue){
 	if(new_window == NULL){
 		return NULL;
 	}
+	SDL_WM_SetCaption(GAMENAME, GAMENAME);
 	new_window->surface  = SDL_SetVideoMode(width, height, 0, SDL_HWSURFACE | SDL_DOUBLEBUF); /* set the surface */
 	if (new_window->surface == NULL){
 		sdlErrorPrint("failed to set video mode");

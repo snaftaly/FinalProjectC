@@ -11,7 +11,7 @@ int main(int argc, char * argv[]){
 	if (argc == 2 && strcmp(argv[1], "-console") == 0){
 		/* enter console mode */
 		consoleMode();
-		return 0;
+		return isError;
 	}
 	else if ((argc == 2 && strcmp(argv[1], "console") != 0) || argc > 2){
 		generalErrorprint("Arguments passed to program are invalid");
@@ -84,7 +84,5 @@ int main(int argc, char * argv[]){
 	activeGUI.stop(&activeGUI);
 
 	return isError;
-
-
 }
 

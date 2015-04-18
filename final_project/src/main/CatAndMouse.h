@@ -11,6 +11,7 @@
 /**** define constants ****/
 
 /* game related constants */
+#define GAMENAME "Cat and Mouse"
 #define STATES_COUNT 11
 #define DEFAULT_SKILL 5
 #define DEFAULT_WORLD 1

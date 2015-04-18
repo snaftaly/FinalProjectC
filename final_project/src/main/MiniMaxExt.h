@@ -7,6 +7,10 @@
 #include "ListUtilsExt.h"
 #include "../services/ErrorHandling.h"
 
+/* defines* */
+/* The value the evaluate will return in case of an error */
+#define EVALERR 200000
+
 /* function declarations */
 
 struct MiniMaxResult getBestChildWithPruning(
