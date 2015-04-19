@@ -589,6 +589,10 @@ void* stopPlayGame(GUI * gui){
 	returnData->chooseMouseButton = pgData->isMouseHuman ? 0 : 1;
 	returnData->isGamePaused = pgData->isGamePaused;
 	returnData->loadFromFile = pgData->loadFromFile;
+	if (pgData->returnStateId == CAT_SKILL)
+		returnData->currValueTemp = pgData->catSkill;
+	if (pgData->returnStateId == MOUSE_SKILL)
+		returnData->currValueTemp = pgData->mouseSkill;
 
 	freePGData(pgData, 0); /* free pgData without grid free */
 

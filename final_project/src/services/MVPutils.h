@@ -21,6 +21,7 @@ typedef enum{
 	GO_LEFT,
 	GO_DOWN,
 	SELECT_SQUARE,
+	DO_QUIT,
 	NO_EVENT
 } logicalEventType;
 

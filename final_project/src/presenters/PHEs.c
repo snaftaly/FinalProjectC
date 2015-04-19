@@ -17,6 +17,9 @@ StateId generalMenuPHE(void* model, void* viewState, void* logicalEvent, StateId
 	MenuDataRef menuModel = menuModel;
 	/* switch over event types */
 	switch(menuEvent->type){
+		case(DO_QUIT): /* exit the program */
+			returnStateId = QUIT;
+			break;
 		case(SELECT_CURR_BUTTON):
 			returnStateId = states[*currButton]; /* set the correct return stateId according to the button and state arr*/
 			menuView->currButton = *currButton; /* update the current button in the view */
@@ -91,12 +94,14 @@ StateId chooseCatPHE(void* model, void* viewState, void* logicalEvent){
 	/* get stateId by logical event, and update model and view */
 	returnStateId = generalMenuPHE(model, viewState, logicalEvent, chooseCatStates, COMMON_MENU_NUM_BUTTONS,
 			returnStateId, &chooseCatModel->chooseCatButton, NULL, 0);
-	if (returnStateId == CHOOSE_MOUSE){ /* human was pressed */
+	if (returnStateId == CHOOSE_MOUSE){ /* human was pressed and we are before playing the game */
 		chooseCatModel->isCatHuman = 1;
 		chooseCatModel->preChooseMouse = CHOOSE_CAT;
 	}
-	else if (returnStateId == PLAY_GAME && chooseCatModel->chooseCatButton == 0) /* human was pressed */
+	else if (returnStateId == PLAY_GAME && chooseCatModel->chooseCatButton == 0){ /* human was pressed and we are in play game */
 			chooseCatModel->isCatHuman = 1;
+			chooseCatModel->catSkill = DEFAULT_SKILL;
+	}
 	else if (returnStateId == CAT_SKILL) /* update the current skill in a temp value */
 		chooseCatModel->currValueTemp = chooseCatModel->catSkill;
 	else if (returnStateId == LOAD_GAME) // back was pressed
@@ -116,8 +121,10 @@ StateId chooseMousePHE(void* model, void* viewState, void* logicalEvent){
 	/* get stateId by logical event, and update model and view */
 	returnStateId = generalMenuPHE(model, viewState, logicalEvent, chooseMouseStates, COMMON_MENU_NUM_BUTTONS,
 			returnStateId, &chooseMouseModel->chooseMouseButton, NULL, 0);
-	if (returnStateId == PLAY_GAME && chooseMouseModel->chooseMouseButton == 0) /* human was pressed */
+	if (returnStateId == PLAY_GAME && chooseMouseModel->chooseMouseButton == 0){ /* human was pressed */
 		chooseMouseModel->isMouseHuman = 1;
+		chooseMouseModel->mouseSkill = DEFAULT_SKILL;
+	}
 	else if (returnStateId == MOUSE_SKILL) /* update the current skill in a temp value */
 		chooseMouseModel->currValueTemp = chooseMouseModel->mouseSkill;
 	else if (returnStateId == CHOOSE_CAT || returnStateId == CAT_SKILL) // back was pressed
@@ -146,8 +153,11 @@ StateId catSkillPHE(void* model, void* viewState, void* logicalEvent){
 			catSkillModel->preChooseMouse = CAT_SKILL;
 		}
 	}
-	if (returnStateId == CHOOSE_CAT) /* back was pressed and we go back to choose cat */
+	else if (returnStateId == CHOOSE_CAT){ /* back was pressed and we go back to choose cat */
 		catSkillModel->catSkillButton = 0;
+		if (catSkillModel->preChooseCat == MAIN_MENU) /* we pressed back when we are not during game */
+			catSkillModel->catSkill = DEFAULT_SKILL; /* set skill to deafult skill */
+	}
 	catSkillModel->retStateId = returnStateId; /* update returnStateId in model */
 	return returnStateId;
 }
@@ -273,6 +283,9 @@ StateId worldBuilderPHE(void* model, void* viewState, void* logicalEvent){
 			WORLD_BUILDER,WORLD_BUILDER};
 	/* switch over logical events type */
 	switch(wbEvent->type){
+		case(DO_QUIT): /* exit the program */
+			returnStateId = QUIT;
+			break;
 		case(SELECT_BUTTON_NUM):
 			returnStateId = states[wbEvent->buttonNum];
 			if(returnStateId == SAVE_WORLD && isGridInvalid(wbModel)) /* save world was pressed and grid is invalid */
@@ -317,8 +330,15 @@ StateId playGamePHE(void* model, void* viewState, void* logicalEvent){
 	PGDataRef pgModel = model; /* get the model data */
 	/* create an array of return stateIds according to the buttons: */
 	StateId states[PG_NUM_BUTTONS] = {PLAY_GAME, CHOOSE_MOUSE, CHOOSE_CAT, PLAY_GAME, MAIN_MENU, QUIT};
+	if (!pgModel->isMouseHuman)
+		states[1] = MOUSE_SKILL;
+	if (!pgModel->isCatHuman)
+		states[2] = CAT_SKILL;
 	/* switch over logical events type */
 	switch(pgEvent->type){
+		case(DO_QUIT): /* exit the program */
+			returnStateId = QUIT;
+			break;
 		case(SELECT_BUTTON_NUM):
 			if (pgModel->isGamePaused || pgModel->isGameOver){
 				returnStateId = states[pgEvent->buttonNum];
@@ -359,7 +379,9 @@ StateId playGamePHE(void* model, void* viewState, void* logicalEvent){
 			break;
 
 	}
-	if (returnStateId == CHOOSE_CAT || returnStateId == CHOOSE_MOUSE)
+	/* if reconfigure cat/mouse was pressed */
+	if (returnStateId == CHOOSE_CAT || returnStateId == CHOOSE_MOUSE ||
+			returnStateId == CAT_SKILL || returnStateId == MOUSE_SKILL)
 		pgModel->loadFromFile = 0; /* set the load from file value to 0, so that when we get back the same grid will be shown */
 	free(logicalEvent);
 	pgModel->returnStateId = returnStateId; /* update returnStateId in model */

@@ -11,11 +11,15 @@ void* simpleMenuVTE(void* viewState, SDL_Event* event, int numOfButtons){
 		perrorPrint("malloc");
 		return NULL;
 	}
+
 	/* set type of return event to NO_EVENT as default */
 	returnEvent->type = NO_EVENT;
 	ViewStateref menuViewState = viewState;
 	/* switch over event types */
 	switch (event->type) {
+		case (SDL_QUIT): /* if the close button (x) was pressed */
+			returnEvent->type = DO_QUIT;
+			break;
 		case (SDL_KEYUP): /* handle key up events */
 			if (event->key.keysym.sym == SDLK_TAB){
 				/* if tab was pressed, event is mark next button */
@@ -58,6 +62,9 @@ void* complexMenuVTE(void* viewState, SDL_Event* event){
 	returnEvent->type = NO_EVENT;
 	/* switch over event types */
 	switch (event->type) {
+		case (SDL_QUIT): /* if the close button (x) was pressed */
+			returnEvent->type = DO_QUIT;
+			break;
 		case (SDL_KEYUP): /* handle key up events */
 			/* if tab was pressed, event is mark next button */
 			if (event->key.keysym.sym == SDLK_TAB){
@@ -140,6 +147,9 @@ void* worldBuilderVTE(void* viewState, SDL_Event* event){
 	ViewStateref wbViewState = viewState;
 	SDLKey key;
 	switch (event->type) {
+		case (SDL_QUIT):
+			returnEvent->type = DO_QUIT; /* if the close button (x) was pressed */
+			break;
 		case (SDL_KEYUP):/* handle key up events */
 			key = event->key.keysym.sym;
 			if (key == SDLK_s || key == SDLK_F1 || key == SDLK_ESCAPE ||
@@ -173,6 +183,9 @@ void* errMsgVTE(void* viewState, SDL_Event* event){
 	ViewStateref menuViewState = viewState;
 	Widget * currButton = menuViewState->menuButtons[0]; /* there is only one button */
 	switch (event->type) {
+		case (SDL_QUIT): /* if the close button (x) was pressed */
+			returnEvent->type = DO_QUIT;
+			break;
 		case (SDL_KEYUP): /* handle key up events - for return click */
 			if (event->key.keysym.sym == SDLK_RETURN || event->key.keysym.sym == SDLK_KP_ENTER){
 				returnEvent->type = SELECT_CURR_BUTTON;
@@ -203,6 +216,9 @@ void* playGameVTE(void* viewState, SDL_Event * event){
 	ViewStateref pgViewState = viewState;
 	SDLKey key;
 	switch (event->type) {
+		case (SDL_QUIT): /* if the close button (x) was pressed */
+			returnEvent->type = DO_QUIT;
+			break;
 		case (SDL_KEYUP):
 			key = event->key.keysym.sym;
 			if (key == SDLK_SPACE || key == SDLK_F1 || key == SDLK_F2 || key == SDLK_F3 || key == SDLK_F4 ||
