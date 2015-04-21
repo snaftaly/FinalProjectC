@@ -216,7 +216,7 @@ void startWorldMenu(GUIref gui, void* initData){
 			break;
 		case(SAVE_WORLD):
 			currentButton = data->saveWorldButton;
-			currentValue = data->editedWorld ? data->editedWorld: 1; //if edited world is 0 this will show 1
+			currentValue = data->editedWorld ? data->editedWorld: 1; /* if edited world is 0 this will show world 1 */
 			titleImgY = 2*MENU_TITLE_H;
 			break;
 		default:
@@ -299,7 +299,7 @@ void startWorldBuilder(GUIref gui, void* initData){
 	selectGridPos(wbViewState->gridPanel, wbViewState->gridItemsImgArr, wbModel->currPos);
 	if (isError)
 		return;
-	// draw GUI according to UItree
+	/* draw GUI according to UItree */
 	drawGui(wbViewState->UITree);
 }
 
@@ -460,7 +460,7 @@ void startPlayGame(GUIref gui, void* initData){
 	}
 	pgViewState->menuButtons = buttons;
 
-	// create labels array
+	/* create labels array */
 	Widget ** labels = (Widget **)malloc(PG_NUM_LABELS*sizeof(Widget *));
 	if (labels == NULL){
 		perrorPrint("malloc");
@@ -468,7 +468,7 @@ void startPlayGame(GUIref gui, void* initData){
 	}
 	pgViewState->labelArr = labels;
 
-	//add buttons to side panel:
+	/* add buttons to side panel: */
 	int buttonImgX = 0, buttonImgY = 3*PAUSE_BUTTON_H;
 	int buttonImgDisX = PANEL_BUTTON_W, buttonImgDisY = 3*PAUSE_BUTTON_H;
 	addButtonsToSidePanel(pgViewState, buttonImgX, buttonImgY, buttonImgDisX, buttonImgDisY,
@@ -487,6 +487,8 @@ void startPlayGame(GUIref gui, void* initData){
 	/* enable side panel buttons if game is over */
 	if (pgModel->isGameOver || pgModel->isGamePaused)
 		enablePGSidePanelButtons(pgViewState);
+	if (isError)
+		return;
 
 	/* draw GUI according to UItree */
 	drawGui(pgViewState->UITree);

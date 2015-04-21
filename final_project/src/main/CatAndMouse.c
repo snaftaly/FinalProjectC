@@ -1,8 +1,5 @@
-//#include <stdio.h>
-//#include <SDL.h>
-//#include <SDL_video.h>
-//#include "CatAndMouse.h"
-//#include "../services/CatAndMouseUtils.h"
+#include <SDL.h>
+#include <SDL_video.h>
 #include "../factories/GUIsFactory.h"
 
 
@@ -24,7 +21,7 @@ int main(int argc, char * argv[]){
 	}
 	atexit(SDL_Quit);
 
-// initialize GUI structs mapping by state ids:
+/* initialize GUI structs mapping by state ids: */
 	GUI guis[11];
 	guis[MAIN_MENU] = createGUIForState(MAIN_MENU);
 	guis[CHOOSE_CAT] = createGUIForState(CHOOSE_CAT);
@@ -38,32 +35,32 @@ int main(int argc, char * argv[]){
 	guis[PLAY_GAME] = createGUIForState(PLAY_GAME);
 	guis[ERR_MSG] = createGUIForState(ERR_MSG);
 
-	// Starting the default/initial GUI:
+	/* Starting the default/initial GUI: */
 	StateId nextStateId = MAIN_MENU;
 
 	GUI activeGUI = guis[nextStateId];
 	activeGUI.start(&activeGUI, NULL);
 
 	while (!isError && nextStateId != QUIT) {
-		if (activeGUI.stateId == PLAY_GAME){ //maybe this condition is not exactly what we need?
-			updateMachineMoveIfNeeded(activeGUI);
+		if (activeGUI.stateId == PLAY_GAME){ /* if we are currently playing the game */
+			updateMachineMoveIfNeeded(activeGUI); /* make machine move if it is machibe turn */
 			if (isError)
 				break;
 		}
 		SDL_Event event;
 		while (SDL_PollEvent(&event) != 0) {
 
-			// translating the SDL event to a logical event using the view:
+			/* translating the SDL event to a logical event using the view: */
 			void* logicalEvent = activeGUI.viewTranslateEvent(activeGUI.viewState, &event);
 			if (isError) /* PHE function may result in an error */
 				break;
 
-			// Handling the logical event using the presenter:
+			/* Handling the logical event using the presenter: */
 			nextStateId = activeGUI.presenterHandleEvent(activeGUI.model, activeGUI.viewState, logicalEvent);
 			if (isError) /* PHE function may result in an error */
 				break;
 
-			// if state has changed, stop the active GUI and move to the next one:
+			/* if state has changed, stop the active GUI and move to the next one: */
 			if (activeGUI.stateId != nextStateId) {
 				if (nextStateId == QUIT) {
 					break;
@@ -80,7 +77,7 @@ int main(int argc, char * argv[]){
 		SDL_Delay(POLLING_DELAY);
 	}
 
-	// stop the active GUI (stop function will return NULL stop is called from here)
+	/* stop the active GUI (stop function will return NULL stop if called from here) */
 	activeGUI.stop(&activeGUI);
 
 	return isError;

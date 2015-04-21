@@ -104,7 +104,7 @@ StateId chooseCatPHE(void* model, void* viewState, void* logicalEvent){
 	}
 	else if (returnStateId == CAT_SKILL) /* update the current skill in a temp value */
 		chooseCatModel->currValueTemp = chooseCatModel->catSkill;
-	else if (returnStateId == LOAD_GAME) // back was pressed
+	else if (returnStateId == LOAD_GAME) /* back was pressed */
 		chooseCatModel->chooseCatButton = 0;
 	chooseCatModel->retStateId = returnStateId; /* update returnStateId in model */
 	return returnStateId;
@@ -127,7 +127,7 @@ StateId chooseMousePHE(void* model, void* viewState, void* logicalEvent){
 	}
 	else if (returnStateId == MOUSE_SKILL) /* update the current skill in a temp value */
 		chooseMouseModel->currValueTemp = chooseMouseModel->mouseSkill;
-	else if (returnStateId == CHOOSE_CAT || returnStateId == CAT_SKILL) // back was pressed
+	else if (returnStateId == CHOOSE_CAT || returnStateId == CAT_SKILL) /* back was pressed */
 		chooseMouseModel->chooseMouseButton = 0;
 	chooseMouseModel->retStateId = returnStateId; /* update returnStateId in model */
 	return returnStateId;
@@ -233,7 +233,7 @@ StateId saveWorldPHE(void* model, void* viewState, void* logicalEvent){
 	/* get stateId by logical event, and update model and view */
 	returnStateId = generalMenuPHE(model, viewState, logicalEvent, saveWorldStates, COMMON_MENU_NUM_BUTTONS,
 		returnStateId, &saveWorldModel->saveWorldButton, &saveWorldModel->currValueTemp, MAX_WORLD);
-	if (returnStateId == WORLD_BUILDER){ //done or back were pressed
+	if (returnStateId == WORLD_BUILDER){ /* done or back were pressed */
 		saveWorldModel->preWorldBuilder = SAVE_WORLD;
 		if (saveWorldModel->saveWorldButton == 1){ /* done was pressed */
 			saveWorldModel->loadFromFile = 1; /* tell wb to use file to load the grid */
@@ -243,7 +243,7 @@ StateId saveWorldPHE(void* model, void* viewState, void* logicalEvent){
 			freeGridData(saveWorldModel->gameGridData); /* free grid data */
 			saveWorldModel->gameGridData = NULL;
 		}
-		else if (saveWorldModel->saveWorldButton == 2) //back was pressed
+		else if (saveWorldModel->saveWorldButton == 2) /* back was pressed */
 			saveWorldModel->loadFromFile = 0; /* tell wb to use char ** to load the grid */
 	}
 	saveWorldModel->retStateId = returnStateId; /* update returnStateId in model */

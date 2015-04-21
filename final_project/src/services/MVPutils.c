@@ -21,23 +21,25 @@ ViewStateref initGUIViewState(){
 	viewState->bgImage = NULL;
 	viewState->gridItemImage = NULL;
 	viewState->menuButtons = NULL;
-	viewState->UITree = NULL;
-	viewState->currButton = 0;
-	viewState->gridPanel = NULL;
-	viewState->gridItemsImgArr = NULL;
 	viewState->labelArr = NULL;
+	viewState->gridItemsImgArr = NULL;
+	viewState->currButton = 0;
+	viewState->UITree = NULL;
+	viewState->gridPanel = NULL;
 	viewState->topPanelNode = NULL;
 	viewState->sidePanelNode = NULL;
 	return viewState;
 }
 
-/* initialize menu data to its default values */
+/* initialize menu data to its relevant default values */
 MenuDataRef initMenuDataToDefault(){
 	MenuDataRef menuData = malloc(sizeof(MenuData)); /* memory allocation */
 	if (menuData == NULL){
 		perrorPrint("calloc");
 		return NULL;
 	}
+	menuData->catSkill = DEFAULT_SKILL;
+	menuData->mouseSkill = DEFAULT_SKILL;
 
 	menuData->mainMenuButton = 0;
 	menuData->chooseCatButton = 0;
@@ -49,22 +51,19 @@ MenuDataRef initMenuDataToDefault(){
 	menuData->saveWorldButton = 0;
 	menuData->errMsgButton = 0;
 
-
-	menuData->catSkill = DEFAULT_SKILL;
-	menuData->mouseSkill = DEFAULT_SKILL;
-
-	menuData->editedWorld = DEFAULT_WORLD;
-	menuData->loadGameWorld = DEFAULT_WORLD;
+	menuData->preChooseCat = MAIN_MENU;
+	menuData->preWorldBuilder = MAIN_MENU;
 
 	menuData->currValueTemp = 0;
+	menuData->loadGameWorld = DEFAULT_WORLD;
+	menuData->editedWorld = DEFAULT_WORLD;
 
-	menuData->gameGridData = NULL;
-	menuData->isCatFirst = 0;
-
-	menuData->preWorldBuilder = MAIN_MENU;
-	menuData->preChooseCat = MAIN_MENU;
 	menuData->loadFromFile = 1;
 	menuData->isGamePaused = 0;
+	menuData->isCatFirst = 0;
+
+	menuData->gameGridData = NULL;
+
 
 	return menuData;
 }
@@ -117,7 +116,7 @@ void initWorldBuilderModel(GUIref gui, void* initData){
 		wbData->numTurns = menuData->numTurns;
 		wbData->isCatFirst = menuData->isCatFirst;
 	}
-	else{ // preWorldBuilder == MAIN_MENU || (preWorldBuilder == EDIT_GAME || preWorldBuilder = SAVE_WORLD) && loadFromFile=1
+	else{ /* preWorldBuilder == MAIN_MENU || (preWorldBuilder == EDIT_GAME || preWorldBuilder = SAVE_WORLD) && loadFromFile=1 */
 		wbData->gameGridData = initGameDataByFile(wbData->editedWorld, &wbData->numTurns, &wbData->isCatFirst);
 		wbData->currPos = currPos;
 	}
@@ -466,7 +465,7 @@ void addButtonsToSidePanel(ViewStateref viewState, int buttonImgX, int buttonImg
 	/* Add buttons to buttons array and to UI tree */
 	for (int i = fromButtonNum; i < toButtonNum; i++){
 		viewState->menuButtons[i] = create_button(sideButtonX, sideButtonY, PANEL_BUTTON_W, PANEL_BUTTON_H,
-				viewState->image, buttonImgDisX, buttonImgDisY, buttonImgX, buttonImgY, isDisabled);//write function for creating a non markable button
+				viewState->image, buttonImgDisX, buttonImgDisY, buttonImgX, buttonImgY, isDisabled);
 		if (viewState->menuButtons[i] == NULL){
 			return;
 		}

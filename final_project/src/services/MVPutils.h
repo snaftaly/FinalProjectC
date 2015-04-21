@@ -50,8 +50,9 @@ typedef struct ViewState{
 	Widget ** labelArr;
 	Widget ** gridItemsImgArr; /* used by play game and world builder */
 
-	ListRef UITree; /* holds all the widgets of the GUI (except grid items images widgets) */
 	int currButton; /* holds the menus current selected button */
+
+	ListRef UITree; /* holds all the widgets of the GUI (except grid items images widgets) */
 	/* list refs of the top/side panel nodes, used by play game/ world builder for easy access */
 	ListRef topPanelNode;
 	ListRef sidePanelNode;

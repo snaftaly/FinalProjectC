@@ -70,9 +70,12 @@ void clearPanel(void * panel){
 void freeWidget(void * widgetPtr){
 	Widget * widget = widgetPtr;
 	if (widget != NULL){
-		if (widget->surface != NULL && (widget->type == PANEL || widget->type == WINDOW)){ //window ????
+		if (widget->surface != NULL && widget->type == PANEL){
+			/* free the surface of a panel -
+			 * comment: window surface will be frees by sdl_exit and button/imuage
+			 * surface are freed through thier image (in free view state function */
 			SDL_FreeSurface(widget->surface);
 		}
-		free(widget);
+		free(widget); /* free the widget */
 	}
 }

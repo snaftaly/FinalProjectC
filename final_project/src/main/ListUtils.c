@@ -186,18 +186,6 @@ void freeTree(ListRef root, FreeFunc freeData){
 }
 
 
-///* freeTree frees the tree nodes and frees their data using a free data function */
-//void freeTree(ListRef root, FreeFunc freeData){
-//	if (root != NULL){
-//		 if (root->child != NULL) /* if there is a child */
-//			 freeTree(root->child, freeData); /* make a recursive call on the root child */
-//		 freeTree(root->next, freeData); /* go to the next node */
-//		 if (root->data != NULL) /* free the data  if it is not null */
-//		 	freeData(root->data);
-//		 free(root);
-//	}
-//}
-
 /* freeDescendants frees all the descendants of a tree node */
 void freeDescendants(ListRef root, FreeFunc freeData){
 	if (root != NULL){
