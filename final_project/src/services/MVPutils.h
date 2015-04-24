@@ -2,7 +2,7 @@
 #define MVP_UTILS_H_
 
 /* includes: */
-#include "guiUtils.h"
+#include "GUIUtils.h"
 #include "CatAndMouseUtils.h"
 
 

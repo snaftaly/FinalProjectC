@@ -1,4 +1,6 @@
 things to do:
+- make eval function return 0 if game is over and there is not winner
+
 - fo over the project guidelines and make sure everything we did is ok...
 
 - make sure we don't have unnecesary prints

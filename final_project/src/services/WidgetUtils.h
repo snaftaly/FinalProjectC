@@ -2,7 +2,7 @@
 #define WIDGETUTILS_H_
 
 /**** includes ****/
-#include "../factories/widgetsFactory.h"
+#include "../factories/WidgetsFactory.h"
 
 /**** functions decelerations ****/
 

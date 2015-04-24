@@ -5,12 +5,24 @@
 
 int main(int argc, char * argv[]){
 
-	if (argc == 2 && strcmp(argv[1], "-console") == 0){
-		/* enter console mode */
-		consoleMode();
-		return isError;
+	if (argc == 3 && strcmp(argv[1], "-console") == 0){
+		if (strcmp(argv[2], "cat") == 0){
+			/* enter console mode with the cat as the player*/
+			consoleMode(1);
+			return isError;
+		}
+		else if (strcmp(argv[2], "mouse") == 0){
+			/* enter console mode with the cat as the player*/
+			consoleMode(0);
+			return isError;
+		}
+		else{
+			generalErrorprint("Arguments passed to program are invalid");
+			return isError;
+		}
+
 	}
-	else if ((argc == 2 && strcmp(argv[1], "console") != 0) || argc > 2){
+	else if ((argc == 3 && strcmp(argv[1], "console") != 0) || argc == 2 || argc > 3){
 		generalErrorprint("Arguments passed to program are invalid");
 		return isError;
 	}

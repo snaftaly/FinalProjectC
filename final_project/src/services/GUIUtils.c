@@ -1,5 +1,5 @@
 /* includes */
-#include "guiUtils.h"
+#include "GUIUtils.h"
 
 
 /***** function decelerations */

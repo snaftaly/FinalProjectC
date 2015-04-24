@@ -3,9 +3,9 @@
 
 
 /* run console mode */
-void consoleMode(){
+void consoleMode(int isCatCurrPlayer){
 	/*set the variables */
-	int isCatCurrPlayer, numTurnsLeft;
+	int numTurnsLeft;
 	gridItemPosition catPos, mousePos, cheesePos;
 	char ** gridData = NULL;
 	GameStateRef currState = NULL;
@@ -14,7 +14,7 @@ void consoleMode(){
 
 	while(!doExit){
 		/* get grid data, numturns and current player from stdin */
-		gridData = initGameDataByFile(-1, &numTurnsLeft, &isCatCurrPlayer);
+		gridData = initGameDataByFile(-1, &numTurnsLeft, NULL);
 		if (gridData == NULL)
 			return;
 		updateItemsPositions(&mousePos,&catPos,&cheesePos, gridData); /*update the items positions by the grid data */
@@ -108,16 +108,18 @@ char ** initGameDataByFile(int worldNum, int * numTurns, int * isCatFirst){
 			freeGridData(grid);
 			return NULL;
 		}
-		/* update isCatFirst */
+		/* update isCatFirst if the variable is not NULL */
 		if (fscanf(worldFile, "%s", firstAnimal) < 0){
 			perrorPrint("fscanf");
 			freeGridData(grid);
 			return NULL;
 		}
-		if (strcmp(firstAnimal, "cat") == 0)
-			*isCatFirst = 1;
-		else
-			*isCatFirst = 0;
+		if (isCatFirst != NULL ){ /* if isCatFirst is not a NULL pointer */
+			if (strcmp(firstAnimal, "cat") == 0)
+				*isCatFirst = 1;
+			else
+				*isCatFirst = 0;
+		}
 		/* fill grid by file: */
 		char nextChar;
 		for (int i = 0; i < ROW_NUM;i++){
@@ -343,6 +345,8 @@ int evaluate(void * state){
 		return MAX_EVALUATION;
 	if (gameOverType == CAT_WINS)
 		return MIN_EVALUATION;
+	if (gameOverType == TIE)
+		return 0;
 
 	int ** distCat = getDistanceWithBFS(currState->catPos, currState->gridData);
 	if (isError) { return EVALERR; }

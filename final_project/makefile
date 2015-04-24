@@ -15,10 +15,10 @@ H_LST=$(MAINDIR)ListUtils.h
 H_LSTEXT=$(H_LST) $(MAINDIR)ListUtilsExt.h
 H_MINIMAX=$(H_LST) $(MAINDIR)MiniMax.h
 H_MINIMAXEXT=$(H_MINIMAX) $(MAINDIR)MiniMaxExt.h $(MAINDIR)ListUtilsExt.h
-H_GRID=$(SRVDIR)gridDataUtils.h $(H_CnM)
-H_WIDGFACT=$(FACTDIR)widgetsFactory.h $(H_CnM)
-H_WIDGUTL=$(SRVDIR)widgetUtils.h $(H_WIDGFACT)
-H_GUIUTL=$(SRVDIR)guiUtils.h $(H_WIDGUTL) $(H_LSTEXT)
+H_GRID=$(SRVDIR)GridDataUtils.h $(H_CnM)
+H_WIDGFACT=$(FACTDIR)WidgetsFactory.h $(H_CnM)
+H_WIDGUTL=$(SRVDIR)WidgetUtils.h $(H_WIDGFACT)
+H_GUIUTL=$(SRVDIR)GUIUtils.h $(H_WIDGUTL) $(H_LSTEXT)
 H_CnMUTL=$(SRVDIR)CatAndMouseUtils.h $(H_GRID) $(H_MINIMAXEXT)
 H_MVPUTL=$(SRVDIR)MVPutils.h $(H_CnMUTL) $(H_GUIUTL)
 
@@ -26,9 +26,9 @@ H_MVPUTL=$(SRVDIR)MVPutils.h $(H_CnMUTL) $(H_GUIUTL)
 all: CatAndMouse ListUtilsDemo MiniMaxDemo
 
 clean:
-	-rm CatAndMouse MiniMaxDemo ListUtilsDemo CatAndMouse.o GUIsFactory.o PHEs.o VTEs.o stateTransition.o MVPutils.o CatAndMouseUtils.o guiUtils.o widgetUtils.o widgetsFactory.o gridDataUtils.o MiniMaxDemo.o MiniMax.o ListUtilsDemo.o ListUtils.o ErrorHandling.o 
+	-rm CatAndMouse MiniMaxDemo ListUtilsDemo CatAndMouse.o GUIsFactory.o MenusPresenters.o WorldBuilderPresenter.o ErrMsgPresenter.o PlayGamePresenter.o PlayGameView.o ErrMsgView.o WorldBuilderView.o MenusViews.o StateTransition.o MVPutils.o CatAndMouseUtils.o GUIUtils.o WidgetUtils.o WidgetsFactory.o GridDataUtils.o MiniMaxDemo.o MiniMax.o ListUtilsDemo.o ListUtils.o ErrorHandling.o 
 
-CatAndMouse: CatAndMouse.o GUIsFactory.o PHEs.o VTEs.o stateTransition.o MVPutils.o CatAndMouseUtils.o guiUtils.o widgetUtils.o widgetsFactory.o gridDataUtils.o MiniMax.o ListUtils.o ErrorHandling.o
+CatAndMouse: CatAndMouse.o GUIsFactory.o MenusPresenters.o WorldBuilderPresenter.o ErrMsgPresenter.o PlayGamePresenter.o PlayGameView.o ErrMsgView.o WorldBuilderView.o MenusViews.o StateTransition.o MVPutils.o CatAndMouseUtils.o GUIUtils.o WidgetUtils.o WidgetsFactory.o GridDataUtils.o MiniMax.o ListUtils.o ErrorHandling.o
 	gcc -o $@ $^ $(CFLAGS) $(SDL_L)
 
 MiniMaxDemo: MiniMaxDemo.o MiniMax.o ListUtils.o ErrorHandling.o
@@ -37,19 +37,37 @@ MiniMaxDemo: MiniMaxDemo.o MiniMax.o ListUtils.o ErrorHandling.o
 ListUtilsDemo: ListUtils.o ListUtilsDemo.o ErrorHandling.o
 	gcc -o $@ $^ $(CFLAGS) $(SDL_L)
 
-CatAndMouse.o: $(MAINDIR)CatAndMouse.c $(FACTDIR)GUIsFactory.h $(PHEDIR)PHEs.h $(VTEDIR)VTEs.h $(STDIR)stateTransition.h $(H_MVPUTL) $(H_ERR)
+CatAndMouse.o: $(MAINDIR)CatAndMouse.c $(FACTDIR)GUIsFactory.h $(PHEDIR)Presenters.h $(VTEDIR)Views.h $(STDIR)StateTransition.h $(H_MVPUTL) $(H_ERR)
 	gcc -c $(CFLAGS) $(MAINDIR)$*.c $(SDL_C)
 
-GUIsFactory.o: $(FACTDIR)GUIsFactory.c $(FACTDIR)GUIsFactory.h $(PHEDIR)PHEs.h $(VTEDIR)VTEs.h $(STDIR)stateTransition.h $(H_MVPUTL) $(H_ERR)
+GUIsFactory.o: $(FACTDIR)GUIsFactory.c $(FACTDIR)GUIsFactory.h $(PHEDIR)Presenters.h $(VTEDIR)Views.h $(STDIR)StateTransition.h $(H_MVPUTL) $(H_ERR)
 	gcc -c $(CFLAGS) $(FACTDIR)$*.c $(SDL_C)
 
-PHEs.o: $(PHEDIR)PHEs.c $(PHEDIR)PHEs.h $(H_MVPUTL) $(H_ERR)
+PlayGamePresenter.o: $(PHEDIR)PlayGamePresenter.c $(PHEDIR)Presenters.h $(H_MVPUTL) $(H_ERR)
 	gcc -c $(CFLAGS) $(PHEDIR)$*.c $(SDL_C)
 
-VTEs.o: $(VTEDIR)VTEs.c $(VTEDIR)VTEs.h $(H_MVPUTL) $(H_ERR)
+ErrMsgPresenter.o: $(PHEDIR)ErrMsgPresenter.c $(PHEDIR)Presenters.h $(H_MVPUTL) $(H_ERR)
+	gcc -c $(CFLAGS) $(PHEDIR)$*.c $(SDL_C)
+
+WorldBuilderPresenter.o: $(PHEDIR)WorldBuilderPresenter.c $(PHEDIR)Presenters.h $(H_MVPUTL) $(H_ERR)
+	gcc -c $(CFLAGS) $(PHEDIR)$*.c $(SDL_C)
+
+MenusPresenters.o: $(PHEDIR)MenusPresenters.c $(PHEDIR)Presenters.h $(H_MVPUTL) $(H_ERR)
+	gcc -c $(CFLAGS) $(PHEDIR)$*.c $(SDL_C)
+
+PlayGameView.o: $(VTEDIR)PlayGameView.c $(VTEDIR)Views.h $(H_MVPUTL) $(H_ERR)
 	gcc -c $(CFLAGS) $(VTEDIR)$*.c $(SDL_C)
 
-stateTransition.o: $(STDIR)stateTransition.c $(STDIR)stateTransition.h $(H_MVPUTL) $(H_ERR)
+ErrMsgView.o: $(VTEDIR)ErrMsgView.c $(VTEDIR)Views.h $(H_MVPUTL) $(H_ERR)
+	gcc -c $(CFLAGS) $(VTEDIR)$*.c $(SDL_C)
+
+WorldBuilderView.o: $(VTEDIR)WorldBuilderView.c $(VTEDIR)Views.h $(H_MVPUTL) $(H_ERR)
+	gcc -c $(CFLAGS) $(VTEDIR)$*.c $(SDL_C)
+
+MenusViews.o: $(VTEDIR)MenusViews.c $(VTEDIR)Views.h $(H_MVPUTL) $(H_ERR)
+	gcc -c $(CFLAGS) $(VTEDIR)$*.c $(SDL_C)
+
+StateTransition.o: $(STDIR)StateTransition.c $(STDIR)StateTransition.h $(H_MVPUTL) $(H_ERR)
 	gcc -c $(CFLAGS) $(STDIR)$*.c $(SDL_C)
 
 MVPutils.o: $(SRVDIR)MVPutils.c $(H_MVPUTL) $(H_ERR)
@@ -58,16 +76,16 @@ MVPutils.o: $(SRVDIR)MVPutils.c $(H_MVPUTL) $(H_ERR)
 CatAndMouseUtils.o: $(SRVDIR)CatAndMouseUtils.c $(H_CnMUTL) $(H_ERR)
 	gcc -c $(CFLAGS) $(SRVDIR)$*.c $(SDL_C)
 
-guiUtils.o: $(SRVDIR)guiUtils.c $(SRVDIR)guiUtils.h $(H_GUIUTL) $(H_ERR)
+GUIUtils.o: $(SRVDIR)GUIUtils.c $(SRVDIR)GUIUtils.h $(H_GUIUTL) $(H_ERR)
 	gcc -c $(CFLAGS) $(SRVDIR)$*.c $(SDL_C)
 
-widgetUtils.o: $(SRVDIR)widgetUtils.c $(H_WIDGUTL) $(H_ERR)
+WidgetUtils.o: $(SRVDIR)WidgetUtils.c $(H_WIDGUTL) $(H_ERR)
 	gcc -c $(CFLAGS) $(SRVDIR)$*.c $(SDL_C)
 
-widgetsFactory.o: $(FACTDIR)widgetsFactory.c $(H_WIDGFACT) $(H_ERR)
+WidgetsFactory.o: $(FACTDIR)WidgetsFactory.c $(H_WIDGFACT) $(H_ERR)
 	gcc -c $(CFLAGS) $(FACTDIR)$*.c $(SDL_C)
 
-gridDataUtils.o: $(SRVDIR)gridDataUtils.c  $(H_GRID) $(H_ERR)
+GridDataUtils.o: $(SRVDIR)GridDataUtils.c  $(H_GRID) $(H_ERR)
 	gcc -c $(CFLAGS) $(SRVDIR)$*.c $(SDL_C)
 
 MiniMaxDemo.o: $(MAINDIR)MiniMaxDemo.c $(MAINDIR)MiniMax.h $(MAINDIR)ListUtils.h $(H_ERR)

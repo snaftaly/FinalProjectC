@@ -2,7 +2,7 @@
 #define CATANDMOUSEUTLS_H_
 
 /**** includes ****/
-#include "gridDataUtils.h"
+#include "GridDataUtils.h"
 #include "../main/MiniMaxExt.h"
 
 
@@ -30,7 +30,7 @@ typedef struct GameState * GameStateRef; /* a pointer to struct GameState */
 
 /**** general functions ****/
 GUI createGUIForState(StateId stateId);
-void consoleMode();
+void consoleMode(int isCatFirst);
 gameOverType checkGameOverType(gridItemPosition catPos, gridItemPosition mousePos,
 		gridItemPosition cheesePos, int numTurnsLeft);
 int isMoveValid(char ** gridData, gridItemPosition currPlayerPos, gridItemPosition movePos);

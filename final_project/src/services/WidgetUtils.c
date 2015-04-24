@@ -1,4 +1,4 @@
-#include "widgetUtils.h"
+#include "WidgetUtils.h"
 
 /** buttons handling related function */
 

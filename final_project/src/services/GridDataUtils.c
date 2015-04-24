@@ -1,4 +1,4 @@
-#include "gridDataUtils.h"
+#include "GridDataUtils.h"
 
 
 /** grid initialization functions **/

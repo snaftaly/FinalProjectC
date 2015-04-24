@@ -3,7 +3,7 @@
 
 /* includes */
 #include "../main/ListUtilsExt.h"
-#include "../services/widgetUtils.h"
+#include "../services/WidgetUtils.h"
 
 
 /*** define constants: ***/

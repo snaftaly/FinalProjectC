@@ -2,9 +2,9 @@
 #define GUISFACTORY_H_
 
 #include "../main/CatAndMouse.h"
-#include "../views/VTEs.h"
-#include "../presenters/PHEs.h"
-#include "../stateTransition/stateTransition.h"
+#include "../views/Views.h"
+#include "../presenters/Presenters.h"
+#include "../stateTransition/StateTransition.h"
 
 GUI createGUIForState(StateId stateId);
 

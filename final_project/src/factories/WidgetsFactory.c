@@ -1,4 +1,4 @@
-#include "widgetsFactory.h"
+#include "WidgetsFactory.h"
 
 /* a function for setting all widgets common settings */
 Widget * createGeneralWidget(Sint16 x, Sint16 y, Uint16 width, Uint16 height, widget_type type){
