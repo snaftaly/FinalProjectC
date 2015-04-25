@@ -37,7 +37,7 @@ void startGeneralMenu(GUIref gui, char * imgPath, int titleImgX, int titleImgY, 
 		perrorPrint("malloc");
 		return;
 	}
-	menuViewState->menuButtons = buttons;
+	menuViewState->buttonsArr = buttons;
 
 	/* create the UItree: */
 	/* create the window */
@@ -114,7 +114,7 @@ void startGeneralMenu(GUIref gui, char * imgPath, int titleImgX, int titleImgY, 
 	}
 	/* set the correct button as the button selected */
 	menuViewState->currButton = selectedButton;
-	setButtonSelected(menuViewState->menuButtons[selectedButton]);
+	setButtonSelected(menuViewState->buttonsArr[selectedButton]);
 
 	/* draw GUI according to UItree */
 	drawGui(menuViewState->UITree);
@@ -271,7 +271,7 @@ void startWorldBuilder(GUIref gui, void* initData){
 		perrorPrint("malloc");
 		return;
 	}
-	wbViewState->menuButtons = buttons;
+	wbViewState->buttonsArr = buttons;
 
 	/* setup wb top label */
 	Widget *label = create_image(calcWBtitleX(WB_TITLE_W), PANEL_WIDGET_Y_GAP, WB_TITLE_W, WB_TITLE_H,
@@ -343,7 +343,7 @@ void startErrMsg(GUIref gui, void* initData){
 		perrorPrint("malloc");
 		return;
 	}
-	errViewState->menuButtons = buttons;
+	errViewState->buttonsArr = buttons;
 
 	/* create the UItree */
 	/* create the window */
@@ -413,7 +413,7 @@ void startErrMsg(GUIref gui, void* initData){
 		return;
 	}
 	/* set the button selected */
-	setButtonSelected(errViewState->menuButtons[0]);
+	setButtonSelected(errViewState->buttonsArr[0]);
 	/* draw GUI according to UItree */
 	drawGui(errViewState->UITree);
 }
@@ -462,7 +462,7 @@ void startPlayGame(GUIref gui, void* initData){
 		perrorPrint("malloc");
 		return;
 	}
-	pgViewState->menuButtons = buttons;
+	pgViewState->buttonsArr = buttons;
 
 	// create labels array
 	Widget ** labels = (Widget **)malloc(PG_NUM_LABELS*sizeof(Widget *));
@@ -525,7 +525,7 @@ void* simpleMenuVTE(void* viewState, SDL_Event* event, int numOfButtons){
 			break;
 		case (SDL_MOUSEBUTTONUP): /* handle mouse button up events */
 			for (int i = 0; i< numOfButtons; i++){ /* go over each button and check if mouse clicked on it */
-				Widget * currButton = menuViewState->menuButtons[i];
+				Widget * currButton = menuViewState->buttonsArr[i];
 				if (isClickEventOnButton(event, currButton, REGULAR_BUTTON)){ /* check if button was clicked*/
 					returnEvent->type = SELECT_BUTTON_NUM; /* set event type to select button with
 					 	 	 	 	 	 	 	 	 	 	  the number of the button*/
@@ -578,7 +578,7 @@ void* complexMenuVTE(void* viewState, SDL_Event* event){
 			break;
 		case (SDL_MOUSEBUTTONUP): /* handle mouse button up events */
 			for (int i = 0; i< numOfButtons; i++){ /* go over each button and check if mouse clicked on it */
-				Widget * currButton = menuViewState->menuButtons[i];
+				Widget * currButton = menuViewState->buttonsArr[i];
 				if (i == FIRST_BUTTON){
 					/* for the value selection button first check if click is on arrow area or not */
 					if(isClickEventOnButton(event, currButton, UP_ARROW_BUTTON)){
@@ -647,7 +647,7 @@ void* worldBuilderVTE(void* viewState, SDL_Event* event){
 				handleThreePartLayoutArrowKey(key, returnEvent);
 			break;
 		case (SDL_MOUSEBUTTONUP): /* handle mouse button up events */
-			handleThreePartLayoutMouseSelect(event, returnEvent, wbViewState->menuButtons, WB_NUM_BUTTONS);
+			handleThreePartLayoutMouseSelect(event, returnEvent, wbViewState->buttonsArr, WB_NUM_BUTTONS);
 			break;
 		default:
 			returnEvent->type = NO_EVENT;
@@ -665,7 +665,7 @@ void* errMsgVTE(void* viewState, SDL_Event* event){
 	/* set type of return event to NO_EVENT as default */
 	returnEvent->type = NO_EVENT;
 	ViewStateref menuViewState = viewState;
-	Widget * currButton = menuViewState->menuButtons[0]; /* there is only one button */
+	Widget * currButton = menuViewState->buttonsArr[0]; /* there is only one button */
 	switch (event->type) {
 		case (SDL_KEYUP): /* handle key up events - for return click */
 			if (event->key.keysym.sym == SDLK_RETURN || event->key.keysym.sym == SDLK_KP_ENTER){
@@ -710,7 +710,7 @@ void* playGameVTE(void* viewState, SDL_Event * event){
 				handleThreePartLayoutArrowKey(key, returnEvent);
 			break;
 		case (SDL_MOUSEBUTTONUP):/* handle mouse button up events */
-			handleThreePartLayoutMouseSelect(event, returnEvent, pgViewState->menuButtons, PG_NUM_BUTTONS);
+			handleThreePartLayoutMouseSelect(event, returnEvent, pgViewState->buttonsArr, PG_NUM_BUTTONS);
 			break;
 		default:
 			returnEvent->type = NO_EVENT;
@@ -742,8 +742,8 @@ StateId generalMenuPHE(void* model, void* viewState, void* logicalEvent, StateId
 			menuView->currButton = *currButton; /* update the current button in the view */
 			break;
 		case(MARK_NEXT_BUTTON):
-			changeSelectedButton(menuView->menuButtons[*currButton],
-					menuView->menuButtons[(*currButton+1)%numOfButtons]); /* update the selected button in the view */
+			changeSelectedButton(menuView->buttonsArr[*currButton],
+					menuView->buttonsArr[(*currButton+1)%numOfButtons]); /* update the selected button in the view */
 			*currButton = (*currButton + 1)%numOfButtons; /* update the button number */
 			menuView->currButton = *currButton;/* update the current button in the view */
 			break;
@@ -753,22 +753,22 @@ StateId generalMenuPHE(void* model, void* viewState, void* logicalEvent, StateId
 			menuView->currButton = *currButton; /* update the current button in the view */
 			break;
 		case(MARK_VALUES_BUTTON):
-			changeSelectedButton(menuView->menuButtons[*currButton],
-					menuView->menuButtons[FIRST_BUTTON]); /* update the selected button in the view */
+			changeSelectedButton(menuView->buttonsArr[*currButton],
+					menuView->buttonsArr[FIRST_BUTTON]); /* update the selected button in the view */
 			*currButton = FIRST_BUTTON; /* update the button number */
 			menuView->currButton = *currButton; /* update the current button in the view */
 			break;
 		case(INCREASE_VALUE):
-			increaseValuesButton(currValue, maxValue, menuView->menuButtons[FIRST_BUTTON]); /* update the value */
-			changeSelectedButton(menuView->menuButtons[*currButton],
-				menuView->menuButtons[FIRST_BUTTON]); /* update the selected button in the view */
+			increaseValuesButton(currValue, maxValue, menuView->buttonsArr[FIRST_BUTTON]); /* update the value */
+			changeSelectedButton(menuView->buttonsArr[*currButton],
+				menuView->buttonsArr[FIRST_BUTTON]); /* update the selected button in the view */
 			*currButton = FIRST_BUTTON; /* update the button number */
 			menuView->currButton = *currButton; /* update the current button in the view */
 			break;
 		case(DECREASE_VALUE):
-			decreaseValuesButton(currValue, MIN_VALUE, menuView->menuButtons[FIRST_BUTTON]); /* update the value */
-			changeSelectedButton(menuView->menuButtons[*currButton],
-				menuView->menuButtons[FIRST_BUTTON]); /* update the selected button in the view */
+			decreaseValuesButton(currValue, MIN_VALUE, menuView->buttonsArr[FIRST_BUTTON]); /* update the value */
+			changeSelectedButton(menuView->buttonsArr[*currButton],
+				menuView->buttonsArr[FIRST_BUTTON]); /* update the selected button in the view */
 			*currButton = FIRST_BUTTON; /* update the button number */
 			menuView->currButton = *currButton; /* update the current button in the view */
 			break;

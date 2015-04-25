@@ -20,7 +20,7 @@ H_WIDGFACT=$(FACTDIR)WidgetsFactory.h $(H_CnM)
 H_WIDGUTL=$(SRVDIR)WidgetUtils.h $(H_WIDGFACT)
 H_GUIUTL=$(SRVDIR)GUIUtils.h $(H_WIDGUTL) $(H_LSTEXT)
 H_CnMUTL=$(SRVDIR)CatAndMouseUtils.h $(H_GRID) $(H_MINIMAXEXT)
-H_MVPUTL=$(SRVDIR)MVPutils.h $(SRVDIR)LogEventItems.h $(PHEDIR)Presenters.h $(VTEDIR)Views.h $(H_CnMUTL) $(H_GUIUTL)
+H_MVPUTL=$(SRVDIR)MVPutils.h $(H_CnMUTL) $(H_GUIUTL)
 
 
 all: CatAndMouse ListUtilsDemo MiniMaxDemo
@@ -37,34 +37,34 @@ MiniMaxDemo: MiniMaxDemo.o MiniMax.o ListUtils.o ErrorHandling.o
 ListUtilsDemo: ListUtils.o ListUtilsDemo.o ErrorHandling.o
 	gcc -o $@ $^ $(CFLAGS) $(SDL_L)
 
-CatAndMouse.o: $(MAINDIR)CatAndMouse.c $(FACTDIR)GUIsFactory.h $(STDIR)StateTransition.h $(H_MVPUTL) $(H_ERR)
+CatAndMouse.o: $(MAINDIR)CatAndMouse.c $(FACTDIR)GUIsFactory.h $(PHEDIR)Presenters.h $(VTEDIR)Views.h $(STDIR)StateTransition.h $(H_MVPUTL) $(H_ERR)
 	gcc -c $(CFLAGS) $(MAINDIR)$*.c $(SDL_C)
 
-GUIsFactory.o: $(FACTDIR)GUIsFactory.c $(FACTDIR)GUIsFactory.h $(STDIR)StateTransition.h $(H_MVPUTL) $(H_ERR)
+GUIsFactory.o: $(FACTDIR)GUIsFactory.c $(FACTDIR)GUIsFactory.h $(PHEDIR)Presenters.h $(VTEDIR)Views.h $(STDIR)StateTransition.h $(H_MVPUTL) $(H_ERR)
 	gcc -c $(CFLAGS) $(FACTDIR)$*.c $(SDL_C)
 
-PlayGamePresenter.o: $(PHEDIR)PlayGamePresenter.c $(H_MVPUTL) $(H_ERR)
+PlayGamePresenter.o: $(PHEDIR)PlayGamePresenter.c $(PHEDIR)Presenters.h $(H_MVPUTL) $(H_ERR)
 	gcc -c $(CFLAGS) $(PHEDIR)$*.c $(SDL_C)
 
-ErrMsgPresenter.o: $(PHEDIR)ErrMsgPresenter.c $(H_MVPUTL) $(H_ERR)
+ErrMsgPresenter.o: $(PHEDIR)ErrMsgPresenter.c $(PHEDIR)Presenters.h $(H_MVPUTL) $(H_ERR)
 	gcc -c $(CFLAGS) $(PHEDIR)$*.c $(SDL_C)
 
-WorldBuilderPresenter.o: $(PHEDIR)WorldBuilderPresenter.c $(H_MVPUTL) $(H_ERR)
+WorldBuilderPresenter.o: $(PHEDIR)WorldBuilderPresenter.c $(PHEDIR)Presenters.h $(H_MVPUTL) $(H_ERR)
 	gcc -c $(CFLAGS) $(PHEDIR)$*.c $(SDL_C)
 
-MenusPresenters.o: $(PHEDIR)MenusPresenters.c $(H_MVPUTL) $(H_ERR)
+MenusPresenters.o: $(PHEDIR)MenusPresenters.c $(PHEDIR)Presenters.h $(H_MVPUTL) $(H_ERR)
 	gcc -c $(CFLAGS) $(PHEDIR)$*.c $(SDL_C)
 
-PlayGameView.o: $(VTEDIR)PlayGameView.c $(H_MVPUTL) $(H_ERR)
+PlayGameView.o: $(VTEDIR)PlayGameView.c $(VTEDIR)Views.h $(H_MVPUTL) $(H_ERR)
 	gcc -c $(CFLAGS) $(VTEDIR)$*.c $(SDL_C)
 
-ErrMsgView.o: $(VTEDIR)ErrMsgView.c $(H_MVPUTL) $(H_ERR)
+ErrMsgView.o: $(VTEDIR)ErrMsgView.c $(VTEDIR)Views.h $(H_MVPUTL) $(H_ERR)
 	gcc -c $(CFLAGS) $(VTEDIR)$*.c $(SDL_C)
 
-WorldBuilderView.o: $(VTEDIR)WorldBuilderView.c $(H_MVPUTL) $(H_ERR)
+WorldBuilderView.o: $(VTEDIR)WorldBuilderView.c $(VTEDIR)Views.h $(H_MVPUTL) $(H_ERR)
 	gcc -c $(CFLAGS) $(VTEDIR)$*.c $(SDL_C)
 
-MenusViews.o: $(VTEDIR)MenusViews.c $(H_MVPUTL) $(H_ERR)
+MenusViews.o: $(VTEDIR)MenusViews.c $(VTEDIR)Views.h $(H_MVPUTL) $(H_ERR)
 	gcc -c $(CFLAGS) $(VTEDIR)$*.c $(SDL_C)
 
 StateTransition.o: $(STDIR)StateTransition.c $(STDIR)StateTransition.h $(H_MVPUTL) $(H_ERR)

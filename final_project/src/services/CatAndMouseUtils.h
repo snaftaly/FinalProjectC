@@ -29,7 +29,6 @@ typedef struct GameState * GameStateRef; /* a pointer to struct GameState */
 /**** function declarations : ****/
 
 /**** general functions ****/
-GUI createGUIForState(StateId stateId);
 void consoleMode(int isCatFirst);
 gameOverType checkGameOverType(gridItemPosition catPos, gridItemPosition mousePos,
 		gridItemPosition cheesePos, int numTurnsLeft);

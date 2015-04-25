@@ -4,8 +4,6 @@
 
 /***** function decelerations */
 
-
-
 /**** functions used for displaying the gui ****/
 
 /* drawGui does DFS traversing through the UI tree which builds the widgets one on top of the other.

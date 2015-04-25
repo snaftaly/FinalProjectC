@@ -1,4 +1,5 @@
 #include "Views.h"
+#include "../services/MVPutils.h"
 
 /* worldBuilderVTE is the VTE function for the world builder gui */
 void* worldBuilderVTE(void* viewState, SDL_Event* event){
@@ -29,7 +30,7 @@ void* worldBuilderVTE(void* viewState, SDL_Event* event){
 				handleThreePartLayoutArrowKey(key, returnEvent);
 			break;
 		case (SDL_MOUSEBUTTONUP): /* handle mouse button up events */
-			handleThreePartLayoutMouseSelect(event, returnEvent, wbViewState->menuButtons, WB_NUM_BUTTONS);
+			handleThreePartLayoutMouseSelect(event, returnEvent, wbViewState->buttonsArr, WB_NUM_BUTTONS);
 			break;
 		default:
 			returnEvent->type = NO_EVENT;

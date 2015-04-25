@@ -1,4 +1,5 @@
 #include "Presenters.h"
+#include "../services/MVPutils.h"
 
 /*** menus PHEs ***/
 
@@ -25,8 +26,8 @@ StateId generalMenuPHE(void* model, void* viewState, void* logicalEvent, StateId
 			menuView->currButton = *currButton; /* update the current button in the view */
 			break;
 		case(MARK_NEXT_BUTTON):
-			changeSelectedButton(menuView->menuButtons[*currButton],
-					menuView->menuButtons[(*currButton+1)%numOfButtons]); /* update the selected button in the view */
+			changeSelectedButton(menuView->buttonsArr[*currButton],
+					menuView->buttonsArr[(*currButton+1)%numOfButtons]); /* update the selected button in the view */
 			*currButton = (*currButton + 1)%numOfButtons; /* update the button number */
 			menuView->currButton = *currButton;/* update the current button in the view */
 			break;
@@ -36,22 +37,22 @@ StateId generalMenuPHE(void* model, void* viewState, void* logicalEvent, StateId
 			menuView->currButton = *currButton; /* update the current button in the view */
 			break;
 		case(MARK_VALUES_BUTTON):
-			changeSelectedButton(menuView->menuButtons[*currButton],
-					menuView->menuButtons[FIRST_BUTTON]); /* update the selected button in the view */
+			changeSelectedButton(menuView->buttonsArr[*currButton],
+					menuView->buttonsArr[FIRST_BUTTON]); /* update the selected button in the view */
 			*currButton = FIRST_BUTTON; /* update the button number */
 			menuView->currButton = *currButton; /* update the current button in the view */
 			break;
 		case(INCREASE_VALUE):
-			increaseValuesButton(currValue, maxValue, menuView->menuButtons[FIRST_BUTTON]); /* update the value */
-			changeSelectedButton(menuView->menuButtons[*currButton],
-				menuView->menuButtons[FIRST_BUTTON]); /* update the selected button in the view */
+			increaseValuesButton(currValue, maxValue, menuView->buttonsArr[FIRST_BUTTON]); /* update the value */
+			changeSelectedButton(menuView->buttonsArr[*currButton],
+				menuView->buttonsArr[FIRST_BUTTON]); /* update the selected button in the view */
 			*currButton = FIRST_BUTTON; /* update the button number */
 			menuView->currButton = *currButton; /* update the current button in the view */
 			break;
 		case(DECREASE_VALUE):
-			decreaseValuesButton(currValue, MIN_VALUE, menuView->menuButtons[FIRST_BUTTON]); /* update the value */
-			changeSelectedButton(menuView->menuButtons[*currButton],
-				menuView->menuButtons[FIRST_BUTTON]); /* update the selected button in the view */
+			decreaseValuesButton(currValue, MIN_VALUE, menuView->buttonsArr[FIRST_BUTTON]); /* update the value */
+			changeSelectedButton(menuView->buttonsArr[*currButton],
+				menuView->buttonsArr[FIRST_BUTTON]); /* update the selected button in the view */
 			*currButton = FIRST_BUTTON; /* update the button number */
 			menuView->currButton = *currButton; /* update the current button in the view */
 			break;

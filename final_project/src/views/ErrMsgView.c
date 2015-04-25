@@ -1,4 +1,5 @@
 #include "Views.h"
+#include "../services/MVPutils.h"
 
 
 /* VTE function for Error Message gui */
@@ -12,7 +13,7 @@ void* errMsgVTE(void* viewState, SDL_Event* event){
 	/* set type of return event to NO_EVENT as default */
 	returnEvent->type = NO_EVENT;
 	ViewStateref menuViewState = viewState;
-	Widget * currButton = menuViewState->menuButtons[0]; /* there is only one button */
+	Widget * currButton = menuViewState->buttonsArr[0]; /* there is only one button */
 	switch (event->type) {
 		case (SDL_QUIT): /* if the close button (x) was pressed */
 			returnEvent->type = DO_QUIT;

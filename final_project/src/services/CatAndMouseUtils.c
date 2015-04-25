@@ -9,18 +9,17 @@ void consoleMode(int isCatCurrPlayer){
 	gridItemPosition catPos, mousePos, cheesePos;
 	char ** gridData = NULL;
 	GameStateRef currState = NULL;
-	char endChar;
 
 	while(1){
 		/* get grid data and numturns from stdin */
 		gridData = initGameDataByFile(-1, &numTurnsLeft, NULL);
 		if (gridData == NULL) /* an error occurred or q\n was typed */
 			return;
-		endChar = getchar(); /* get the cher that comes right after the grid */
-		if (endChar == 'q'){
-			freeGridData(gridData);
-			return;
-		}
+		getchar(); /* get the \n that comes right after the grid */
+//		if (endChar == 'q'){
+//			freeGridData(gridData);
+//			return;
+//		}
 		/*update the items positions by the grid data */
 		updateItemsPositions(&mousePos,&catPos,&cheesePos, gridData);
 

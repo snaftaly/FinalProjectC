@@ -1,4 +1,5 @@
 #include "Views.h"
+#include "../services/MVPutils.h"
 
 /**** menus viewTranslateEvent (VTE) functions: ****/
 
@@ -32,7 +33,7 @@ void* simpleMenuVTE(void* viewState, SDL_Event* event, int numOfButtons){
 			break;
 		case (SDL_MOUSEBUTTONUP): /* handle mouse button up events */
 			for (int i = 0; i< numOfButtons; i++){ /* go over each button and check if mouse clicked on it */
-				Widget * currButton = menuViewState->menuButtons[i];
+				Widget * currButton = menuViewState->buttonsArr[i];
 				if (isClickEventOnButton(event, currButton, REGULAR_BUTTON)){ /* check if button was clicked*/
 					returnEvent->type = SELECT_BUTTON_NUM; /* set event type to select button with
 					 	 	 	 	 	 	 	 	 	 	  the number of the button*/
@@ -88,7 +89,7 @@ void* complexMenuVTE(void* viewState, SDL_Event* event){
 			break;
 		case (SDL_MOUSEBUTTONUP): /* handle mouse button up events */
 			for (int i = 0; i< numOfButtons; i++){ /* go over each button and check if mouse clicked on it */
-				Widget * currButton = menuViewState->menuButtons[i];
+				Widget * currButton = menuViewState->buttonsArr[i];
 				if (i == FIRST_BUTTON){
 					/* for the value selection button first check if click is on arrow area or not */
 					if(isClickEventOnButton(event, currButton, UP_ARROW_BUTTON)){

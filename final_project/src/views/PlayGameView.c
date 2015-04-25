@@ -1,4 +1,5 @@
 #include "Views.h"
+#include "../services/MVPutils.h"
 
 
 /* VTE function for play game gui */
@@ -30,7 +31,7 @@ void* playGameVTE(void* viewState, SDL_Event * event){
 				handleThreePartLayoutArrowKey(key, returnEvent);
 			break;
 		case (SDL_MOUSEBUTTONUP):/* handle mouse button up events */
-			handleThreePartLayoutMouseSelect(event, returnEvent, pgViewState->menuButtons, PG_NUM_BUTTONS);
+			handleThreePartLayoutMouseSelect(event, returnEvent, pgViewState->buttonsArr, PG_NUM_BUTTONS);
 			break;
 		default:
 			returnEvent->type = NO_EVENT;

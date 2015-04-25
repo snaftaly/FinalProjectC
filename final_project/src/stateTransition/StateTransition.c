@@ -33,7 +33,7 @@ void startGeneralMenu(GUIref gui, char * imgPath, int titleImgX, int titleImgY, 
 		perrorPrint("malloc");
 		return;
 	}
-	menuViewState->menuButtons = buttons;
+	menuViewState->buttonsArr = buttons;
 
 	/* create the UItree: */
 	/* create the window */
@@ -110,7 +110,7 @@ void startGeneralMenu(GUIref gui, char * imgPath, int titleImgX, int titleImgY, 
 	}
 	/* set the correct button as the button selected */
 	menuViewState->currButton = selectedButton;
-	setButtonSelected(menuViewState->menuButtons[selectedButton]);
+	setButtonSelected(menuViewState->buttonsArr[selectedButton]);
 
 	/* draw GUI according to UItree */
 	drawGui(menuViewState->UITree);
@@ -267,7 +267,7 @@ void startWorldBuilder(GUIref gui, void* initData){
 		perrorPrint("malloc");
 		return;
 	}
-	wbViewState->menuButtons = buttons;
+	wbViewState->buttonsArr = buttons;
 
 	/* setup wb top label */
 	Widget *label = create_image(calcWBtitleX(WB_TITLE_W), PANEL_WIDGET_Y_GAP, WB_TITLE_W, WB_TITLE_H,
@@ -339,7 +339,7 @@ void startErrMsg(GUIref gui, void* initData){
 		perrorPrint("malloc");
 		return;
 	}
-	errViewState->menuButtons = buttons;
+	errViewState->buttonsArr = buttons;
 
 	/* create the UItree */
 	/* create the window */
@@ -409,7 +409,7 @@ void startErrMsg(GUIref gui, void* initData){
 		return;
 	}
 	/* set the button selected */
-	setButtonSelected(errViewState->menuButtons[0]);
+	setButtonSelected(errViewState->buttonsArr[0]);
 	/* draw GUI according to UItree */
 	drawGui(errViewState->UITree);
 }
@@ -458,7 +458,7 @@ void startPlayGame(GUIref gui, void* initData){
 		perrorPrint("malloc");
 		return;
 	}
-	pgViewState->menuButtons = buttons;
+	pgViewState->buttonsArr = buttons;
 
 	/* create labels array */
 	Widget ** labels = (Widget **)malloc(PG_NUM_LABELS*sizeof(Widget *));

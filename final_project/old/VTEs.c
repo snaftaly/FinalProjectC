@@ -32,7 +32,7 @@ void* simpleMenuVTE(void* viewState, SDL_Event* event, int numOfButtons){
 			break;
 		case (SDL_MOUSEBUTTONUP): /* handle mouse button up events */
 			for (int i = 0; i< numOfButtons; i++){ /* go over each button and check if mouse clicked on it */
-				Widget * currButton = menuViewState->menuButtons[i];
+				Widget * currButton = menuViewState->buttonsArr[i];
 				if (isClickEventOnButton(event, currButton, REGULAR_BUTTON)){ /* check if button was clicked*/
 					returnEvent->type = SELECT_BUTTON_NUM; /* set event type to select button with
 					 	 	 	 	 	 	 	 	 	 	  the number of the button*/
@@ -88,7 +88,7 @@ void* complexMenuVTE(void* viewState, SDL_Event* event){
 			break;
 		case (SDL_MOUSEBUTTONUP): /* handle mouse button up events */
 			for (int i = 0; i< numOfButtons; i++){ /* go over each button and check if mouse clicked on it */
-				Widget * currButton = menuViewState->menuButtons[i];
+				Widget * currButton = menuViewState->buttonsArr[i];
 				if (i == FIRST_BUTTON){
 					/* for the value selection button first check if click is on arrow area or not */
 					if(isClickEventOnButton(event, currButton, UP_ARROW_BUTTON)){
@@ -163,7 +163,7 @@ void* worldBuilderVTE(void* viewState, SDL_Event* event){
 				handleThreePartLayoutArrowKey(key, returnEvent);
 			break;
 		case (SDL_MOUSEBUTTONUP): /* handle mouse button up events */
-			handleThreePartLayoutMouseSelect(event, returnEvent, wbViewState->menuButtons, WB_NUM_BUTTONS);
+			handleThreePartLayoutMouseSelect(event, returnEvent, wbViewState->buttonsArr, WB_NUM_BUTTONS);
 			break;
 		default:
 			returnEvent->type = NO_EVENT;
@@ -181,7 +181,7 @@ void* errMsgVTE(void* viewState, SDL_Event* event){
 	/* set type of return event to NO_EVENT as default */
 	returnEvent->type = NO_EVENT;
 	ViewStateref menuViewState = viewState;
-	Widget * currButton = menuViewState->menuButtons[0]; /* there is only one button */
+	Widget * currButton = menuViewState->buttonsArr[0]; /* there is only one button */
 	switch (event->type) {
 		case (SDL_QUIT): /* if the close button (x) was pressed */
 			returnEvent->type = DO_QUIT;
@@ -232,7 +232,7 @@ void* playGameVTE(void* viewState, SDL_Event * event){
 				handleThreePartLayoutArrowKey(key, returnEvent);
 			break;
 		case (SDL_MOUSEBUTTONUP):/* handle mouse button up events */
-			handleThreePartLayoutMouseSelect(event, returnEvent, pgViewState->menuButtons, PG_NUM_BUTTONS);
+			handleThreePartLayoutMouseSelect(event, returnEvent, pgViewState->buttonsArr, PG_NUM_BUTTONS);
 			break;
 		default:
 			returnEvent->type = NO_EVENT;

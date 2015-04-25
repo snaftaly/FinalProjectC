@@ -1,8 +1,6 @@
 /* includes */
 #include "MVPutils.h"
 
-/***** function decelerations */
-
 /**** helper functions for MVP ****/
 
 /** data initialization functions: **/
@@ -20,7 +18,7 @@ ViewStateref initGUIViewState(){
 	viewState->image = NULL;
 	viewState->bgImage = NULL;
 	viewState->gridItemImage = NULL;
-	viewState->menuButtons = NULL;
+	viewState->buttonsArr = NULL;
 	viewState->labelArr = NULL;
 	viewState->gridItemsImgArr = NULL;
 	viewState->currButton = 0;
@@ -464,14 +462,14 @@ void addButtonsToSidePanel(ViewStateref viewState, int buttonImgX, int buttonImg
 	int sideButtonX = calcSideButtonX(), sideButtonY = calcSideButtonY();
 	/* Add buttons to buttons array and to UI tree */
 	for (int i = fromButtonNum; i < toButtonNum; i++){
-		viewState->menuButtons[i] = create_button(sideButtonX, sideButtonY, PANEL_BUTTON_W, PANEL_BUTTON_H,
+		viewState->buttonsArr[i] = create_button(sideButtonX, sideButtonY, PANEL_BUTTON_W, PANEL_BUTTON_H,
 				viewState->image, buttonImgDisX, buttonImgDisY, buttonImgX, buttonImgY, isDisabled);
-		if (viewState->menuButtons[i] == NULL){
+		if (viewState->buttonsArr[i] == NULL){
 			return;
 		}
-		ListRef newButtonNode = addChildNode(viewState->sidePanelNode, viewState->menuButtons[i]);
+		ListRef newButtonNode = addChildNode(viewState->sidePanelNode, viewState->buttonsArr[i]);
 		if (newButtonNode == NULL){
-			freeWidget(viewState->menuButtons[i]);
+			freeWidget(viewState->buttonsArr[i]);
 			return;
 		}
 		buttonImgY += PANEL_BUTTON_H; /* update the location of the next button (not disable state) in the  image file */
@@ -488,14 +486,14 @@ void addButtonsToSidePanel(ViewStateref viewState, int buttonImgX, int buttonImg
 	int topButtonX = calcTopButtonX(), topButtonY = calcTopButtonY();
 	/* go over each button and add it to the button array and to UI tree */
 	for (int i = 0; i < WB_TOP_PANEL_NUM_BUTTONS; i++){
-		viewState->menuButtons[i] = create_button(topButtonX, topButtonY, PANEL_BUTTON_W, PANEL_BUTTON_H,
+		viewState->buttonsArr[i] = create_button(topButtonX, topButtonY, PANEL_BUTTON_W, PANEL_BUTTON_H,
 				viewState->image, buttonImgX, buttonImgY, buttonImgX, buttonImgY, 0);
-		if (viewState->menuButtons[i] == NULL){
+		if (viewState->buttonsArr[i] == NULL){
 			return;
 		}
-		ListRef newButtonNode = addChildNode(viewState->topPanelNode, viewState->menuButtons[i]);
+		ListRef newButtonNode = addChildNode(viewState->topPanelNode, viewState->buttonsArr[i]);
 		if (newButtonNode == NULL){
-			freeWidget(viewState->menuButtons[i]);
+			freeWidget(viewState->buttonsArr[i]);
 			return;
 		}
 		buttonImgY += PANEL_BUTTON_H; /* update the location of the next button in the  image file */
@@ -509,8 +507,8 @@ void addButtonsToSidePanel(ViewStateref viewState, int buttonImgX, int buttonImg
  /* free view state */
  void freeViewState(ViewStateref guiViewState){
  	if (guiViewState != NULL){
- 		if (guiViewState->menuButtons != NULL)
- 			free(guiViewState->menuButtons); /* free menu buttons array - the buttons will be freed from UI tree */
+ 		if (guiViewState->buttonsArr != NULL)
+ 			free(guiViewState->buttonsArr); /* free menu buttons array - the buttons will be freed from UI tree */
  		if (guiViewState->labelArr != NULL)
  			free(guiViewState->labelArr); /* free menu labels array (for play game) - the labels will be freed from UI tree */
  		/* free gui's image and bgImage surfaces */
@@ -591,7 +589,7 @@ void setGameOver(PGDataRef pgModel, ViewStateref pgViewState){
  * and updating the view */
 void setTopPanelGameOver(PGDataRef pgModel, ViewStateref pgViewState){
 	freeDescendants(pgViewState->topPanelNode, freeWidget); /* free all nodes in UI tree that are under topPanelNode) */
-	pgViewState->menuButtons[0] = NULL;
+	pgViewState->buttonsArr[0] = NULL;
 	clearPanel(pgViewState->topPanelNode->data); /* clear the panel from previous items */
 	if(isError)
 		return;
@@ -688,7 +686,7 @@ void setTopPanelPlayGame(PGDataRef pgModel, ViewStateref pgViewState){
 			PAUSE_BUTTON_H, pgViewState->image, 0, 0, 0, 0, 0);
 	if (pauseButton == NULL)
 		return;
-	pgViewState->menuButtons[0] = pauseButton;
+	pgViewState->buttonsArr[0] = pauseButton;
 	ListRef pauseButtonNode = addChildNode(pgViewState->topPanelNode, pauseButton);
 	if (pauseButtonNode == NULL){
 		freeWidget(pauseButton);
@@ -712,7 +710,7 @@ void updateTopPanelPlayGame(ViewStateref pgViewState, PGDataRef pgModel){
 /* setPauseButton is used for updating the pause button image
  * according to the game state */
 void setPauseButton(PGDataRef pgModel, ViewStateref pgViewState){
-	Widget * pauseButton = pgViewState->menuButtons[0];
+	Widget * pauseButton = pgViewState->buttonsArr[0];
 	if (pgModel->isGamePaused){ /* will set "Resume Game (Space)" button text */
 		pauseButton->buttonNonSelectedRect.y = 2*PAUSE_BUTTON_H;
 		pauseButton->buttonSelectedRect.y = 2*PAUSE_BUTTON_H;
@@ -957,16 +955,16 @@ void resumeGame(ViewStateref pgViewState, PGDataRef pgModel){
 /* set the buttons of the play game side panel to be disabled */
 void disablePGSidePanelButtons(ViewStateref pgViewState){
 	for (int i = PG_TOP_PANEL_NUM_BUTTONS; i< PG_NUM_BUTTONS; i++){
-		setButtonDisabled(pgViewState->menuButtons[i]);
-		blitChildToParentWidget(pgViewState->menuButtons[i], pgViewState->menuButtons[i]->parentWidget);
+		setButtonDisabled(pgViewState->buttonsArr[i]);
+		blitChildToParentWidget(pgViewState->buttonsArr[i], pgViewState->buttonsArr[i]->parentWidget);
 	}
 }
 
 /* set the buttons of the play game side panel to be enabled */
 void enablePGSidePanelButtons(ViewStateref pgViewState){
 	for (int i = PG_TOP_PANEL_NUM_BUTTONS; i< PG_NUM_BUTTONS; i++){
-		setButtonEnabled(pgViewState->menuButtons[i]);
-		blitChildToParentWidget(pgViewState->menuButtons[i], pgViewState->menuButtons[i]->parentWidget);
+		setButtonEnabled(pgViewState->buttonsArr[i]);
+		blitChildToParentWidget(pgViewState->buttonsArr[i], pgViewState->buttonsArr[i]->parentWidget);
 	}
 }
 
