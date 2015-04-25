@@ -1,8 +1,9 @@
 #include "CatAndMouseUtils.h"
 
 
-
-/* run console mode */
+/* the consoleMode function runs console mode
+ * it gets a game representation from stdin and prints the evaluation
+ * this is done in a loop until user wishes to exit, by entering q\n  */
 void consoleMode(int isCatCurrPlayer){
 	/*set the variables */
 	int numTurnsLeft;
@@ -16,10 +17,7 @@ void consoleMode(int isCatCurrPlayer){
 		if (gridData == NULL) /* an error occurred or q\n was typed */
 			return;
 		getchar(); /* get the \n that comes right after the grid */
-//		if (endChar == 'q'){
-//			freeGridData(gridData);
-//			return;
-//		}
+
 		/*update the items positions by the grid data */
 		updateItemsPositions(&mousePos,&catPos,&cheesePos, gridData);
 
