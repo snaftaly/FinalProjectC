@@ -9,15 +9,20 @@ void consoleMode(int isCatCurrPlayer){
 	gridItemPosition catPos, mousePos, cheesePos;
 	char ** gridData = NULL;
 	GameStateRef currState = NULL;
-	int doExit = 0;
 	char endChar;
 
-	while(!doExit){
-		/* get grid data, numturns and current player from stdin */
+	while(1){
+		/* get grid data and numturns from stdin */
 		gridData = initGameDataByFile(-1, &numTurnsLeft, NULL);
-		if (gridData == NULL)
+		if (gridData == NULL) /* an error occurred or q\n was typed */
 			return;
-		updateItemsPositions(&mousePos,&catPos,&cheesePos, gridData); /*update the items positions by the grid data */
+		endChar = getchar(); /* get the cher that comes right after the grid */
+		if (endChar == 'q'){
+			freeGridData(gridData);
+			return;
+		}
+		/*update the items positions by the grid data */
+		updateItemsPositions(&mousePos,&catPos,&cheesePos, gridData);
 
 		/* create a state and put the appropriate data in its fields */
 		currState = (GameStateRef)malloc(sizeof(GameState)); /* allocate memory for currState  */
@@ -32,15 +37,13 @@ void consoleMode(int isCatCurrPlayer){
 		currState->cheesePos = cheesePos;
 		currState->isCatCurrPlayer = isCatCurrPlayer;
 		currState->numTurnsLeft = numTurnsLeft;
+
 		int eval = evaluate(currState);
 		if (isError){
 			freeState(currState); /* free the current state including the grid data */
 			return;
 		}
 		printf("%d\n",eval);
-		endChar = getchar();
-		if (endChar == 'q')
-			doExit = 1;
 		freeState(currState); /* free the current state including the grid data */
 	}
 }
@@ -72,46 +75,58 @@ int isMoveValid(char ** gridData, gridItemPosition currPlayerPos, gridItemPositi
 /* initialize game data by file - reads the file and updated the grid, num turns and isCatFirst
  * if worldnum is > 0, reads from the file with the appropriate file name
  * if worldnum is = 0, created an empty grid, sets num turns to DEFAULT_TURNS
- * if worldnum is -1  reads the data from stdin */
+ * if worldnum is -1  reads the data from stdin , and check if we exit the program */
 char ** initGameDataByFile(int worldNum, int * numTurns, int * isCatFirst){
-	char ** grid = initGrid(); /* initialize the grid */
-	if (isError)
-		return NULL;
+	char ** grid = NULL ;
+	char firstLine[3]; /* initialize first line value for console mode */
+
 	*numTurns = DEFAULT_TURNS; /* set num turns to DEFAULT_TURNS */
 	char firstAnimal[6];
 	if (worldNum == 0){ /* if world num is 0, create an empty grid */
-		setEmptyGrid(grid);
+		grid = initGrid(); /* initialize the grid */
+		if (isError)
+			return NULL;
+		setEmptyGrid(grid); /* fill the grid with the empty cell char */
 	}
 	else{ /* world num != 0 */
 		FILE * worldFile = NULL;
-		if (worldNum == -1){ /* read from standard input */
+		if (worldNum == -1){ /* read from standard input - for console mode */
 			worldFile = stdin;
+			/* check first line content */
+			if (fscanf(worldFile, "%s", firstLine) < 0){
+				perrorPrint("fscanf");
+				return NULL;
+			}
+			if (strcmp(firstLine, "q") == 0){ /* check if we need to quit */
+				return NULL;
+			}
+			else if (sscanf(firstLine, "%d", numTurns) < 0){ /* update num turns */
+				perrorPrint("fscanf");
+				return NULL;
+			}
 		}
 		else { /* read from appropriate world file */
 			/* create the file name */
 			char filename[WORLD_FILE_NAME_LEN];
 			if (sprintf(filename, "%s%s%d.%s", WORLD_FILE_PATH, WORLD_FILE_NAME_PREFIX, worldNum, WORLD_FILE_NAME_TYPE) < 0){
 				perrorPrint("sprintf");
-				freeGridData(grid);
 				return NULL;
 			}
 			worldFile = fopen(filename,"r"); /* open the file */
 			if (worldFile == NULL){
 				perrorPrint("fopen");
-				freeGridData(grid);
+				return NULL;
+			}
+			/* update numTurns */
+			if (fscanf(worldFile, "%d", numTurns) < 0){
+				perrorPrint("fscanf");
 				return NULL;
 			}
 		}
-		/* update numTurns */
-		if (fscanf(worldFile, "%d", numTurns) < 0){
-			perrorPrint("fscanf");
-			freeGridData(grid);
-			return NULL;
-		}
-		/* update isCatFirst if the variable is not NULL */
+
+		/* update isCatFirst if the isCatFirst (pointer) variable is not NULL */
 		if (fscanf(worldFile, "%s", firstAnimal) < 0){
 			perrorPrint("fscanf");
-			freeGridData(grid);
 			return NULL;
 		}
 		if (isCatFirst != NULL ){ /* if isCatFirst is not a NULL pointer */
@@ -120,7 +135,10 @@ char ** initGameDataByFile(int worldNum, int * numTurns, int * isCatFirst){
 			else
 				*isCatFirst = 0;
 		}
-		/* fill grid by file: */
+		/* init grid and fill it by file: */
+		grid = initGrid(); /* initialize the grid */
+		if (isError)
+			return NULL;
 		char nextChar;
 		for (int i = 0; i < ROW_NUM;i++){
 			for (int j = 0; j < COL_NUM; j++){
