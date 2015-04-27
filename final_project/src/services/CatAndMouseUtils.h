@@ -17,6 +17,7 @@
  */
 typedef struct GameState{
 	int isCatCurrPlayer;
+	int isMaxPlayer;
 	int numTurnsLeft;
 	gridItemPosition catPos;
 	gridItemPosition mousePos;

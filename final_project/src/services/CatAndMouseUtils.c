@@ -33,6 +33,7 @@ void consoleMode(int isCatCurrPlayer){
 		currState->mousePos = mousePos;
 		currState->cheesePos = cheesePos;
 		currState->isCatCurrPlayer = isCatCurrPlayer;
+		currState->isMaxPlayer = 1;
 		currState->numTurnsLeft = numTurnsLeft;
 
 		int eval = evaluate(currState);
@@ -231,7 +232,7 @@ void saveGameDataToFile(int worldNum, int isCatFirst, char ** gridData){
  */
 gridItemPosition suggestMove(GameStateRef state, int maxDepth){
 	/* run getBestChild to get the best move index and value */
-	struct MiniMaxResult res = getBestChild(state, maxDepth, getChildren, freeState, evaluate, state->isCatCurrPlayer);
+	struct MiniMaxResult res = getBestChild(state, maxDepth, getChildren, freeState, evaluate, state->isMaxPlayer);
 	if (res.index == -2){ /* getBestChild failed */
 		gridItemPosition errorPos = {-1, -1};
 		return errorPos; /*return error */
@@ -317,6 +318,7 @@ GameStateRef createChildState(GameStateRef parentState, gridItemPosition movePos
 	/* set the childState fields: */
 	childState->gridData = childGrid;
 	childState->isCatCurrPlayer = 1-parentState->isCatCurrPlayer;
+	childState->isMaxPlayer = 1-parentState->isMaxPlayer;
 	childState->numTurnsLeft = parentState->numTurnsLeft-1;
 	childState->catPos = parentState->isCatCurrPlayer ? movePos : parentState->catPos;
 	childState->mousePos = parentState->isCatCurrPlayer ? parentState->mousePos : movePos;

@@ -887,6 +887,7 @@ void updateMachineMoveIfNeeded(GUI pgGUI){
 	currState->cheesePos = pgModel->cheesePos;
 	currState->isCatCurrPlayer = pgModel->isCatCurrPlayer;
 	currState->numTurnsLeft = pgModel->numTurnsLeft;
+	currState->isMaxPlayer = 1; /* will always call the function with max player */
 	/* get the move by suggest move function (which uses MiniMax algorithm */
 	gridItemPosition errorPos = {-1, -1};
 	gridItemPosition movePos = suggestMove(currState, currPlayerSkill);
