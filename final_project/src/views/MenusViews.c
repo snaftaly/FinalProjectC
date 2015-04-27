@@ -93,11 +93,21 @@ void* complexMenuVTE(void* viewState, SDL_Event* event){
 				if (i == FIRST_BUTTON){
 					/* for the value selection button first check if click is on arrow area or not */
 					if(isClickEventOnButton(event, currButton, UP_ARROW_BUTTON)){
-						returnEvent->type = INCREASE_VALUE; /* if up arrow area is clicked, event is increase value */
+						if(menuViewState->currButton == 0) /* if the first button is already selected */
+							returnEvent->type = INCREASE_VALUE; /* if up arrow area is clicked, event is increase value */
+						else{ /* if the first button is not yet selected */
+							returnEvent->type = MARK_VALUES_BUTTON; /* only mark the first button */
+							returnEvent->buttonNum = i;
+						}
 						break;
 					}
 					if(isClickEventOnButton(event, currButton, DOWN_ARROW_BUTTON)){
-						returnEvent->type = DECREASE_VALUE;/* if down arrow area is clicked, event is decrease value */
+						if(menuViewState->currButton == 0) /* if the first button is already selected */
+							returnEvent->type = DECREASE_VALUE;/* if down arrow area is clicked, event is decrease value */
+						else{ /* if the first button is not yet selected */
+							returnEvent->type = MARK_VALUES_BUTTON; /* only mark the first button */
+							returnEvent->buttonNum = i;
+						}
 						break;
 					}
 					if (isClickEventOnButton(event, currButton, REGULAR_BUTTON)){

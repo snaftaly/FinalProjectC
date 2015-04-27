@@ -152,8 +152,9 @@ List of modules:
 	factories - There are two factories we use:
 				- the widgets factory - containing all the functions for creating the different widgets, including
 					a general function for creating the basis of each widget. 
-					This factory has a header file which contains the struct for the view state, and the VTE
-					functions declarations. 
+					This factory has a header file which contains the struct of the widget and the functions declerations.
+					The Widget struct is common to all widgets - it contains fields that are common to all Widgets 
+					and fields that are specific to certain Widgets. This means that not all widgets used the same fields.
 				- the GUIs factory - - consstains the functions for creating the different GUIs, and assigninf the 
 					correct VTE, PHE, start and stop fucntions.
 					The header file contains only the function declarataion.
