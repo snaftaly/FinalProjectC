@@ -8,7 +8,7 @@
 
 
 /* structs */
-/* a struct for the view state */
+/* a struct for the view state used by all GUIs*/
 typedef struct ViewState{
 	/* SDL_Surface refs for the different images used by the gui */
 	SDL_Surface * image;

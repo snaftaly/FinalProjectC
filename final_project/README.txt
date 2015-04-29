@@ -141,9 +141,15 @@ List of modules:
 				the instructors.
 	presenters - holds a c file for all the menus presenters, and different c files for the world builder,
 					play game and error message presenters. 
-				 Additionally there is the presenters header file which contain all the models data structs (menu data.
-				 world builder data and play game data)
-				 and the different PHE functions declarations. 
+				 Additionally there are three presenters header file: 
+				 	- one for the menus and error message, which contain the menuData struct 
+				 	  and the PHE functions declarations for all menus and the error message.
+				 	  We put the menus and error message in the same header file, since they all use the
+				 	  same struct for the model data.  
+				 	- one for the world builder, which contains the WBdata structs and the worldBuilderPHE 
+				 	  function decleration.
+				 	- one for the play game , which contains the PGdata structs and the PlayGamePHE 
+				 	  function decleration.
 				 
 	views - holds a c file for all the menus views, and different c files for the world builder,
 				play game and error message views. 

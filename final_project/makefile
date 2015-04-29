@@ -20,7 +20,8 @@ H_WIDGFACT=$(FACTDIR)WidgetsFactory.h $(H_CnM)
 H_WIDGUTL=$(SRVDIR)WidgetUtils.h $(H_WIDGFACT)
 H_GUIUTL=$(SRVDIR)GUIUtils.h $(H_WIDGUTL) $(H_LSTEXT)
 H_CnMUTL=$(SRVDIR)CatAndMouseUtils.h $(H_GRID) $(H_MINIMAXEXT)
-H_MVPUTL=$(SRVDIR)MVPutils.h $(SRVDIR)LogEventItems.h $(PHEDIR)Presenters.h $(VTEDIR)Views.h $(H_CnMUTL) $(H_GUIUTL)
+H_ALLPHEs=$(PHEDIR)MenusAndErrPresenters.h $(PHEDIR)PlayGamePresenter.h $(PHEDIR)WorldBuilderPresenter.h
+H_MVPUTL=$(SRVDIR)MVPutils.h $(SRVDIR)LogEventItems.h $(H_ALLPHEs) $(VTEDIR)Views.h $(H_CnMUTL) $(H_GUIUTL)
 
 
 all: CatAndMouse ListUtilsDemo MiniMaxDemo

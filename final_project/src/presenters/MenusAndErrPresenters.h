@@ -1,12 +1,5 @@
-/*
- * presenters.h
- *
- *  Created on: Apr 17, 2015
- *      Author: naftaly1
- */
-
-#ifndef PRESENTERS_H_
-#define PRESENTERS_H_
+#ifndef MEPRESENTERS_H_
+#define MEPRESENTERS_H_
 
 /* includes */
 #include "../services/LogEventItems.h"
@@ -55,58 +48,6 @@ typedef struct MenuData{
 
 typedef struct MenuData * MenuDataRef;
 
-/* a struct for holding the world builder data */
-typedef struct WBData{
-	/* hold the non-reusable items positions and the current selscted position */
-	gridItemPosition catPos;
-	gridItemPosition mousePos;
-	gridItemPosition cheesePos;
-	gridItemPosition currPos;
-
-	int editedWorld; /* which world file is currently edited */
-	char missingItems; /* will hold data about missing items (cat/mouse/cheese) in the grid */
-
-	StateId returnStateId; /* the next stateId */
-
-	/* game specific data */
-	int isCatFirst; /* will save the first player in case create game is selected */
-	int numTurns; /* will save num turns left from the file */
-	char ** gameGridData;
-
-} WBData;
-
-typedef struct WBData * WBDataRef;
-
-/* a struct for holding the play game data */
-typedef struct PGData{
-
-	/* hold the cat,mouse,cheese current positions */
-	gridItemPosition catPos;
-	gridItemPosition mousePos;
-	gridItemPosition cheesePos;
-
-	int loadGameWorld; /* the game file tha was loaded */
-	int loadFromFile; /* will be used for reconfigure mouse/cat transitions */
-
-	/* information about the players */
-	int isCatHuman;
-	int isMouseHuman;
-	int catSkill;
-	int mouseSkill;
-	int isCatCurrPlayer;
-	/* information about the game */
-	int numTurnsLeft;
-	int isGameOver;
-	gameOverType gameOverType;
-	int isGamePaused;
-	char ** gameGridData;
-
-	StateId returnStateId; /* the next stateId */
-
-} PGData;
-
-typedef struct PGData * PGDataRef;
-
 /* function decelerations */
 
 /* menus PHEs */
@@ -121,10 +62,8 @@ StateId loadGamePHE(void* model, void* viewState, void* logicalEvent);
 StateId editGamePHE(void* model, void* viewState, void* logicalEvent);
 StateId saveWorldPHE(void* model, void* viewState, void* logicalEvent);
 
-/* stand alone PHEs */
-StateId worldBuilderPHE(void* model, void* viewState, void* logicalEvent);
+/* ErrMsg PHE */
 StateId errMsgPHE(void* model, void* viewState, void* logicalEvent);
-StateId playGamePHE(void* model, void* viewState, void* logicalEvent);
 
 
-#endif /* PRESENTERS_H_ */
+#endif /* MEPRESENTERS_H_ */

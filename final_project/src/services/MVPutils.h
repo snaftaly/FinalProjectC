@@ -5,7 +5,9 @@
 #include "GUIUtils.h"
 #include "CatAndMouseUtils.h"
 #include "../views/Views.h"
-#include "../presenters/Presenters.h"
+#include "../presenters/MenusAndErrPresenters.h"
+#include "../presenters/PlayGamePresenter.h"
+#include "../presenters/WorldBuilderPresenter.h"
 
 
 /******* functions declaration: *******/
