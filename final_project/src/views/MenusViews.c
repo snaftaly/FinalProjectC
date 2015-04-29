@@ -1,4 +1,4 @@
-#include "Views.h"
+#include "MenusAndErrViews.h"
 #include "../services/MVPutils.h"
 
 /**** menus viewTranslateEvent (VTE) functions: ****/

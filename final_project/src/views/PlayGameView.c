@@ -1,4 +1,5 @@
-#include "Views.h"
+#include "PGandWBViews.h"
+#include "MenusAndErrViews.h"
 #include "../services/MVPutils.h"
 
 

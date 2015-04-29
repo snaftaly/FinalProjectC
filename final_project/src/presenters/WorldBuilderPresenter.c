@@ -10,6 +10,8 @@ StateId worldBuilderPHE(void* model, void* viewState, void* logicalEvent){
 		return returnStateId;
 	logicalEventRef wbEvent = logicalEvent;
 	ViewStateref wbView = viewState;
+	/* create a reference to the ThreePartLayoutViewExt */
+	ThreePartViewExtRef threePartView = wbView->ViewExt;
 	WBDataRef wbModel = model; /* get the model data */
 	/* create an array of return stateIds according to the buttons: */
 	StateId states[WB_NUM_BUTTONS] = {SAVE_WORLD, MAIN_MENU, QUIT, WORLD_BUILDER, WORLD_BUILDER, WORLD_BUILDER,
@@ -24,23 +26,23 @@ StateId worldBuilderPHE(void* model, void* viewState, void* logicalEvent){
 			if(returnStateId == SAVE_WORLD && isGridInvalid(wbModel)) /* save world was pressed and grid is invalid */
 				returnStateId = ERR_MSG;
 			else if (returnStateId == WORLD_BUILDER){ /* place mouse/cat/cheese/wall/empty space was pressed */
-				putGridItemInPos(wbModel, wbView->gridPanel, wbView->gridItemsImgArr, wbModel->currPos, wbEvent->buttonNum);
+				putGridItemInPos(wbModel, threePartView->gridPanel, wbView->gridItemsImgArr, wbModel->currPos, wbEvent->buttonNum);
 			}
 			break;
 		case(SELECT_SQUARE): /* a grid square was pressed */
-			changeSelectedGridSquare(wbView->gridPanel, wbView->gridItemsImgArr,&wbModel->currPos, wbEvent->gridPos);
+			changeSelectedGridSquare(threePartView->gridPanel, wbView->gridItemsImgArr,&wbModel->currPos, wbEvent->gridPos);
 			break;
 		case(GO_UP): /* up arrow pressed */
-			changeSelectedPosByArrow(wbView->gridPanel, wbView->gridItemsImgArr, &wbModel->currPos, UP);
+			changeSelectedPosByArrow(threePartView->gridPanel, wbView->gridItemsImgArr, &wbModel->currPos, UP);
 			break;
 		case(GO_DOWN): /* down arrow pressed */
-			changeSelectedPosByArrow(wbView->gridPanel, wbView->gridItemsImgArr, &wbModel->currPos, DOWN);
+			changeSelectedPosByArrow(threePartView->gridPanel, wbView->gridItemsImgArr, &wbModel->currPos, DOWN);
 			break;
 		case(GO_RIGHT): /* right arrow pressed */
-			changeSelectedPosByArrow(wbView->gridPanel, wbView->gridItemsImgArr, &wbModel->currPos, RIGHT);
+			changeSelectedPosByArrow(threePartView->gridPanel, wbView->gridItemsImgArr, &wbModel->currPos, RIGHT);
 			break;
 		case(GO_LEFT): /* left arrow pressed */
-			changeSelectedPosByArrow(wbView->gridPanel, wbView->gridItemsImgArr, &wbModel->currPos, LEFT);
+			changeSelectedPosByArrow(threePartView->gridPanel, wbView->gridItemsImgArr, &wbModel->currPos, LEFT);
 			break;
 		case(NO_EVENT):
 			break;

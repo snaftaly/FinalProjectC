@@ -1,4 +1,5 @@
-#include "Views.h"
+#include "PGandWBViews.h"
+#include "MenusAndErrViews.h"
 #include "../services/MVPutils.h"
 
 /* worldBuilderVTE is the VTE function for the world builder gui */

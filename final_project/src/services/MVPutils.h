@@ -4,7 +4,8 @@
 /* includes: */
 #include "GUIUtils.h"
 #include "CatAndMouseUtils.h"
-#include "../views/Views.h"
+#include "../views/MenusAndErrViews.h"
+#include "../views/PGandWBViews.h"
 #include "../presenters/MenusAndErrPresenters.h"
 #include "../presenters/PlayGamePresenter.h"
 #include "../presenters/WorldBuilderPresenter.h"
@@ -16,6 +17,7 @@
 
 /** data initialization functions: **/
 ViewStateref initGUIViewState();
+ThreePartViewExtRef initThreePartViewExt();
 MenuDataRef initMenuDataToDefault();
 void initMenuModel(GUIref gui, void* initData);
 void initMainMenuData(GUIref mainMenuGui, void * initData);

@@ -2,7 +2,6 @@
 #include "MVPutils.h"
 
 /**** helper functions for MVP ****/
-
 /** data initialization functions: **/
 
 /* initGUIViewState initializes the viewstate for all GUIs
@@ -23,10 +22,26 @@ ViewStateref initGUIViewState(){
 	viewState->gridItemsImgArr = NULL;
 	viewState->currButton = 0;
 	viewState->UITree = NULL;
-	viewState->gridPanel = NULL;
-	viewState->topPanelNode = NULL;
-	viewState->sidePanelNode = NULL;
+	viewState->ViewExt = NULL;
+
 	return viewState;
+}
+
+/* initGUIViewState initializes the viewstate for all GUIs
+ * not all guis uses all the parts of the view state */
+ThreePartViewExtRef initThreePartViewExt(){
+	/* allocate memory */
+	ThreePartViewExtRef viewStateExt = (ThreePartViewExtRef)malloc(sizeof(ThreePartViewExt));
+	if (viewStateExt == NULL){
+		perrorPrint("malloc");
+		return NULL;
+	}
+	/* initialize ThreePartViewExt fields */
+	viewStateExt->gridPanel = NULL;
+	viewStateExt->sidePanelNode = NULL;
+	viewStateExt->topPanelNode = NULL;
+
+	return viewStateExt;
 }
 
 /* initialize menu data to its relevant default values */
@@ -406,6 +421,9 @@ void blitItemToGrid(Widget *gridPanel, Widget * itemImage, int row, int col){
  /* setThreePartLayout will set the layout of play game and world builder,
   * including the window, the top panel, the side panel and the grid  */
  void setThreePartLayout(ViewStateref viewState, char ** gameGridData){
+	/* create a reference to the ThreePartLayoutViewExt */
+	ThreePartViewExtRef threePartView = viewState->ViewExt;
+
 	 /* create the window and add it to UI tree */
  	Widget *win = createWindow(WIN_W,WIN_H, WINDOW_RED, WINDOW_GREEN, WINDOW_BLUE);
  	if (win == NULL){
@@ -427,7 +445,7 @@ void blitItemToGrid(Widget *gridPanel, Widget * itemImage, int row, int col){
  		freeWidget(topPanel);
  		return;
  	}
- 	viewState->topPanelNode = topPanelNode;
+ 	threePartView->topPanelNode = topPanelNode;
  	/* create the side panel and add it the the UI tree */
  	Widget *sidePanel = create_panel(0, 210, SIDE_PANEL_W, SIDE_PANEL_H,PANEL_RED,PANEL_GREEN,PANEL_BLUE);
  	if (sidePanel == NULL){
@@ -438,13 +456,13 @@ void blitItemToGrid(Widget *gridPanel, Widget * itemImage, int row, int col){
  		freeWidget(sidePanel);
  		return;
  	}
- 	viewState->sidePanelNode = sidePanelNode;
+ 	threePartView->sidePanelNode = sidePanelNode;
  	/* create the grid panel and add it the the UI tree */
  	Widget *gridPanel = create_panel(210, 210, GRID_SIZE, GRID_SIZE, PANEL_RED, PANEL_GREEN, PANEL_BLUE);
  	if (gridPanel == NULL){
  		return;
  	}
- 	viewState->gridPanel = gridPanel;
+ 	threePartView->gridPanel = gridPanel;
  	ListRef gridPanelNode = addChildNode(winNode, gridPanel);
  	if (gridPanelNode == NULL){
  		freeWidget(gridPanel);
@@ -458,6 +476,8 @@ void blitItemToGrid(Widget *gridPanel, Widget * itemImage, int row, int col){
   * and adds them to the view state */
 void addButtonsToSidePanel(ViewStateref viewState, int buttonImgX, int buttonImgY,
 		int buttonImgDisX, int buttonImgDisY, int fromButtonNum, int toButtonNum, int isDisabled){
+	/* create a reference to the ThreePartLayoutViewExt */
+	ThreePartViewExtRef threePartView = viewState->ViewExt;
 	/* get the x and y initial values of the buttons, relative to the side panel */
 	int sideButtonX = calcSideButtonX(), sideButtonY = calcSideButtonY();
 	/* Add buttons to buttons array and to UI tree */
@@ -467,7 +487,7 @@ void addButtonsToSidePanel(ViewStateref viewState, int buttonImgX, int buttonImg
 		if (viewState->buttonsArr[i] == NULL){
 			return;
 		}
-		ListRef newButtonNode = addChildNode(viewState->sidePanelNode, viewState->buttonsArr[i]);
+		ListRef newButtonNode = addChildNode(threePartView->sidePanelNode, viewState->buttonsArr[i]);
 		if (newButtonNode == NULL){
 			freeWidget(viewState->buttonsArr[i]);
 			return;
@@ -482,6 +502,8 @@ void addButtonsToSidePanel(ViewStateref viewState, int buttonImgX, int buttonImg
  * and adds them to the view state */
  void addButtonsToWBTopPanel(ViewStateref viewState, int buttonImgX, int buttonImgY,
 		int buttonImgDisX, int buttonImgDisY, int fromButtonNum, int toButtonNum, int isDisabled){
+	/* create a reference to the ThreePartLayoutViewExt */
+	ThreePartViewExtRef threePartView = viewState->ViewExt;
 	/* get the x and y initial values of the buttons, relative to the top panel */
 	int topButtonX = calcTopButtonX(), topButtonY = calcTopButtonY();
 	/* go over each button and add it to the button array and to UI tree */
@@ -491,7 +513,7 @@ void addButtonsToSidePanel(ViewStateref viewState, int buttonImgX, int buttonImg
 		if (viewState->buttonsArr[i] == NULL){
 			return;
 		}
-		ListRef newButtonNode = addChildNode(viewState->topPanelNode, viewState->buttonsArr[i]);
+		ListRef newButtonNode = addChildNode(threePartView->topPanelNode, viewState->buttonsArr[i]);
 		if (newButtonNode == NULL){
 			freeWidget(viewState->buttonsArr[i]);
 			return;
@@ -522,7 +544,8 @@ void addButtonsToSidePanel(ViewStateref viewState, int buttonImgX, int buttonImg
  			freeGridItemsArray(guiViewState->gridItemsImgArr); /* free gridItemsImgArr, including the items (they are not in the tree)*/
  		if (guiViewState->UITree != NULL)
  			freeTree(guiViewState->UITree, freeWidget); /* free all widgets by freeing the UItree */
-
+ 		if (guiViewState->ViewExt != NULL) /* free the view extentsion */
+ 			free(guiViewState->ViewExt);
  		free(guiViewState);
  	}
  }
@@ -570,61 +593,73 @@ void addButtonsToSidePanel(ViewStateref viewState, int buttonImgX, int buttonImg
 * will update the view of the top panel and side panel accordingly
 * will also deselcet the current player, so no player is selected */
 void setGameOver(PGDataRef pgModel, ViewStateref pgViewState){
+	/* create a reference to the ThreePartLayoutViewExt */
+	ThreePartViewExtRef threePartView = pgViewState->ViewExt;
+	/* update model and view */
 	pgModel->isGameOver = 1;
 	setTopPanelGameOver(pgModel, pgViewState);
 	if (isError) { return; }
 	enablePGSidePanelButtons(pgViewState);
 	if (isError) { return; }
-	deselectGridPos(pgViewState->gridPanel, pgViewState->gridItemsImgArr, *getCurrPlayerPos(pgModel));
+	deselectGridPos(threePartView->gridPanel, pgViewState->gridItemsImgArr, *getCurrPlayerPos(pgModel));
 	if (isError) { return; }
-	blitUpToWindow(pgViewState->sidePanelNode->data);
+	blitUpToWindow(threePartView->sidePanelNode->data);
 	if (isError) { return; }
-	blitUpToWindow(pgViewState->topPanelNode->data);
+	blitUpToWindow(threePartView->topPanelNode->data);
 	if (isError) { return; }
-	blitUpToWindow(pgViewState->gridPanel);
+	blitUpToWindow(threePartView->gridPanel);
 }
 
 
 /* setTopPanelGameOver is used to set the top panel label for once the game is over
  * and updating the view */
 void setTopPanelGameOver(PGDataRef pgModel, ViewStateref pgViewState){
-	freeDescendants(pgViewState->topPanelNode, freeWidget); /* free all nodes in UI tree that are under topPanelNode) */
+	/* create a reference to the ThreePartLayoutViewExt */
+	ThreePartViewExtRef threePartView = pgViewState->ViewExt;
+	/* free all nodes in UI tree that are under topPanelNode) */
+	freeDescendants(threePartView->topPanelNode, freeWidget);
 	pgViewState->buttonsArr[0] = NULL;
-	clearPanel(pgViewState->topPanelNode->data); /* clear the panel from previous items */
+	clearPanel(threePartView->topPanelNode->data); /* clear the panel from previous items */
 	if(isError)
 		return;
 	/* create the game over label, and add  it to UI tree */
 	Widget * gameOverLabel = create_image(calcGameOverLabelX(), calcGameOverLabelY(), GAME_OVER_LABEL_W, GAME_OVER_LABEL_H,
 			pgViewState->image, 2*PANEL_BUTTON_W+2*DIGIT_LABEL_W, 4*STATE_LABEL_H+pgModel->gameOverType*GAME_OVER_LABEL_H);
-	ListRef gameOverLabelNode = addChildNode(pgViewState->topPanelNode, gameOverLabel);
+	ListRef gameOverLabelNode = addChildNode(threePartView->topPanelNode, gameOverLabel);
 	if (gameOverLabelNode == NULL){
 		freeWidget(gameOverLabel);
 		return;
 	}
 	/* run DFS on UI tree starting from topPanelNode */
-	treeDFS(pgViewState->topPanelNode, calcAbsWidgetXY, addChildWidgetsToParent);
+	treeDFS(threePartView->topPanelNode, calcAbsWidgetXY, addChildWidgetsToParent);
 }
 
 /* set the view and model for playing the game when starting/restarting the game */
 void setPlayGame(ViewStateref pgViewState, PGDataRef pgModel){
+	/* create a reference to the ThreePartLayoutViewExt */
+	ThreePartViewExtRef threePartView = pgViewState->ViewExt;
+
 	pgModel->isGameOver = 0; /* update model */
 	setTopPanelPlayGame(pgModel, pgViewState);
 	if (isError) { return; }
 	disablePGSidePanelButtons(pgViewState);
 	if (isError) { return; }
-	selectGridPos(pgViewState->gridPanel, pgViewState->gridItemsImgArr, *getCurrPlayerPos(pgModel));
+	selectGridPos(threePartView->gridPanel, pgViewState->gridItemsImgArr, *getCurrPlayerPos(pgModel));
 }
 
 /* updatePlayGame will update the play game view and model, and will update the current player selected
  * when the game is played */
 void updatePlayGame(ViewStateref pgViewState, PGDataRef pgModel, gridItemPosition * eventPos){
+	/* create a reference to the ThreePartLayoutViewExt */
+	ThreePartViewExtRef threePartView = pgViewState->ViewExt;
+
 	pgModel->isCatCurrPlayer = 1-pgModel->isCatCurrPlayer; /* change current player */
 	/* update top panel */
 	updateTopPanelPlayGame(pgViewState, pgModel);
-	blitUpToWindow(pgViewState->topPanelNode->data);
+	blitUpToWindow(threePartView->topPanelNode->data);
 	if (isError) { return; }
 	/* update the grid position selected and update the view */
-	changeSelectedGridSquare(pgViewState->gridPanel, pgViewState->gridItemsImgArr,
+	changeSelectedGridSquare(threePartView->gridPanel, pgViewState->gridItemsImgArr,
 			eventPos, *getCurrPlayerPos(pgModel));
 }
 
@@ -632,8 +667,11 @@ void updatePlayGame(ViewStateref pgViewState, PGDataRef pgModel, gridItemPositio
 /* setTopPanelPlayGame is used to set the top panel labels and button once
  * we enter a play game state and updates the view */
 void setTopPanelPlayGame(PGDataRef pgModel, ViewStateref pgViewState){
-	freeDescendants(pgViewState->topPanelNode, freeWidget); /* free all nodes in UI tree that are under topPanelNode) */
-	clearPanel(pgViewState->topPanelNode->data); /* clear the panel from previous items */
+	/* create a reference to the ThreePartLayoutViewExt */
+	ThreePartViewExtRef threePartView = pgViewState->ViewExt;
+
+	freeDescendants(threePartView->topPanelNode, freeWidget); /* free all nodes in UI tree that are under topPanelNode) */
+	clearPanel(threePartView->topPanelNode->data); /* clear the panel from previous items */
 	if(isError)
 		return;
 	/* set first row labels - which player and num turns left: */
@@ -643,7 +681,7 @@ void setTopPanelPlayGame(PGDataRef pgModel, ViewStateref pgViewState){
 	if (playerMoveLabel == NULL)
 		return;
 	pgViewState->labelArr[0] = playerMoveLabel;
-	ListRef moveLabelNode = addChildNode(pgViewState->topPanelNode, playerMoveLabel);
+	ListRef moveLabelNode = addChildNode(threePartView->topPanelNode, playerMoveLabel);
 	if (moveLabelNode == NULL){
 		freeWidget(playerMoveLabel);
 		return;
@@ -654,7 +692,7 @@ void setTopPanelPlayGame(PGDataRef pgModel, ViewStateref pgViewState){
 	if (turnsTensLabel == NULL)
 		return;
 	pgViewState->labelArr[1] = turnsTensLabel;
-	ListRef turnsTensLabelNode = addChildNode(pgViewState->topPanelNode, turnsTensLabel);
+	ListRef turnsTensLabelNode = addChildNode(threePartView->topPanelNode, turnsTensLabel);
 	if (turnsTensLabelNode == NULL){
 		freeWidget(turnsTensLabel);
 		return;
@@ -665,7 +703,7 @@ void setTopPanelPlayGame(PGDataRef pgModel, ViewStateref pgViewState){
 	if (turnsUnitsLabel == NULL)
 		return;
 	pgViewState->labelArr[2] = turnsUnitsLabel;
-	ListRef turnsUnitsLabelNode = addChildNode(pgViewState->topPanelNode, turnsUnitsLabel);
+	ListRef turnsUnitsLabelNode = addChildNode(threePartView->topPanelNode, turnsUnitsLabel);
 	if (turnsUnitsLabelNode == NULL){
 		freeWidget(turnsUnitsLabel);
 		return;
@@ -676,7 +714,7 @@ void setTopPanelPlayGame(PGDataRef pgModel, ViewStateref pgViewState){
 	if (playerStateLabel == NULL)
 		return;
 	pgViewState->labelArr[3] = playerStateLabel;
-	ListRef stateLabelNode = addChildNode(pgViewState->topPanelNode, playerStateLabel);
+	ListRef stateLabelNode = addChildNode(threePartView->topPanelNode, playerStateLabel);
 	if (stateLabelNode == NULL){
 		freeWidget(playerStateLabel);
 		return;
@@ -687,7 +725,7 @@ void setTopPanelPlayGame(PGDataRef pgModel, ViewStateref pgViewState){
 	if (pauseButton == NULL)
 		return;
 	pgViewState->buttonsArr[0] = pauseButton;
-	ListRef pauseButtonNode = addChildNode(pgViewState->topPanelNode, pauseButton);
+	ListRef pauseButtonNode = addChildNode(threePartView->topPanelNode, pauseButton);
 	if (pauseButtonNode == NULL){
 		freeWidget(pauseButton);
 		return;
@@ -700,11 +738,15 @@ void setTopPanelPlayGame(PGDataRef pgModel, ViewStateref pgViewState){
  * image location in the image file according the data in the model, and running
  *  DFS on UI tree starting from topPanelNode for updating the view*/
 void updateTopPanelPlayGame(ViewStateref pgViewState, PGDataRef pgModel){
+	/* create a reference to the ThreePartLayoutViewExt */
+	ThreePartViewExtRef threePartView = pgViewState->ViewExt;
+
+	/* update the labels and buttons */
 	setPlayerMoveLabel(pgModel, pgViewState);
 	setNumTurnsLabels(pgModel, pgViewState);
 	setPlayerStateLabel(pgModel, pgViewState);
 	setPauseButton(pgModel, pgViewState);
-	treeDFS(pgViewState->topPanelNode, calcAbsWidgetXY, addChildWidgetsToParent);
+	treeDFS(threePartView->topPanelNode, calcAbsWidgetXY, addChildWidgetsToParent);
 }
 
 /* setPauseButton is used for updating the pause button image
@@ -824,12 +866,15 @@ int isCurrPlayerHuman(PGDataRef pgModel){
 /* makeGameMoveIfLegal will check if the game is currently played, and if the new move position in the grid is valid
  * if it's valid it will make the move, and then update the top panel */
 void makeGameMoveIfLegal(ViewStateref pgViewState, PGDataRef pgModel, gridItemPosition eventPos){
+	/* create a reference to the ThreePartLayoutViewExt */
+	ThreePartViewExtRef threePartView = pgViewState->ViewExt;
+
 	if (!pgModel->isGamePaused && !pgModel->isGameOver){  /* if the game is not paused or over */
 		gridItemPosition * currPlayerPos = getCurrPlayerPos(pgModel); /* get the position of the current player */
 		gridItem currPlayerType = pgModel->isCatCurrPlayer ? CAT : MOUSE; /* get the current player type */
 		if (isMoveValid(pgModel->gameGridData, *currPlayerPos, eventPos)){ /* check if the move is valid */
 			/* make the move: */
-			moveItemToPos(currPlayerType, pgViewState->gridItemsImgArr, pgViewState->gridPanel,
+			moveItemToPos(currPlayerType, pgViewState->gridItemsImgArr, threePartView->gridPanel,
 				pgModel->gameGridData, eventPos, currPlayerPos);
 			if (isError)
 				return;
@@ -856,15 +901,18 @@ void makeGameMoveByArrowIfLegal(ViewStateref pgView, PGDataRef pgModel, directio
 
 /* warnIllegalMove puts a warning on the screen that the move (eventPos) is illegal */
 void warnIllegalMove(ViewStateref pgViewState, gridItemPosition eventPos, gridItemPosition currPlayerPos){
+	/* create a reference to the ThreePartLayoutViewExt */
+	ThreePartViewExtRef threePartView = pgViewState->ViewExt;
+
 	/* first put a warning on the problematic area */
-	blitItemToGrid(pgViewState->gridPanel, pgViewState->gridItemsImgArr[WARN], eventPos.row, eventPos.col);
-	blitUpToWindow(pgViewState->gridPanel);
+	blitItemToGrid(threePartView->gridPanel, pgViewState->gridItemsImgArr[WARN], eventPos.row, eventPos.col);
+	blitUpToWindow(threePartView->gridPanel);
 	SDL_Delay(WARN_DELAY); /* wait */
 	if (isSamePos(eventPos, currPlayerPos)) /* if warning is on curr player position, restore selection */
-		blitItemToGrid(pgViewState->gridPanel, pgViewState->gridItemsImgArr[SELECT], eventPos.row, eventPos.col);
+		blitItemToGrid(threePartView->gridPanel, pgViewState->gridItemsImgArr[SELECT], eventPos.row, eventPos.col);
 	else /* warning is not on curr player positions, remove warning */
-		blitItemToGrid(pgViewState->gridPanel, pgViewState->gridItemsImgArr[DESELECT], eventPos.row, eventPos.col);
-	blitUpToWindow(pgViewState->gridPanel); /* update view */
+		blitItemToGrid(threePartView->gridPanel, pgViewState->gridItemsImgArr[DESELECT], eventPos.row, eventPos.col);
+	blitUpToWindow(threePartView->gridPanel); /* update view */
 }
 
 /* updateMachineMoveIfNeeded will make a machine move, if it is a machine move turn
@@ -904,6 +952,9 @@ void updateMachineMoveIfNeeded(GUI pgGUI){
 
 /* restartGame restarts the game */
 void restartGame(ViewStateref pgViewState, PGDataRef pgModel){
+	/* create a reference to the ThreePartLayoutViewExt */
+	ThreePartViewExtRef threePartView = pgViewState->ViewExt;
+
 	/* free the grid data of previous game and get the current grud data, curr player and num turns left */
 	freeGridData(pgModel->gameGridData);
 	pgModel->gameGridData = initGameDataByFile(pgModel->loadGameWorld, &pgModel->numTurnsLeft,
@@ -913,7 +964,7 @@ void restartGame(ViewStateref pgViewState, PGDataRef pgModel){
 	/* update cat, mouse and cheese position in model */
 	updateItemsPositions(&pgModel->mousePos,&pgModel->catPos,&pgModel->cheesePos, pgModel->gameGridData);
 	/* update the new grid in the view */
-	createGridByData(pgViewState->gridPanel, pgModel->gameGridData, pgViewState->gridItemsImgArr);
+	createGridByData(threePartView->gridPanel, pgModel->gameGridData, pgViewState->gridItemsImgArr);
 	if (isError)
 		return;
 	if (checkAndupdateGameOverType(pgModel)){ /* game is over */
@@ -929,28 +980,34 @@ void restartGame(ViewStateref pgViewState, PGDataRef pgModel){
 
 /* set the game in paused state, update top panel and enable side panel buttons */
 void pauseGame(ViewStateref pgViewState, PGDataRef pgModel){
+	/* create a reference to the ThreePartLayoutViewExt */
+	ThreePartViewExtRef threePartView = pgViewState->ViewExt;
+
 	pgModel->isGamePaused = 1; /* update the model */
 	updateTopPanelPlayGame(pgViewState, pgModel);
 	if (isError) { return; }
 	enablePGSidePanelButtons(pgViewState); /* enable side panel buttons */
 	if (isError) { return; }
 	/* blit the changed to the window */
-	blitUpToWindow(pgViewState->topPanelNode->data);
+	blitUpToWindow(threePartView->topPanelNode->data);
 	if (isError) { return; }
-	blitUpToWindow(pgViewState->sidePanelNode->data);
+	blitUpToWindow(threePartView->sidePanelNode->data);
 }
 
 /* resume the game, update top panel and disable side panel buttons */
 void resumeGame(ViewStateref pgViewState, PGDataRef pgModel){
+	/* create a reference to the ThreePartLayoutViewExt */
+	ThreePartViewExtRef threePartView = pgViewState->ViewExt;
+
 	pgModel->isGamePaused = 0; /* update the model */
 	updateTopPanelPlayGame(pgViewState, pgModel);
 	if (isError) { return; }
 	disablePGSidePanelButtons(pgViewState); /* disable side panel buttons */
 	if (isError) { return; }
 	/* blit the changed to the window */
-	blitUpToWindow(pgViewState->topPanelNode->data);
+	blitUpToWindow(threePartView->topPanelNode->data);
 	if (isError) { return; }
-	blitUpToWindow(pgViewState->sidePanelNode->data);
+	blitUpToWindow(threePartView->sidePanelNode->data);
 }
 
 /* set the buttons of the play game side panel to be disabled */

@@ -242,6 +242,13 @@ void startWorldBuilder(GUIref gui, void* initData){
 	}
 	gui->viewState = wbViewState;
 
+	/* create and add threePartLayout extention to the viewState */
+	ThreePartViewExtRef threePartExt = initThreePartViewExt();
+	if (threePartExt == NULL){
+		return;
+	}
+	wbViewState->ViewExt = threePartExt;
+
 	/* create image surface for the wb GUI */
 	char imgPath[] = "images/WorldBuilder.bmp";
 	SDL_Surface * wbImage = SDL_LoadBMP(imgPath);
@@ -275,7 +282,7 @@ void startWorldBuilder(GUIref gui, void* initData){
 	if (label == NULL){
 		return;
 	}
-	ListRef labelNode = addChildNode(wbViewState->topPanelNode, label);
+	ListRef labelNode = addChildNode(threePartExt->topPanelNode, label);
 	if (labelNode == NULL){
 		freeWidget(label);
 		return;
@@ -296,7 +303,7 @@ void startWorldBuilder(GUIref gui, void* initData){
 		return;
 
 	/* select the correct grid position */
-	selectGridPos(wbViewState->gridPanel, wbViewState->gridItemsImgArr, wbModel->currPos);
+	selectGridPos(threePartExt->gridPanel, wbViewState->gridItemsImgArr, wbModel->currPos);
 	if (isError)
 		return;
 	/* draw GUI according to UItree */
@@ -428,6 +435,12 @@ void startPlayGame(GUIref gui, void* initData){
 		return;
 	}
 	gui->viewState = pgViewState;
+
+	/* add threePartLayout extention to the viewState */
+	pgViewState->ViewExt = initThreePartViewExt();
+	if (pgViewState->ViewExt == NULL){
+		return;
+	}
 
 	/* check if game is over and update the model accordingly */
 	pgModel->isGameOver = checkAndupdateGameOverType(pgModel);
