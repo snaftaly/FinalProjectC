@@ -303,7 +303,7 @@ void startWorldBuilder(GUIref gui, void* initData){
 		return;
 
 	/* select the correct grid position */
-	selectGridPos(threePartExt->gridPanel, wbViewState->gridItemsImgArr, wbModel->currPos);
+	selectGridPos(threePartExt->gridPanel, threePartExt->gridItemsImgArr, wbModel->currPos);
 	if (isError)
 		return;
 	/* draw GUI according to UItree */
@@ -536,6 +536,9 @@ void* stopWorldBuilder(GUI * gui){
 	gui->model = NULL;
 	gui->viewState = NULL;
 
+	/* create a reference to the ThreePartLayoutViewExt */
+	ThreePartViewExtRef threePartView = guiViewState->ViewExt;
+	freeThreePartExtViewState(threePartView); /* free the three Part view extention */
 	freeViewState(guiViewState); /* free viewstate */
 
 	/* if we are in a final situation, or we go back to Main Menu, free the wb data */
@@ -574,6 +577,9 @@ void* stopPlayGame(GUI * gui){
 	gui->model = NULL;
 	gui->viewState = NULL;
 
+	/* create a reference to the ThreePartLayoutViewExt */
+	ThreePartViewExtRef threePartView = guiViewState->ViewExt;
+	freeThreePartExtViewState(threePartView); /* free the three Part view extention */
 	freeViewState(guiViewState); /* free viewstate */
 
 	/* if we are in a final situation, or we go back to Main Menu, free the PG data */

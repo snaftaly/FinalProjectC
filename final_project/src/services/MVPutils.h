@@ -57,6 +57,7 @@ void addButtonsToWBTopPanel(ViewStateref viewState, int buttonImgX, int buttonIm
 
 /**** MVP free data functions ****/
 void freeViewState(ViewStateref guiViewState);
+void freeThreePartExtViewState(ThreePartViewExtRef threePartView);
 void freeGridItemsArray(Widget ** gridItemsImages);
 void freeMenuData(MenuDataRef menuData);
 void freeWBData(WBDataRef wbData, int doFreeGrid);

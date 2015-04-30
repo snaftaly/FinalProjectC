@@ -10,7 +10,9 @@
 /* a struct for the ThreePartView Extension used by
  * world builder and play game */
 typedef struct ThreePartViewExt{
-
+	/* the gridItems Image and the array holds the grid items images widgets */
+	SDL_Surface * gridItemImage;
+	Widget ** gridItemsImgArr;
 	/* listRefs of the top/side panel nodes, used by play game/ world builder for easy access */
 	ListRef topPanelNode;
 	ListRef sidePanelNode;

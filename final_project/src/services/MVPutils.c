@@ -16,10 +16,8 @@ ViewStateref initGUIViewState(){
 	/* initialize viewState fields */
 	viewState->image = NULL;
 	viewState->bgImage = NULL;
-	viewState->gridItemImage = NULL;
 	viewState->buttonsArr = NULL;
 	viewState->labelArr = NULL;
-	viewState->gridItemsImgArr = NULL;
 	viewState->currButton = 0;
 	viewState->UITree = NULL;
 	viewState->ViewExt = NULL;
@@ -37,6 +35,8 @@ ThreePartViewExtRef initThreePartViewExt(){
 		return NULL;
 	}
 	/* initialize ThreePartViewExt fields */
+	viewStateExt->gridItemImage = NULL;
+	viewStateExt->gridItemsImgArr = NULL;
 	viewStateExt->gridPanel = NULL;
 	viewStateExt->sidePanelNode = NULL;
 	viewStateExt->topPanelNode = NULL;
@@ -301,20 +301,24 @@ void decreaseValuesButton(int * currValue, int maxValue, Widget * valuesButton){
 
 /**** grid related functions ****/
 
-/* createGridItemsImgArr creates an array of the images of the different items in the array */
+/* createGridItemsImgArr creates an array of the images of the different items in the array
+ * applicable for world builder and play game GUIs */
 void createGridItemsImgArr(ViewStateref viewState){
+	/* create a reference to the ThreePartLayoutViewExt */
+	ThreePartViewExtRef threePartView = viewState->ViewExt;
+
 	SDL_Surface * gridItemsImg = SDL_LoadBMP("images/GridItems.bmp"); /* load the image file of the grid items */
 	if (gridItemsImg == NULL){
 		sdlErrorPrint("failed to load image");
 		return;
 	}
-	viewState->gridItemImage = gridItemsImg;
+	threePartView->gridItemImage = gridItemsImg;
 	Widget ** gridItemImagesArr = malloc(NUM_GRID_ITEMS*sizeof(Widget *)); /* allocate memory for the array */
 	if (gridItemImagesArr == NULL){
 		perrorPrint("malloc");
 		return;
 	}
-	viewState->gridItemsImgArr = gridItemImagesArr; /* update the viewstate of current gui */
+	threePartView->gridItemsImgArr = gridItemImagesArr; /* update the viewstate of current gui */
 	/* add the images to the array */
 	int gridItemImgX = 0, gridItemImgY = 0;
 	for (int i = 0; i < NUM_GRID_ITEMS; i++){
@@ -469,7 +473,7 @@ void blitItemToGrid(Widget *gridPanel, Widget * itemImage, int row, int col){
  		return;
  	}
  	/* update the grid by data the grid data*/
- 	createGridByData(gridPanel, gameGridData, viewState->gridItemsImgArr);
+ 	createGridByData(gridPanel, gameGridData, threePartView->gridItemsImgArr);
  }
 
  /* addButtonsToSidePanel sets the side panel buttons of play game and world builder
@@ -538,10 +542,6 @@ void addButtonsToSidePanel(ViewStateref viewState, int buttonImgX, int buttonImg
  			SDL_FreeSurface(guiViewState->image);
  		if (guiViewState->bgImage != NULL)
  			SDL_FreeSurface(guiViewState->bgImage);
- 		if (guiViewState->gridItemImage != NULL)
- 			SDL_FreeSurface(guiViewState->gridItemImage); /* free gridItemImage if needed (play game and world builder */
- 		if (guiViewState->gridItemsImgArr != NULL)
- 			freeGridItemsArray(guiViewState->gridItemsImgArr); /* free gridItemsImgArr, including the items (they are not in the tree)*/
  		if (guiViewState->UITree != NULL)
  			freeTree(guiViewState->UITree, freeWidget); /* free all widgets by freeing the UItree */
  		if (guiViewState->ViewExt != NULL) /* free the view extentsion */
@@ -549,6 +549,15 @@ void addButtonsToSidePanel(ViewStateref viewState, int buttonImgX, int buttonImg
  		free(guiViewState);
  	}
  }
+
+void freeThreePartExtViewState(ThreePartViewExtRef threePartView){
+	if (threePartView->gridItemImage != NULL)
+		SDL_FreeSurface(threePartView->gridItemImage); /* free gridItemImage if needed (play game and world builder */
+	if (threePartView->gridItemsImgArr != NULL)
+		freeGridItemsArray(threePartView->gridItemsImgArr); /* free gridItemsImgArr, including the items (they are not in the tree)*/
+}
+
+
 
  /* free the array of grid items images, including the images widgets */
  void freeGridItemsArray(Widget ** gridItemsImages){
@@ -601,7 +610,7 @@ void setGameOver(PGDataRef pgModel, ViewStateref pgViewState){
 	if (isError) { return; }
 	enablePGSidePanelButtons(pgViewState);
 	if (isError) { return; }
-	deselectGridPos(threePartView->gridPanel, pgViewState->gridItemsImgArr, *getCurrPlayerPos(pgModel));
+	deselectGridPos(threePartView->gridPanel, threePartView->gridItemsImgArr, *getCurrPlayerPos(pgModel));
 	if (isError) { return; }
 	blitUpToWindow(threePartView->sidePanelNode->data);
 	if (isError) { return; }
@@ -644,7 +653,7 @@ void setPlayGame(ViewStateref pgViewState, PGDataRef pgModel){
 	if (isError) { return; }
 	disablePGSidePanelButtons(pgViewState);
 	if (isError) { return; }
-	selectGridPos(threePartView->gridPanel, pgViewState->gridItemsImgArr, *getCurrPlayerPos(pgModel));
+	selectGridPos(threePartView->gridPanel, threePartView->gridItemsImgArr, *getCurrPlayerPos(pgModel));
 }
 
 /* updatePlayGame will update the play game view and model, and will update the current player selected
@@ -659,7 +668,7 @@ void updatePlayGame(ViewStateref pgViewState, PGDataRef pgModel, gridItemPositio
 	blitUpToWindow(threePartView->topPanelNode->data);
 	if (isError) { return; }
 	/* update the grid position selected and update the view */
-	changeSelectedGridSquare(threePartView->gridPanel, pgViewState->gridItemsImgArr,
+	changeSelectedGridSquare(threePartView->gridPanel, threePartView->gridItemsImgArr,
 			eventPos, *getCurrPlayerPos(pgModel));
 }
 
@@ -874,7 +883,7 @@ void makeGameMoveIfLegal(ViewStateref pgViewState, PGDataRef pgModel, gridItemPo
 		gridItem currPlayerType = pgModel->isCatCurrPlayer ? CAT : MOUSE; /* get the current player type */
 		if (isMoveValid(pgModel->gameGridData, *currPlayerPos, eventPos)){ /* check if the move is valid */
 			/* make the move: */
-			moveItemToPos(currPlayerType, pgViewState->gridItemsImgArr, threePartView->gridPanel,
+			moveItemToPos(currPlayerType, threePartView->gridItemsImgArr, threePartView->gridPanel,
 				pgModel->gameGridData, eventPos, currPlayerPos);
 			if (isError)
 				return;
@@ -905,13 +914,13 @@ void warnIllegalMove(ViewStateref pgViewState, gridItemPosition eventPos, gridIt
 	ThreePartViewExtRef threePartView = pgViewState->ViewExt;
 
 	/* first put a warning on the problematic area */
-	blitItemToGrid(threePartView->gridPanel, pgViewState->gridItemsImgArr[WARN], eventPos.row, eventPos.col);
+	blitItemToGrid(threePartView->gridPanel, threePartView->gridItemsImgArr[WARN], eventPos.row, eventPos.col);
 	blitUpToWindow(threePartView->gridPanel);
 	SDL_Delay(WARN_DELAY); /* wait */
 	if (isSamePos(eventPos, currPlayerPos)) /* if warning is on curr player position, restore selection */
-		blitItemToGrid(threePartView->gridPanel, pgViewState->gridItemsImgArr[SELECT], eventPos.row, eventPos.col);
+		blitItemToGrid(threePartView->gridPanel, threePartView->gridItemsImgArr[SELECT], eventPos.row, eventPos.col);
 	else /* warning is not on curr player positions, remove warning */
-		blitItemToGrid(threePartView->gridPanel, pgViewState->gridItemsImgArr[DESELECT], eventPos.row, eventPos.col);
+		blitItemToGrid(threePartView->gridPanel, threePartView->gridItemsImgArr[DESELECT], eventPos.row, eventPos.col);
 	blitUpToWindow(threePartView->gridPanel); /* update view */
 }
 
@@ -964,7 +973,7 @@ void restartGame(ViewStateref pgViewState, PGDataRef pgModel){
 	/* update cat, mouse and cheese position in model */
 	updateItemsPositions(&pgModel->mousePos,&pgModel->catPos,&pgModel->cheesePos, pgModel->gameGridData);
 	/* update the new grid in the view */
-	createGridByData(threePartView->gridPanel, pgModel->gameGridData, pgViewState->gridItemsImgArr);
+	createGridByData(threePartView->gridPanel, pgModel->gameGridData, threePartView->gridItemsImgArr);
 	if (isError)
 		return;
 	if (checkAndupdateGameOverType(pgModel)){ /* game is over */

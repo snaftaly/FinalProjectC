@@ -10,30 +10,33 @@ Our design choices:
 	==========
 	In this project we chose to implement the GUI using the MVP design pattern.
 	We will now explain how we implemented the MVP:
-	First of all, we used the MVP loop, as given to us, and implemented the various functions to work with this
-	loop. We added to the loop some minor changes to support error handling when error come from the 
-	presenters/views functions.
+	
+	First of all, we used the MVP loop, as given to us by the instructors, and implemented for each GUI the 
+	various functions to work with this loop. We added to the loop some minor changes to support error 
+	handling when error come from the presenters/views functions.
 	
 	Each GUI, i.e. each state of the program - the different menus GUIs, the world builder, the error
-	message and the the play game, has its view, a presenter, and a start and stop functions.
+	message and the the play game, has a view, a presenter, and a start and stop functions.
 	
 	The Views:
 	---------
 	The view for each GUI is implemented by a suitable viewTranslateEvent (VTE) functions, which is responsible 
 	for getting the events from the the keyboard/mouse and tranlate them into a logical event suitable
-	for its specific GUI, which will be handled by the presenter.
+	for the specific GUI, which will be handled by the presenter.
 	There are several VTE functions that we implemented: 
 	- a simple menu VTE - used by the main menu and the choose cat/mouse type GUIs. This VTE handles menu
-		GUIs which have a label at the top and regular buttons under it. This makes all the GUIs
-		that look this way to be handled by one function.
+		GUIs which have a label at the top and a number of regular buttons under it. This way, all the GUIs
+		that look this way are handled by one general function, which reduces code duplication.
 	- The main menu VTE and the choose animal VTE which calls the simple Menu VTE, with specific data such as 
 		the number of buttons in the GUI.
 	- a complex menu VTE - used by the mouse/cat skill and edit/load game and save world GUIs. This VTE handles 
 		menu GUIs which have a label at the top, a first button which is a value selection button, and all 
-		other buttons which are regular. This makes all the GUIs that look this way to be handled by one function.
-	- The world builder VTE - used by the world builder GUI.
-	- The error message VTE - used by the error message GUI, which has to labels and only one button.
-	- The play game VTE - used by the play game GUI.
+		other buttons which are regular. This way, all the GUIs that look this way are handled by one function,
+		which reduces code duplication.
+	- The world builder VTE - a specific VTE function used by the world builder GUI.
+	- The error message VTE - a specific VTE function used by the error message GUI, 
+	   which has to labels and only one button.
+	- The play game VTE - a specific VTE function used by the play game GUI.
 	
 	the viewState struct:
 	--------------------
@@ -41,25 +44,31 @@ Our design choices:
 	for the current view: 
 		- the SDL image used for the gui buttons and labels
 		- the SDL image used for the background image (applicable for the menus GUIs)
-		- the SDL image used for the grid items images (applicable for the world builder and play game GUI)
 		- the buttons array, which holds the buttons of the GUI - for easy access to the buttons properties
 			and updating their state (selected/not selected, enabled/disabled).
-		- the labels array, which holds the labels of the GUI (applicable only for play game GUI)
-			for easy access and change of the labels.
-		- the grid items images array, which holds the images of the the grid items (applicable for the 
-			world builder and play game GUI), for easily putting the grid item image on the grid.
+		- the labels array, which holds the labels of the GUI for easy access and change of the labels
+			(evetually used only for playgame GUI, but can be used by other GUIs if needed).
 		- the current button - used for holding which button is currently selected (applicable for the 
 			menus GUIs)
 		-  the UITree - holds all the widgets of the gui, in a hirarchial form, where the window is at the root.
 			We use the UITree for traversing and getting the different widgets in order to update the display,
-			and later it is also used for freeing the resources. 
+			and later it is also used for freeing the resources.
+		- the viewExt - a void *, which is used for holding view-specific auxilary data. We used it for the
+			play game and world builder.
+	the ThreePartViewExt struct:
+	---------------------------
+	The ThreePartViewExt is used by play game and world builder views to hold extended view data. I holds the 
+	following data:
+ 		- the grid items images array, which holds the images of the the grid items, for easily putting 
+ 			the grid item image on the grid.
+ 		- the SDL image used for the grid items images (applicable for the world builder and play game GUI)	 		
 		- the Top Panel Node - the Node in the UITree which is the parent of all the widgets in the top panel,
 			used for easy access to the top panel items (applicable only for play gameand world builder GUI)
 		- the Side Panel Node - the Node in the UITree which is the parent of all the widgets in the side panel,
 			used for easy access to the side panel items (applicable for play game and world builder GUI)
 		- the grid panel - used for easy access to the grid panel, for updating the items in it (applicable for 
-			play game and world builder GUI)
-	 
+			play game and world builder GUI)			
+
 	The presenters:
 	-------------- 
 	The preseneter for each GUI are implemented by a suitable presenterHandleEvent (PHE) functions, which gets
@@ -98,7 +107,9 @@ Our design choices:
 	-------------------
 	each gui has its own start function. The start function is responsible for setting the GUI's model according to the
 	init data, to set up the different view state elements - creating the UITree with all the widgets, setting the
-	buttons/labels array etc, and to draw the GUI according to the UITree.
+	buttons/labels array etc, and to draw the GUI according to the UITree. The function the draw the gui by
+	the UITree also calculates and updtaesthe absolute location of each widget in the GUI (i.e. the (x,y) 
+	location respective to the game window and not to the widgets they are contained in).  
 	Fot the menus there is a general start function, which is called by all the menus. There are several common
 	start function for similar GUIs (such as the choose cat/mouse, the cat/mouse skill, and the saveworld and 
 	edit/load game). In addition there is a start function for the world builder, error message and play game GUIs.
@@ -152,9 +163,14 @@ List of modules:
 				 	  function decleration.
 				 
 	views - holds a c file for all the menus views, and different c files for the world builder,
-				play game and error message views. 
-			Additionally there is the views header file which contain all the viewstate data structs
-				 and the different VTE functions declarations. 
+				play game and error message views. The C files contain the VTE functions.
+			Additionally there is are two views header files:
+			- the MenusAndErrViews header file - which contains the ViewState struct defintion, and the VTE
+				functions declerations for the menus and error message GUIs. We put them in the same header
+				file since they all use the same view structure, without extenstions.
+			- the PGandWBViews header file = which contains the ThreePartViewExt struct defintion, and the 
+				VTE functions declerations for the world builder and play game GUIs. We put them in the same
+				header file since these two GUIs use the ThreePartViewExt struct.
 	factories - There are two factories we use:
 				- the widgets factory - containing all the functions for creating the different widgets, including
 					a general function for creating the basis of each widget. 
