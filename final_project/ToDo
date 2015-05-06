@@ -1,30 +1,23 @@
 things to do:
-- make eval function return 0 if game is over and there is not winner
+- add description of the eval function in the README file
 
-- fo over the project guidelines and make sure everything we did is ok...
+- add comments to eval function + eval helper functions  
+
+- go over the project guidelines and make sure everything we did is ok...
 
 - make sure we don't have unnecesary prints
 
 - delete unncessary comments!
 
-- write the README file
-
-- improve evaluation function
-
 - before submittig - bring back to original world files.
 
 - check memory allocations and frees!
-
-- go over the code and make sure that we handke errors correctly (ask if isError, free the data correctly etc.)
  
 - make sure we initialize all the relevant data in the initialize functions
 
-- when creating *any* array of pointers, if the inner malloc fails, we need to free the mallocs we did so far. 
-	for example: itemsImages array!
-	
-- what kind of error messgae should be displayed when handling files, fscanf etc.?
 
-- do we need to free window surfaces the ususal way?
+	
+
 
 
 
@@ -33,6 +26,17 @@ things to do:
 
 DONE
 ====
+- when creating *any* array of pointers, if the inner malloc fails, we need to free the mallocs we did so far. 
+	for example: itemsImages array!
+	
+- what kind of error messgae should be displayed when handling files, fscanf etc.?
+
+- do we need to free window surfaces the ususal way?
+
+- improve evaluation function
+
+- make eval function return 0 if game is over and there is not winner
+
 - change vte to set returned event NO EVENT in the beginning of the function. meybe we already did that?
 
 - change guiUtils functions to use sdlErroPrint function we wrote
@@ -84,4 +88,6 @@ handle that!!!
 
 MAYBE
 =====
+- go over the code and make sure that we handle errors correctly (ask if isError, free the data correctly etc.)
+
 - change the order of buttons in world menu bmp (done and back) at the top and world nums after - change positions accordingly

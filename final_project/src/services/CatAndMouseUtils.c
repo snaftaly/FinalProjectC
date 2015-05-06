@@ -1,6 +1,5 @@
 #include "CatAndMouseUtils.h"
 
-
 /* the consoleMode function runs console mode
  * it gets a game representation from stdin and prints the evaluation
  * this is done in a loop until user wishes to exit, by entering q\n  */
@@ -343,90 +342,6 @@ char ** createChildGrid(GameStateRef parentState, gridItemPosition movePos, grid
 	return childGrid;
 }
 
-/**
- * evaluate function:
- * gets the current state as void * and takes only its board
- * uses evalBoard function to evaluate the board evaluation
- */
-int evaluate(void * state){
-//	GameStateRef stateRef = state;
-//	int ** dist = getDistanceWithBFS(stateRef->catPos, stateRef->gridData);
-//	int catFromMouse = dist[stateRef->mousePos.row][stateRef->mousePos.col];
-//	printf("cat from mouse: %d!!!!!!!!!!!!!!!!!!!!!!\n", catFromMouse);
-
-
-	GameStateRef currState = state;
-	gameOverType gameOverType = checkGameOverType(currState->catPos, currState->mousePos,
-				currState->cheesePos, currState->numTurnsLeft);
-	if (gameOverType == CAT_WINS)
-		return MAX_EVALUATION;
-	if (gameOverType == CAT_WINS)
-		return MIN_EVALUATION;
-	if (gameOverType == TIE)
-		return 0;
-
-	int ** distCat = getDistanceWithBFS(currState->catPos, currState->gridData);
-	if (isError) { return EVALERR; }
-	int ** distMouse = getDistanceWithBFS(currState->mousePos, currState->gridData);
-	if (isError){
-		freeDistMatrix(distCat);
-		return EVALERR;
-	}
-	int catFromMouse = distCat[currState->mousePos.row][currState->mousePos.col];
-	int catFromCheese = distCat[currState->cheesePos.row][currState->cheesePos.col];
-	int mouseFromCheese = distMouse[currState->cheesePos.row][currState->cheesePos.col];
-	int eval;
-	int CMrowDiff = abs(currState->catPos.row-currState->mousePos.row);
-//	int CMcolDiff = abs(currState->catPos.col-currState->mousePos.col);
-//	int MProwDiff = abs(currState->mousePos.row-currState->cheesePos.row);
-//	int MPcolDiff = abs(currState->mousePos.col-currState->cheesePos.col);
-	if (currState->isCatCurrPlayer == 0){
-		//eval = ROW_NUM - CMrowDiff + COL_NUM - CMcolDiff;
-		if (catFromCheese + 3 > mouseFromCheese){
-			eval = (20-catFromCheese)*100 + (20-catFromMouse);
-//			printf("ifcat %d\n", eval);
-//			printf("catrow: %d, catcol: %d, mouserow: %d, mousecol: %d, catfrommouse: %d, mousecheese: %d\n",
-//					currState->catPos.row, currState->catPos.col, currState->mousePos.row,
-//					currState->mousePos.col, catFromMouse, mouseFromCheese);
-
-		}
-		else{
-			eval = (20-catFromCheese) + (20-catFromMouse)*100 + (20-2*CMrowDiff);
-//			printf("elsecat %d\n", eval);
-//			printf("catrow: %d, catcol: %d, mouserow: %d, mousecol: %d, catfrommouse: %d, mousecheese: %d\n",
-//				currState->catPos.row, currState->catPos.col, currState->mousePos.row,
-//				currState->mousePos.col, catFromMouse, mouseFromCheese);
-
-		}
-	}
-	else{ //mouse is currPlayer
-		//eval =  -1*(CMrowDiff + CMcolDiff) -1*(ROW_NUM - MProwDiff + COL_NUM - MPcolDiff);
-		if (catFromMouse < 3){
-			eval = (-1) * (20-mouseFromCheese) - (catFromMouse)*100;
-//			printf("iscatcurr: %d\n", currState->isCatCurrPlayer);
-//			if (currState->isCatCurrPlayer){
-//			printf("if %d\n", eval);
-//			printf("catrow: %d, catcol: %d, mouserow: %d, mousecol: %d, catfrommouse: %d, mousecheese: %d\n",
-//					currState->catPos.row, currState->catPos.col, currState->mousePos.row,
-//					currState->mousePos.col, catFromMouse, mouseFromCheese);
-//			}
-		}
-		else{
-			eval = (-1) * (20-mouseFromCheese)*100 - (catFromMouse);
-//			printf("iscatcurr: %d\n", currState->isCatCurrPlayer);
-//			if (currState->isCatCurrPlayer){
-//			printf("else %d\n", eval);
-//			printf("catrow: %d, catcol: %d, mouserow: %d, mousecol: %d, catfrommouse: %d, mousecheese: %d\n",
-//				currState->catPos.row, currState->catPos.col, currState->mousePos.row,
-//				currState->mousePos.col, catFromMouse, mouseFromCheese);
-//			}
-		}
-	}
-	freeDistMatrix(distCat);
-	freeDistMatrix(distMouse);
-	return eval;
-}
-
 /* getDistanceWithBFS gets the distances (by number of legal game moves), between the current position and
  * all the available grid positions. it returns the distance Matrix */
 int ** getDistanceWithBFS (gridItemPosition itemPos, char ** gridData){
@@ -566,6 +481,148 @@ void setPosDistance(gridItemPosition pos, int distance, int ** distances){
 void setPosVisited(gridItemPosition pos, char ** gridData){
 	gridData[pos.row][pos.col] = VISITED_CHAR;
 }
+
+/* evaluate function
+ * gets a state representation and returns
+ * its evaluation value */
+int evaluate(void * state){
+	GameStateRef currState = state;
+	gameOverType gameOverType = checkGameOverType(currState->catPos, currState->mousePos,
+				currState->cheesePos, currState->numTurnsLeft);
+	if ((currState->isCatCurrPlayer && currState->isMaxPlayer) ||
+				(!currState->isCatCurrPlayer && !currState->isMaxPlayer)){
+		if (gameOverType == CAT_WINS)
+			return MAX_EVALUATION;
+		if (gameOverType == MOUSE_WINS)
+			return MIN_EVALUATION;
+		if (gameOverType == TIE)
+			return 0;
+	}
+	else{
+		if (gameOverType == CAT_WINS)
+			return MIN_EVALUATION;
+		if (gameOverType == MOUSE_WINS)
+			return MAX_EVALUATION;
+		if (gameOverType == TIE)
+			return 0;
+	}
+	int ** distCat = getDistanceWithBFS(currState->catPos, currState->gridData);
+	if (isError) { return EVALERR; }
+	int ** distMouse = getDistanceWithBFS(currState->mousePos, currState->gridData);
+	if (isError){
+		freeDistMatrix(distCat);
+		return EVALERR;
+	}
+	int catFromMouse = distCat[currState->mousePos.row][currState->mousePos.col];
+	int catFromCheese = distCat[currState->cheesePos.row][currState->cheesePos.col];
+	int mouseFromCheese = distMouse[currState->cheesePos.row][currState->cheesePos.col];
+	int eval;
+	if (catFromCheese >= mouseFromCheese){
+		eval = 400 + (14-catFromMouse)*3 + (14-catFromCheese)*10 + mouseFromCheese*10 - catMouseRowColDiff(currState) +
+						isMouseInCorner(currState)*100 - isCloseToWall(currState)*10;
+	}
+	else if(!isCheeseBetweenRows(currState) && !isCheeseBetweenCols(currState)){
+		eval = 400 + (14-catFromMouse)*17 + (14-catFromCheese)*5 + mouseFromCheese*20 - catMouseRowColDiff(currState) +
+				isMouseInCorner(currState)*100 - isCloseToWall(currState)*50;
+	}
+	else{
+		eval = 400 + (14-catFromMouse)*15 + (14-catFromCheese)*5 + mouseFromCheese*20 - catMouseRowColDiff(currState) +
+						isMouseInCorner(currState)*100 - isCloseToWall(currState)*10;
+	}
+	if ((currState->isCatCurrPlayer && !currState->isMaxPlayer) ||
+			(!currState->isCatCurrPlayer && currState->isMaxPlayer)){
+		eval = (-1)*eval;
+	}
+
+	freeDistMatrix(distCat);
+	freeDistMatrix(distMouse);
+	return eval;
+}
+
+
+int isMouseInCorner(GameStateRef currState){
+	if ((currState->mousePos.row == 0 || currState->mousePos.row == 6) &&
+			(currState->mousePos.col == 0 || currState->mousePos.col == 6))
+		return 1;
+	return 0;
+}
+
+
+int isCloseToWall(GameStateRef currState){
+	int mouseRow = currState->mousePos.row;
+	int mouseCol = currState->mousePos.col;
+	if (mouseRow < 6){
+		if(currState->gridData[mouseRow+1][mouseCol]=='W')
+			return 1;
+	}
+	if (mouseRow > 0){
+		if(currState->gridData[mouseRow-1][mouseCol]=='W')
+			return 1;
+	}
+	if (mouseCol < 6){
+		if(currState->gridData[mouseRow][mouseCol+1]=='W')
+			return 1;
+	}
+	if (mouseCol > 0){
+		if(currState->gridData[mouseRow][mouseCol-1]=='W')
+			return 1;
+	}
+	if (mouseRow < 6 && mouseCol < 6){
+		if(currState->gridData[mouseRow+1][mouseCol+1]=='W')
+			return 1;
+	}
+	if (mouseRow > 0 && mouseCol < 6){
+		if(currState->gridData[mouseRow-1][mouseCol+1]=='W')
+			return 1;
+	}
+	if (mouseRow < 6 && mouseCol > 0){
+		if(currState->gridData[mouseRow+1][mouseCol-1]=='W')
+			return 1;
+	}
+	if (mouseRow > 0 && mouseCol > 0){
+		if(currState->gridData[mouseRow-1][mouseCol-1]=='W')
+			return 1;
+	}
+	return 0;
+}
+
+
+int catMouseRowColDiff(GameStateRef currState){
+	int dist = ((currState->catPos.row-currState->mousePos.row)*
+				(currState->catPos.row-currState->mousePos.row)
+				+(currState->catPos.col-currState->mousePos.col)*
+				(currState->catPos.col-currState->mousePos.col));
+	if (((abs(currState->catPos.row-currState->mousePos.row) < 2 &&
+			abs(currState->catPos.col-currState->mousePos.col) <= 2)) ||
+			((abs(currState->catPos.row-currState->mousePos.row) <= 2 &&
+						abs(currState->catPos.col-currState->mousePos.col) < 2))){
+				dist *= 0;
+	}
+	return dist;
+}
+
+
+int isCheeseBetweenRows(GameStateRef currState){
+	if (((currState->catPos.row <= currState->cheesePos.row)&&
+		(currState->mousePos.row <= currState->cheesePos.row)) ||
+		((currState->catPos.row >= currState->cheesePos.row)&&
+		(currState->mousePos.row >= currState->cheesePos.row))){
+		return 0;
+	}
+	return 1;
+}
+
+
+int isCheeseBetweenCols(GameStateRef currState){
+	if ((((currState->catPos.col <= currState->cheesePos.col)&&
+		(currState->mousePos.col <= currState->cheesePos.col)) ||
+		((currState->catPos.col >= currState->cheesePos.col)&&
+		(currState->mousePos.col >= currState->cheesePos.col)))){
+		return 0;
+	}
+	return 1;
+}
+
 
 /**
  * freeState function:

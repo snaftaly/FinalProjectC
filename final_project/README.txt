@@ -213,7 +213,8 @@ List of modules:
 				- WidgetUtils - this group of services is used for manipulating the widgets - setting buttons selected/enabled,
 					clearing a panel and setting an image tran[arent.
 					the header file conatain the function decleartions.
-	stateTransition - This module containing the start and stop functions of the different GUIs (as explained above).
+	stateTransition - This module contains the start and stop functions of the different GUIs (as explained above),
+						seperated to two c files - one for the start functions and the other for the stop functions.
 						The module header file includes all the functions declerations.
 
 ##########################################################################################

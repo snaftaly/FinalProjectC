@@ -24,19 +24,24 @@ H_ALLPHEs=$(PHEDIR)MenusAndErrPresenters.h $(PHEDIR)PlayGamePresenter.h $(PHEDIR
 H_ALLVTEs=$(VTEDIR)MenusAndErrViews.h $(VTEDIR)PGandWBViews.h
 H_MVPUTL=$(SRVDIR)MVPutils.h $(SRVDIR)LogEventItems.h $(H_ALLPHEs) $(H_ALLVTEs) $(H_CnMUTL) $(H_GUIUTL)
 
+CnM_O_FILES=CatAndMouse.o GUIsFactory.o MenusPresenters.o WorldBuilderPresenter.o ErrMsgPresenter.o PlayGamePresenter.o PlayGameView.o ErrMsgView.o WorldBuilderView.o MenusViews.o StartFunctions.o StopFunctions.o MVPutils.o CatAndMouseUtils.o GUIUtils.o WidgetUtils.o WidgetsFactory.o GridDataUtils.o
+LUD_O_FILES=ListUtilsDemo.o 
+MMD_O_FILES=MiniMaxDemo.o 
+CnM_MMD_O_FILES=MiniMax.o
+ALL_O_FILES=ListUtils.o ErrorHandling.o
 
 all: CatAndMouse ListUtilsDemo MiniMaxDemo
 
 clean:
-	-rm CatAndMouse MiniMaxDemo ListUtilsDemo CatAndMouse.o GUIsFactory.o MenusPresenters.o WorldBuilderPresenter.o ErrMsgPresenter.o PlayGamePresenter.o PlayGameView.o ErrMsgView.o WorldBuilderView.o MenusViews.o StateTransition.o MVPutils.o CatAndMouseUtils.o GUIUtils.o WidgetUtils.o WidgetsFactory.o GridDataUtils.o MiniMaxDemo.o MiniMax.o ListUtilsDemo.o ListUtils.o ErrorHandling.o 
+	-rm CatAndMouse MiniMaxDemo ListUtilsDemo $(CnM_O_FILES) $(MMD_O_FILES) $(LUD_O_FILES) $(CnM_MMD_O_FILES) $(ALL_O_FILES) 
 
-CatAndMouse: CatAndMouse.o GUIsFactory.o MenusPresenters.o WorldBuilderPresenter.o ErrMsgPresenter.o PlayGamePresenter.o PlayGameView.o ErrMsgView.o WorldBuilderView.o MenusViews.o StateTransition.o MVPutils.o CatAndMouseUtils.o GUIUtils.o WidgetUtils.o WidgetsFactory.o GridDataUtils.o MiniMax.o ListUtils.o ErrorHandling.o
+CatAndMouse: $(CnM_O_FILES) $(CnM_MMD_O_FILES) $(ALL_O_FILES)
 	gcc -o $@ $^ $(CFLAGS) $(SDL_L)
 
-MiniMaxDemo: MiniMaxDemo.o MiniMax.o ListUtils.o ErrorHandling.o
+MiniMaxDemo: $(MMD_O_FILES) $(CnM_MMD_O_FILES) $(ALL_O_FILES)
 	gcc -o $@ $^ $(CFLAGS) $(SDL_L)
 
-ListUtilsDemo: ListUtils.o ListUtilsDemo.o ErrorHandling.o
+ListUtilsDemo: $(LUD_O_FILES) $(ALL_O_FILES)
 	gcc -o $@ $^ $(CFLAGS) $(SDL_L)
 
 CatAndMouse.o: $(MAINDIR)CatAndMouse.c $(FACTDIR)GUIsFactory.h $(STDIR)StateTransition.h $(H_MVPUTL) $(H_ERR)
@@ -69,7 +74,10 @@ WorldBuilderView.o: $(VTEDIR)WorldBuilderView.c $(H_MVPUTL) $(H_ERR)
 MenusViews.o: $(VTEDIR)MenusViews.c $(H_MVPUTL) $(H_ERR)
 	gcc -c $(CFLAGS) $(VTEDIR)$*.c $(SDL_C)
 
-StateTransition.o: $(STDIR)StateTransition.c $(STDIR)StateTransition.h $(H_MVPUTL) $(H_ERR)
+StopFunctions.o: $(STDIR)StopFunctions.c $(STDIR)StateTransition.h $(H_MVPUTL) $(H_ERR)
+	gcc -c $(CFLAGS) $(STDIR)$*.c $(SDL_C)
+
+StartFunctions.o: $(STDIR)StartFunctions.c $(STDIR)StateTransition.h $(H_MVPUTL) $(H_ERR)
 	gcc -c $(CFLAGS) $(STDIR)$*.c $(SDL_C)
 
 MVPutils.o: $(SRVDIR)MVPutils.c $(H_MVPUTL) $(H_ERR)

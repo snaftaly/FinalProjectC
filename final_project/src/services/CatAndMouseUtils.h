@@ -29,7 +29,7 @@ typedef struct GameState * GameStateRef; /* a pointer to struct GameState */
 
 /**** function declarations : ****/
 
-/**** general functions ****/
+/*** general functions ***/
 void consoleMode(int isCatFirst);
 gameOverType checkGameOverType(gridItemPosition catPos, gridItemPosition mousePos,
 		gridItemPosition cheesePos, int numTurnsLeft);
@@ -45,7 +45,6 @@ GameStateRef createChildState(GameStateRef parentState, gridItemPosition movePos
 		gridItemPosition currPlayerPos);
 char ** createChildGrid(GameStateRef parentState, gridItemPosition movePos,
 		gridItemPosition currPlayerPos);
-int evaluate(void * state);
 int ** getDistanceWithBFS (gridItemPosition itemPos, char ** gridData);
 gridItemPosition * createPosRef(gridItemPosition movePos);
 int ** initDistMatrix();
@@ -55,6 +54,16 @@ int getPosDistance(gridItemPosition pos, int ** distances);
 void setPosDistance(gridItemPosition pos, int distance, int ** distances);
 void setPosVisited(gridItemPosition pos, char ** gridData);
 
+/*** evaluation related functions ***/
+
+int evaluate(void * state);
+int isMouseInCorner(GameStateRef currState);
+int isCloseToWall(GameStateRef currState);
+int catMouseRowColDiff(GameStateRef currState);
+int isCheeseBetweenRows(GameStateRef currState);
+int isCheeseBetweenCols(GameStateRef currState);
+
+/*** free functions ***/
 void freeDistMatrix(int ** matrix);
 void freeState(void * data);
 
