@@ -536,9 +536,10 @@ void* stopWorldBuilder(GUI * gui){
 	gui->model = NULL;
 	gui->viewState = NULL;
 
-	/* create a reference to the ThreePartLayoutViewExt */
+	/* create a reference to the ThreePartLayoutViewExt and free it */
 	ThreePartViewExtRef threePartView = guiViewState->ViewExt;
 	freeThreePartExtViewState(threePartView); /* free the three Part view extention */
+
 	freeViewState(guiViewState); /* free viewstate */
 
 	/* if we are in a final situation, or we go back to Main Menu, free the wb data */
@@ -577,8 +578,9 @@ void* stopPlayGame(GUI * gui){
 	gui->model = NULL;
 	gui->viewState = NULL;
 
-	/* create a reference to the ThreePartLayoutViewExt */
+	/* create a reference to the ThreePartLayoutViewExt and free it*/
 	ThreePartViewExtRef threePartView = guiViewState->ViewExt;
+
 	freeThreePartExtViewState(threePartView); /* free the three Part view extention */
 	freeViewState(guiViewState); /* free viewstate */
 

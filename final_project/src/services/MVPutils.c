@@ -550,6 +550,8 @@ void addButtonsToSidePanel(ViewStateref viewState, int buttonImgX, int buttonImg
  	}
  }
 
+ /* Free the grid data in the three part extension of the view state.
+  * The rest of the data (gridPnael, top/side panel nodes) will be freed when freeing the UITree */
 void freeThreePartExtViewState(ThreePartViewExtRef threePartView){
 	if (threePartView->gridItemImage != NULL)
 		SDL_FreeSurface(threePartView->gridItemImage); /* free gridItemImage if needed (play game and world builder */
