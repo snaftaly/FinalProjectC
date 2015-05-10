@@ -58,8 +58,8 @@ void setPosVisited(gridItemPosition pos, char ** gridData);
 
 int evaluate(void * state);
 int isMouseInCorner(GameStateRef currState);
-int isCloseToWall(GameStateRef currState);
-int catMouseRowColDiff(GameStateRef currState);
+int isMouseCloseToWall(GameStateRef currState);
+int catMouseRowColDiff(GameStateRef currState, int catFromMouse);
 int isCheeseBetweenRows(GameStateRef currState);
 int isCheeseBetweenCols(GameStateRef currState);
 
@@ -69,6 +69,3 @@ void freeState(void * data);
 
 
 #endif /* CATANDMOUSEUTLS_H_ */
-
-
-

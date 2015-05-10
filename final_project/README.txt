@@ -220,8 +220,41 @@ List of modules:
 ##########################################################################################
 
 Utility evaluation function:
-	high level description - 
-	reasoning -
+
+Utility evaluation function:
+	high level description - the function uses a BFS function in order to get distances between cat, mouse and
+							 cheese positions. since there are walls and other elements on the grid that the 
+							 players can't go through, it's not enouth to rely on the row and column in which each player 
+							 is at, and we need this function in order to know the true distance (minimum number of steps
+							 between them). The value calculated includes the cat-mouse, cat-cheese and mouse-cheese distances.
+							 In addition, it uses parameters like the difference in rows and columns between cat and mouse, 
+							 special factor in case the mouse is close to the wall or to the corners of the grid.
+							 those parameters get different weights in cases where the mouse is closer to the cheese than
+							 the cat and when the cat and mouse is on the same side of the cheese relatively to
+	 						 the rows and columns.
+	reasoning - Initially, we calculate the value assuming the cat is the max player and mouse is min player.
+				we made the parameters to be larger when they are better for the cat and smaller when they are
+				better for the mouse (cat-mouse, cat-cheese, mouse-cheese distance and rows-columns difference 
+				between cat and mouse).
+				if mouse is close to the corner, it is usualy better for the cat, and so it gets a positive value
+				that increases the general value. when mouse is close to the wall it's usualy helps him escape
+				the cat and so it gets a negative value.
+				we give different weights to those parameters when mouse is closer to the cheese than the cat.
+				in this case we give a bigger weight to cat-cheese distance than cat-mouse distance.
+				In general, values for this case are smaller, because it is better for the mouse.
+				The second case is when the cat is closer to the cheese than the mouse and they are both 
+				in the same side of the cheese regarding rows and columns. In this case weights favor cat to
+				chase after mouse, because there is less danger for the cat that the mouse will get the cheese.
+				In all cases we give a 1000 point factor to ensure positive result.
+				In case the mouse is current and max player, or cat is not current and min player, we multiply
+				the value by (-1) so it will suite the situation.
 	running time - O(n^2)
+					in general, the BFS algorithm takes O(|V| + |E|) where |V| is the number of nodes and |E| is the
+					number of edges. In our case, number of nodes is number of squares in the grid (n^2)
+					and number of edges is O(n^2) because every node has 4 neighbers at most (the adjacent
+					squares that allow movig to them). We run the BFS function twice (from the cat position
+					and from the mouse position), so this taked O(n^2).
+					the rest of the calculations are in O(1) time. 
+
 
 ##########################################################################################

@@ -4,8 +4,9 @@
 
 
 int main(int argc, char * argv[]){
-
+	/* check arguments and start console mode if needed */
 	if (argc == 3 && strcmp(argv[1], "-console") == 0){
+		/* two argument passed and the first is -console */
 		if (strcmp(argv[2], "cat") == 0){
 			/* enter console mode with the cat as the player*/
 			consoleMode(1);
@@ -16,17 +17,20 @@ int main(int argc, char * argv[]){
 			consoleMode(0);
 			return isError;
 		}
-		else{
+		else{ /* two arguments passed, the first is -console, but the second is not cat nor mouse */
 			generalErrorprint("Arguments passed to program are invalid");
 			return isError;
 		}
 
 	}
-	else if ((argc == 3 && strcmp(argv[1], "console") != 0) || argc == 2 || argc > 3){
+	else if ((argc == 3 && strcmp(argv[1], "-console") != 0) || argc == 2 || argc > 3){
+		/* two argument passed but the first is not -console, or only one arg passed, or more than
+		 * two args passed */
 		generalErrorprint("Arguments passed to program are invalid");
 		return isError;
 	}
 
+	/* start gui mode if console mode wasn't started or there was no error */
 	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
 		sdlErrorPrint("unable to init SDL");
 		return isError;
