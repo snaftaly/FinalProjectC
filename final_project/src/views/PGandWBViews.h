@@ -1,12 +1,13 @@
 #ifndef PGWBVIEWS_H_
 #define PGWBVIEWS_H_
 
-/* includes */
+/*** includes ***/
 #include "../services/LogEventItems.h"
 #include "../services/GUIUtils.h"
 #include "../services/CatAndMouseUtils.h"
 
-/* struct */
+/*** struct ***/
+
 /* a struct for the ThreePartView Extension used by
  * world builder and play game */
 typedef struct ThreePartViewExt{
@@ -23,7 +24,7 @@ typedef struct ThreePartViewExt{
 
 typedef struct ThreePartViewExt * ThreePartViewExtRef;
 
-/* function decelerations: */
+/*** function decelerations: ***/
 
 /* stand alone VTEs */
 void* worldBuilderVTE(void* viewState, SDL_Event* event);

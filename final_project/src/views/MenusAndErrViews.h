@@ -1,13 +1,13 @@
 #ifndef MEVIEWS_H_
 #define MEVIEWS_H_
 
-/* includes */
+/*** includes ***/
 #include "../services/LogEventItems.h"
 #include "../services/GUIUtils.h"
 #include "../services/CatAndMouseUtils.h"
 
 
-/* structs */
+/*** structs ***/
 /* a struct for the view state used by all GUIs*/
 typedef struct ViewState{
 	/* SDL_Surface refs for the different images used by the gui */
@@ -26,7 +26,7 @@ typedef struct ViewState{
 
 typedef struct ViewState * ViewStateref;
 
-/* function decelerations: */
+/*** function decelerations: ***/
 
 /* menus VTEs */
 void* simpleMenuVTE(void* viewState, SDL_Event* event, int numOfButtons);

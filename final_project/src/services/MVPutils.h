@@ -1,7 +1,7 @@
 #ifndef MVP_UTILS_H_
 #define MVP_UTILS_H_
 
-/* includes: */
+/**** includes: ****/
 #include "GUIUtils.h"
 #include "CatAndMouseUtils.h"
 #include "../views/MenusAndErrViews.h"

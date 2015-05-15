@@ -30,10 +30,12 @@ MMD_O_FILES=MiniMaxDemo.o
 CnM_MMD_O_FILES=MiniMax.o
 ALL_O_FILES=ListUtils.o ErrorHandling.o
 
-all: CatAndMouse ListUtilsDemo MiniMaxDemo
+all: CatAndMouse ListUtilsDemo MiniMaxDemo test
 
 clean:
-	-rm CatAndMouse MiniMaxDemo ListUtilsDemo $(CnM_O_FILES) $(MMD_O_FILES) $(LUD_O_FILES) $(CnM_MMD_O_FILES) $(ALL_O_FILES) 
+	-rm CatAndMouse MiniMaxDemo ListUtilsDemo $(CnM_O_FILES) $(MMD_O_FILES) $(LUD_O_FILES) $(CnM_MMD_O_FILES) $(ALL_O_FILES)
+
+test: # an empty target 
 
 CatAndMouse: $(CnM_O_FILES) $(CnM_MMD_O_FILES) $(ALL_O_FILES)
 	gcc -o $@ $^ $(CFLAGS) $(SDL_L)

@@ -1,11 +1,10 @@
 #ifndef MEPRESENTERS_H_
 #define MEPRESENTERS_H_
 
-/* includes */
+/*** includes ***/
 #include "../services/LogEventItems.h"
 
-
-/* structs */
+/*** structs ***/
 
 /* a struct for holding the menu data */
 typedef struct MenuData{
@@ -48,7 +47,8 @@ typedef struct MenuData{
 
 typedef struct MenuData * MenuDataRef;
 
-/* function decelerations */
+
+/*** function decelerations ***/
 
 /* menus PHEs */
 StateId generalMenuPHE(void* model, void* viewState, void* logicalEvent, StateId states[], int numOfButtons,

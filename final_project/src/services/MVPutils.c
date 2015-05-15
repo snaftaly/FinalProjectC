@@ -954,7 +954,7 @@ void updateMachineMoveIfNeeded(GUI pgGUI){
 		freeState(currState); /* free memory */
 		return;
 	}
-	SDL_Delay(1000); /* wait before making the move */
+	SDL_Delay(MOVE_DELAY); /* wait before making the move */
 	makeGameMoveIfLegal(pgViewState, pgModel,movePos);
 	freeState(currState); /* free memory */
 }

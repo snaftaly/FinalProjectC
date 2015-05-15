@@ -1,10 +1,3 @@
-/*
- * stateTransition.h
- *
- *  Created on: Apr 17, 2015
- *      Author: naftaly1
- */
-
 #ifndef STATETRANSITION_H_
 #define STATETRANSITION_H_
 

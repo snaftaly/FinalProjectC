@@ -13,8 +13,12 @@ void consoleMode(int isCatCurrPlayer){
 	while(1){
 		/* get grid data and numturns from stdin */
 		gridData = initGameDataByFile(-1, &numTurnsLeft, NULL);
-		if (gridData == NULL) /* an error occurred or q\n was typed */
+		if (gridData == NULL){ /* an error occurred or q\n was typed by the user */
+			if (isError){ /* if an error occured */
+				printf("q\n"); /* write q\n to stdout, since we exit the game */
+			}
 			return;
+		}
 		getchar(); /* get the \n that comes right after the grid */
 
 		/*update the items positions by the grid data */
@@ -25,6 +29,7 @@ void consoleMode(int isCatCurrPlayer){
 		if (currState == NULL){ /* malloc failed */
 			perrorPrint("malloc");
 			freeGridData(gridData);
+			printf("q\n"); /* write q\n to stdout, since we exit the game */
 			return;
 		}
 		currState->gridData = gridData;
@@ -38,6 +43,7 @@ void consoleMode(int isCatCurrPlayer){
 		int eval = evaluate(currState);
 		if (isError){
 			freeState(currState); /* free the current state including the grid data */
+			printf("q\n"); /* write q\n to stdout, since we exit the game */
 			return;
 		}
 		printf("%d\n",eval);
@@ -126,8 +132,8 @@ char ** initGameDataByFile(int worldNum, int * numTurns, int * isCatFirst){
 			perrorPrint("fscanf");
 			return NULL;
 		}
-		if (isCatFirst != NULL ){ /* if isCatFirst is not a NULL pointer */
-			if (strcmp(firstAnimal, "cat") == 0)
+		if (isCatFirst != NULL ){ /* if isCatFirst is not a NULL pointer - then update it */
+			if (strcmp(firstAnimal, CAT_PLAYER_NAME) == 0)
 				*isCatFirst = 1;
 			else
 				*isCatFirst = 0;
@@ -191,9 +197,9 @@ void saveGameDataToFile(int worldNum, int isCatFirst, char ** gridData){
 	/* update isCatFirst */
 	char firstAnimal[6];
 	if (isCatFirst)
-		strcpy(firstAnimal,"cat");
+		strcpy(firstAnimal,CAT_PLAYER_NAME);
 	else
-		strcpy(firstAnimal,"mouse");
+		strcpy(firstAnimal,MOUSE_PLAYER_NAME);
 	if (fprintf(worldFile, "%s\n", firstAnimal) < 0){
 		perrorPrint("fprintf");
 		return;

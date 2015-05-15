@@ -1,9 +1,10 @@
 #ifndef PGPRESENTER_H_
 #define PGPRESENTER_H_
 
-/* includes */
+/*** includes ***/
 #include "../services/LogEventItems.h"
 
+/*** structs ***/
 
 /* a struct for holding the play game data */
 typedef struct PGData{
@@ -35,7 +36,7 @@ typedef struct PGData{
 
 typedef struct PGData * PGDataRef;
 
-/* function decelerations */
+/*** function decelerations ***/
 
 StateId playGamePHE(void* model, void* viewState, void* logicalEvent);
 

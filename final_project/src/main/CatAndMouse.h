@@ -12,6 +12,8 @@
 
 /* game related constants */
 #define GAMENAME "Cat and Mouse"
+#define MOUSE_PLAYER_NAME "mouse"
+#define CAT_PLAYER_NAME "cat"
 #define STATES_COUNT 11
 #define DEFAULT_SKILL 5
 #define DEFAULT_WORLD 1
@@ -35,10 +37,12 @@
 #define MOUSE_CHAR 'M'
 #define CHEESE_CHAR 'P'
 #define WALL_CHAR 'W'
-#define VISITED_CHAR 'V'
+#define VISITED_CHAR 'V' /* used by BFS function */
+
 /* delays constants */
 #define POLLING_DELAY 10
 #define WARN_DELAY 200
+#define MOVE_DELAY 1000
 
 /**** enums ****/
 

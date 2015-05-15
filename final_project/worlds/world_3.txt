@@ -1,6 +1,6 @@
 20
 mouse
-###P###
+P######
 WWWWWWW
 #WW#WW#
 #WW#WW#

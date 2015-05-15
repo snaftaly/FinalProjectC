@@ -1,11 +1,11 @@
 #ifndef WBPRESENTER_H_
 #define WBPRESENTER_H_
 
-/* includes */
+/*** includes ***/
 #include "../services/LogEventItems.h"
 
 
-/* structs */
+/*** structs ***/
 
 /* a struct for holding the world builder data */
 typedef struct WBData{
@@ -30,7 +30,7 @@ typedef struct WBData{
 typedef struct WBData * WBDataRef;
 
 
-/* function deceleration */
+/*** function deceleration ***/
 
 StateId worldBuilderPHE(void* model, void* viewState, void* logicalEvent);
 

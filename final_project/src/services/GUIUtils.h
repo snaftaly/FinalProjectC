@@ -19,11 +19,13 @@
 #define PG_SIDE_PANEL_NUM_BUTTONS 5
 #define PG_NUM_LABELS 4
 #define NUM_GRID_ITEMS 8
+
 /* numbering for buttons - for internal use*/
 #define FIRST_BUTTON 0
 #define REGULAR_BUTTON 0
 #define UP_ARROW_BUTTON 1
 #define DOWN_ARROW_BUTTON 2
+
 /* size of buttons, labels and gaps between them for menus */
 #define MENU_BUTTON_W 260
 #define MENU_BUTTON_H 60
@@ -47,10 +49,12 @@
 #define GRID_SIZE 590
 #define GRID_SQUARE_SIZE 80
 #define GRID_GAP_SIZE 5
+
 /* sizes for world builder */
 #define WB_TITLE_W 240
 #define WB_TITLE_H 60
 #define WB_BUTTON_X_GAP 50
+
 /* sizes for play game */
 #define GAME_OVER_LABEL_W 490
 #define GAME_OVER_LABEL_H 100
@@ -63,7 +67,7 @@
 #define PAUSE_BUTTON_H 50
 #define PAUSE_BUTTON_W 400
 
-/* colors used in the game*/
+/* colors used in the game */
 #define WINDOW_RED 193
 #define WINDOW_GREEN 201
 #define WINDOW_BLUE 255
