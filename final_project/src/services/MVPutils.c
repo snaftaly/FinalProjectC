@@ -751,7 +751,7 @@ void setTopPanelPlayGame(PGDataRef pgModel, ViewStateref pgViewState){
 void updateTopPanelPlayGame(ViewStateref pgViewState, PGDataRef pgModel){
 	/* create a reference to the ThreePartLayoutViewExt */
 	ThreePartViewExtRef threePartView = pgViewState->ViewExt;
-
+	clearPanel(threePartView->topPanelNode->data); /* clear the panel from previous items */
 	/* update the labels and buttons */
 	setPlayerMoveLabel(pgModel, pgViewState);
 	setNumTurnsLabels(pgModel, pgViewState);
@@ -793,6 +793,9 @@ void setNumTurnsLabels(PGDataRef pgModel, ViewStateref pgViewState){
 	/* update the img_rect of each digit */
 	turnsUnitsLabel->imgRect.y = yStartPoint + turnsUnitsDigit*GAME_INFO_LABEL_H;
 	turnsTensLabel->imgRect.y = yStartPoint + turnsTensDigit*GAME_INFO_LABEL_H;
+	turnsTensLabel->locationRect.x = calcTensLabelX(pgModel->isCatCurrPlayer); /* update X location of tens label */
+	turnsUnitsLabel->locationRect.x = calcUnitsLabelX(pgModel->isCatCurrPlayer); /* update X location of units label */
+
 }
 
 /* setPlayerMoveLabel is used for updating the player's move label
@@ -804,6 +807,7 @@ void setPlayerMoveLabel(PGDataRef pgModel, ViewStateref pgViewState){
 		moveLabel->imgRect.y = yStartPoint; /* will set "cat move" text */
 	else
 		moveLabel->imgRect.y = yStartPoint + GAME_INFO_LABEL_H; /* will set "mouse move" text */
+	moveLabel->locationRect.x = calcMoveLabelX(pgModel->isCatCurrPlayer); /* update x location */
 }
 
 /* setPlayerStateLabel is used for updating the player's state label

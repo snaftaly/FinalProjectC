@@ -42,10 +42,14 @@ Our design choices:
 	--------------------
 	There is a struct called viewState, which is common to all GUIs, and holds the relevent view data 
 	for the current view: 
-		- the SDL image used for the gui buttons and labels
-		- the SDL image used for the background image (applicable for the menus GUIs)
-		- the buttons array, which holds the buttons of the GUI - for easy access to the buttons properties
-			and updating their state (selected/not selected, enabled/disabled).
+		- the SDL image used for the gui buttons and labels - this SDL image is loaded from the GUI's specific 
+			bitmap image. It contains all the buttons and labels of a specific GUI, and all the widgets images 
+			are built from it (taken from the appropriate part of the image). 
+			comment: The bitmap images of the menus GUIs all have the same structure and order of widgets images in them, so that we could use general 
+			functions for all the menus GUIs to get the images from them.  
+		- the SDL image used for the background image (applicable for the menus GUIs).
+		- the buttons array, which holds the buttons widgets of the GUI - for easy access to the buttons 
+			properties and updating their state (selected/not selected, enabled/disabled).
 		- the labels array, which holds the labels of the GUI for easy access and change of the labels
 			(evetually used only for playgame GUI, but can be used by other GUIs if needed).
 		- the current button - used for holding which button is currently selected (applicable for the 
@@ -55,6 +59,7 @@ Our design choices:
 			and later it is also used for freeing the resources.
 		- the viewExt - a void *, which is used for holding view-specific auxilary data. We used it for the
 			play game and world builder.
+
 	the ThreePartViewExt struct:
 	---------------------------
 	The ThreePartViewExt is used by play game and world builder views to hold extended view data. I holds the 
@@ -110,7 +115,7 @@ Our design choices:
 	buttons/labels array etc, and to draw the GUI according to the UITree. The function the draw the gui by
 	the UITree also calculates and updtaesthe absolute location of each widget in the GUI (i.e. the (x,y) 
 	location respective to the game window and not to the widgets they are contained in).  
-	Fot the menus there is a general start function, which is called by all the menus. There are several common
+	For the menus there is a general start function, which is called by all the menus start functions. There are several common
 	start function for similar GUIs (such as the choose cat/mouse, the cat/mouse skill, and the saveworld and 
 	edit/load game). In addition there is a start function for the world builder, error message and play game GUIs.
 	
