@@ -65,15 +65,16 @@ void clearPanel(void * panel){
 /** free functions **/
 
 /* free widget function  - free the widget
- * and free its surface for panel or window
- * (images surfaces will be freed at once when freeing the gui's image surface) */
+ * and free its surface for PANEL widgets.
+ * (IMAGE/BUTTON surfaces will be freed at once when freeing the gui's image surface,
+ * and WINDOW surfaces will be freed by sdl_exit) */
 void freeWidget(void * widgetPtr){
 	Widget * widget = widgetPtr;
 	if (widget != NULL){
 		if (widget->surface != NULL && widget->type == PANEL){
 			/* free the surface of a panel -
-			 * comment: window surface will be frees by sdl_exit and button/imuage
-			 * surface are freed through thier image (in free view state function */
+			 * comment: WINDOW surface will be freed by sdl_exit and BUTTON/IMAGE widgets'
+			 * surfaces are freed through their image surface (by freeViewState function) */
 			SDL_FreeSurface(widget->surface);
 		}
 		free(widget); /* free the widget */

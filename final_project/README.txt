@@ -45,8 +45,9 @@ Our design choices:
 		- the SDL image used for the gui buttons and labels - this SDL image is loaded from the GUI's specific 
 			bitmap image. It contains all the buttons and labels of a specific GUI, and all the widgets images 
 			are built from it (taken from the appropriate part of the image). 
-			comment: The bitmap images of the menus GUIs all have the same structure and order of widgets images in them, so that we could use general 
-			functions for all the menus GUIs to get the images from them.  
+			* comment: The bitmap images of the menus GUIs all have the same structure and order of widgets images 
+				in them, so that we could use general functions for all the menus GUIs to get the images from them. 
+				Additionally, menus that have the same buttons and structure, share their bitmap image.  
 		- the SDL image used for the background image (applicable for the menus GUIs).
 		- the buttons array, which holds the buttons widgets of the GUI - for easy access to the buttons 
 			properties and updating their state (selected/not selected, enabled/disabled).
